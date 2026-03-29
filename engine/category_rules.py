@@ -253,6 +253,15 @@ def one_piece_context_bonus(
         elif garment.dress_level == "arreglado":
             bonus += 6
 
+    if occasion == "matrimonio":
+        if garment_has_style(garment, "elegante") or garment_has_style(garment, "formal"):
+            bonus += 12
+
+        if garment.dress_level == "elegante":
+            bonus += 8
+        elif garment.dress_level == "arreglado":
+            bonus += 4
+
     if occasion == "cita":
         if garment_has_style(garment, "elegante"):
             bonus += 6
@@ -389,7 +398,10 @@ def shoe_context_penalty(
 
     if activity in ["caminar", "normal"]:
         if is_heel:
-            penalty += 25
+            if occasion in ["matrimonio", "gala"]:
+                penalty += 5
+            else:
+                penalty += 25
 
         if rain and is_heel:
             penalty += 20
@@ -431,18 +443,28 @@ def shoe_context_penalty(
     if occasion == "salida nocturna" and mood in ["elegante", "sexy"]:
         if is_boot_like and not garment_has_style(garment, "urbano") and not garment_has_style(garment, "elegante"):
             penalty += 10
+        if is_sneaker_like:
+            penalty += 14
+
+        if is_sneaker_like and not garment_has_style(garment, "urbano"):
+            penalty += 6
 
     if occasion in ["matrimonio", "gala"]:
         if is_sneaker_like:
             penalty += 25
 
         if is_boot_like:
-            penalty += 18
+            penalty += 28
 
         if is_boot_like and not (
             garment_has_style(garment, "elegante") or garment_has_style(garment, "formal")
         ):
-            penalty += 12
+            penalty += 14
+
+        if is_boot_like and (
+            garment_has_style(garment, "elegante") or garment_has_style(garment, "formal")
+        ):
+            penalty += 8
 
         if not is_heel and not (
             garment_has_style(garment, "elegante") or garment_has_style(garment, "formal")
@@ -450,6 +472,7 @@ def shoe_context_penalty(
             penalty += 10
 
     return max(penalty, 0)
+
 
 def shoe_context_bonus(
     garment: Garment,
@@ -465,6 +488,7 @@ def shoe_context_bonus(
     bonus = 0
     is_boot_like = is_shoe_boot_like(garment)
     is_heel = is_shoe_heel(garment)
+    is_sneaker_like = is_shoe_sneaker_like(garment)
 
     if is_boot_like and rain:
         bonus += 4
@@ -488,8 +512,12 @@ def shoe_context_bonus(
         if is_heel:
             bonus += 10
 
-    return bonus
+        if not is_boot_like and not is_sneaker_like and (
+            garment_has_style(garment, "elegante") or garment_has_style(garment, "formal")
+        ):
+            bonus += 8
 
+    return bonus
 
 # =========================================================
 # MIDLAYER
