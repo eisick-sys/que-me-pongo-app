@@ -8,7 +8,7 @@ CATEGORY_LABELS_ES = {
     "midlayer": "Prenda intermedia",
     "outerwear": "Abrigos",
     "bottom": "Abajo",
-    "one_piece": "Una pieza (vestidos/enteritos)",
+    "one_piece": "Una pieza",
     "shoes": "Calzado",
     "accessory": "Accesorios",
 }

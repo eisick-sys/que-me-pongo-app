@@ -218,6 +218,11 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
 
         if bottom_is_formalish and shoes_are_very_casual:
             return -14
+        
+        shoes_are_sport = "sport" in shoes_styles or "deporte" in shoes_name
+
+        if bottom_is_formalish and shoes_are_sport:
+            return -22
 
     if {garment1.category, garment2.category} == {"top", "shoes"}:
         top = garment1 if garment1.category == "top" else garment2
@@ -247,6 +252,61 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
         if top_is_very_relaxed and shoes_are_heels:
             return -18
 
+    if {garment1.category, garment2.category} in [{"bottom", "midlayer"}, {"bottom", "outerwear"}]:
+        bottom = garment1 if garment1.category == "bottom" else garment2
+        layer = garment1 if garment1.category in ["midlayer", "outerwear"] else garment2
+
+        bottom_styles = all_styles(bottom)
+        layer_styles = all_styles(layer)
+
+        bottom_name = bottom.name.lower()
+        layer_name = layer.name.lower()
+
+        bottom_is_sport = (
+            "sport" in bottom_styles
+            or "buzo" in bottom_name
+            or "jogger" in bottom_name
+            or "jogging" in bottom_name
+        )
+
+        layer_is_elegant = (
+            "formal" in layer_styles
+            or "elegante" in layer_styles
+            or layer.dress_level in ["arreglado", "elegante"]
+            or "blazer" in layer_name
+            or "abrigo" in layer_name
+        )
+
+        if bottom_is_sport and layer_is_elegant:
+            return -20
+
+    if {garment1.category, garment2.category} in [{"shoes", "midlayer"}, {"shoes", "outerwear"}]:
+        shoes = garment1 if garment1.category == "shoes" else garment2
+        layer = garment1 if garment1.category in ["midlayer", "outerwear"] else garment2
+
+        shoes_styles = all_styles(shoes)
+        layer_styles = all_styles(layer)
+
+        shoes_name = shoes.name.lower()
+        layer_name = layer.name.lower()
+
+        shoes_are_sport = (
+            "sport" in shoes_styles
+            or "zapatilla" in shoes_name
+            or "sneaker" in shoes_name
+        )
+
+        layer_is_elegant = (
+            "formal" in layer_styles
+            or "elegante" in layer_styles
+            or layer.dress_level in ["arreglado", "elegante"]
+            or "blazer" in layer_name
+            or "abrigo" in layer_name
+        )
+
+        if shoes_are_sport and layer_is_elegant:
+            return -20
+
     # =========================================================
     # RECOMPENSAS NORMALES
     # =========================================================
@@ -271,7 +331,6 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
                 return 12
 
     return 4
-
 
 # =========================================================
 # COMPATIBILIDAD DE PATRONES

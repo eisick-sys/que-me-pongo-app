@@ -74,6 +74,7 @@ CATEGORY_LABELS_ES = {
     "midlayer": "Prenda intermedia",
     "outerwear": "Abrigos",
     "bottom": "Abajo",
+    "one_piece": "Una pieza",
     "shoes": "Calzado",
     "accessory": "Accesorios",
 }
@@ -732,7 +733,7 @@ with tab1:
     selected_allowed = True
 
     if selected_garment is not None:
-        selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion)
+        selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion, rain)
         if not selected_allowed:
             st.warning(reason)
 
