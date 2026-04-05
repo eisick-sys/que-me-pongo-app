@@ -1,6 +1,6 @@
 #occasion_rules.py
 from models import Garment
-from utils.garment_utils import all_styles
+from utils.garment_utils import all_styles, garment_has_style
 
 def get_weather_tag(temp: int, rain: bool) -> str:
     if rain:
@@ -54,10 +54,11 @@ def build_required_categories(occasion: str, rain: bool = False, temp: int = 15)
             required.append("outerwear")
 
     if rain:
-        if "outerwear" not in required:
-            required.append("outerwear")
-        if "outerwear" in optional:
-            optional.remove("outerwear")
+        if occasion not in ["gala", "matrimonio"]:
+            if "outerwear" not in required:
+                required.append("outerwear")
+            if "outerwear" in optional:
+                optional.remove("outerwear")
 
     return {
         "required": required,
@@ -71,7 +72,7 @@ def is_animal_print(garment: Garment) -> bool:
 def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = False):
     blocked_by_occasion = {
         "matrimonio": ["relajado"],
-        "gala": ["relajado", "flexible"],
+        "gala": ["relajado"],
         "trabajo": [],
         "cita": [],
         "casual": [],
@@ -85,12 +86,19 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
     garment_styles = all_styles(garment)
     lower_name = garment.name.lower()
 
+    if rain and garment.category == "bottom":
+        if any(x in lower_name for x in ["short", "shorts", "mini", "minifalda"]):
+            return False, f"{garment.name} no es adecuada para lluvia."
+    
     if occasion in ["matrimonio", "gala"]:
         if garment.category == "outerwear":
             if any(x in lower_name for x in ["impermeable", "parka", "rain", "agua"]):
-                return False, f"No te recomiendo usar {garment.name} para {occasion}."
+                if garment_has_style(garment, "sport") or garment.dress_level in ["relajado", "flexible"]:
+                    return False, f"No te recomiendo usar {garment.name} para {occasion}."
         if garment.category == "bottom":
             if any(x in lower_name for x in ["short", "shorts"]):
+                return False, f"{garment.name} no va con un {occasion}."
+            if any(x in lower_name for x in ["buzo", "jogger", "joggers"]):
                 return False, f"{garment.name} no va con un {occasion}."
         if "sport" in garment_styles:
             return (
@@ -124,14 +132,12 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
         if "sport" in garment_styles and garment.category != "shoes":
             return False, f"{garment.name} es demasiado sport para salida nocturna."
 
-        if garment.category == "outerwear":
-            if rain and any(x in lower_name for x in ["impermeable", "parka de lluvia", "rain"]):
-                pass
-            elif any(x in lower_name for x in ["impermeable", "parka de lluvia", "rain"]):
-                return False, f"{garment.name} no es ideal para salida nocturna."
-
-        if garment.category == "bottom":
-            if any(x in lower_name for x in ["buzo", "jogger", "short deportivo"]):
-                return False, f"{garment.name} es demasiado deportivo para salida nocturna."
+        if garment.category == "shoes":
+            if (
+                "zapatilla" in lower_name
+                or "sneaker" in lower_name
+                or "sport" in garment_styles
+            ):
+                return False, f"{garment.name} no va con una salida nocturna."
 
     return True, ""

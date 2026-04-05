@@ -210,7 +210,7 @@ def mood_bonus(garment: Garment, mood: str) -> int:
     return 2
 
 
-def sexiness_bonus(garment: Garment, mood: str, occasion: str) -> int:
+def sexiness_bonus(garment: Garment, mood: str, occasion: str, activity: str) -> int:
     if mood != "sexy":
         return 0
 
@@ -232,11 +232,17 @@ def sexiness_bonus(garment: Garment, mood: str, occasion: str) -> int:
     if garment.category == "accessory":
         score = max(0, score - 3)
 
+    if garment_has_style(garment, "sport"):
+        if activity == "deporte":
+            score = max(score - 2, 0)
+        else:
+            score -= 10
+
     # 🔥 NUEVO: penalización específica para zapatillas
     if garment.category == "shoes":
         name = garment.name.lower()
         if "zapatilla" in name or "sneaker" in name:
-            if occasion in ["cita", "salida nocturna"]:
+            if occasion in ["cita", "salida nocturna", "casual"]:
                 score -= 6
 
     return max(score, 0)
@@ -264,6 +270,44 @@ def coherence_penalty(items: List[Garment], occasion: str) -> int:
             if g.category == "shoes":
                 if "zapatilla" in g.name.lower() or garment_has_style(g, "sport"):
                     penalty += 8
+
+    # =========================================================
+    # PRENDA BOLD VS BASE DEMASIADO RELAJADA
+    # =========================================================
+    bold_items = []
+    relaxed_base_count = 0
+
+    for g in items:
+        name = g.name.lower()
+        styles = all_styles(g)
+        pattern = getattr(g, "pattern", "liso")
+
+        is_bold = (
+            pattern in ["animal_print", "grafico"]
+            or getattr(g, "sexiness", 0) >= 2
+        )
+
+        if is_bold:
+            bold_items.append(g)
+
+        is_relaxed_base = (
+            "sport" in styles
+            or "casual" in styles
+            or any(x in name for x in [
+                "buzo", "jogger", "jogging", "polar", "fleece",
+                "zapatilla", "sneaker", "converse",
+                "gorro", "beanie"
+            ])
+        )
+
+        if is_relaxed_base:
+            relaxed_base_count += 1
+
+    if bold_items and relaxed_base_count >= 2:
+        penalty += 18
+
+    if bold_items and relaxed_base_count >= 3:
+        penalty += 10
 
     return penalty
 
@@ -349,4 +393,6 @@ def practicality_penalty(
 
     if has_one_piece_elegante and occasion in ["matrimonio", "gala"]:
         penalty = max(penalty - 40, 0)
+    
+    
     return penalty

@@ -135,7 +135,7 @@ def garment_base_score(
             score -= 4
 
     # Sexy y perfil histórico
-    score += sexiness_bonus(g, mood, occasion)
+    score += sexiness_bonus(g, mood, occasion, activity)
     score += user_style_bonus(g, user_profile)
 
     # Ajustes especiales para trabajo
@@ -331,10 +331,40 @@ def outfit_score(
         elif occasion == "cita":
             score += 6
         elif occasion == "salida nocturna":
-            score += 3
-        else:
-            score += 8
+            if mood == "relajado":
+                score -= 4
+            elif mood in ["elegante", "sexy"]:
+                score += 6
+            else:
+                score += 2
 
+    if has_one_piece:
+        one_piece_item = next((g for g in items if g.category == "one_piece"), None)
+
+        if one_piece_item and (
+            one_piece_item.dress_level in ["arreglado", "elegante"]
+            or garment_has_style(one_piece_item, "elegante")
+            or garment_has_style(one_piece_item, "formal")
+        ):
+            has_utilitarian_layer = False
+
+            for g in items:
+                name = g.name.lower()
+
+                if g.category == "midlayer":
+                    if (
+                        g.warmth == "frio"
+                        or garment_has_style(g, "sport")
+                        or any(x in name for x in ["polar", "fleece", "sweater grueso"])
+                    ):
+                        has_utilitarian_layer = True
+
+                if g.category == "outerwear":
+                    if any(x in name for x in ["impermeable", "parka", "rain"]):
+                        has_utilitarian_layer = True
+
+            if has_utilitarian_layer:
+                score -= 45
     # =========================================================
     # 🔥 NUEVO: BONUS POR PRENDA FORZADA
     # =========================================================
@@ -472,6 +502,26 @@ def outfit_score(
         # caso 2: mini / vestido corto + sneakers (clave)
         if has_sneakers and has_mini_or_short:
             score -= 10
+    
+    # =========================================================
+    # PENALIZACIÓN POR CAPAS OPCIONALES (CONTROL DE SOBRECARGA)
+    # =========================================================
+    optional_layers = [
+        g for g in items if g.category in ["midlayer", "outerwear"]
+    ]
+
+    # Penalización base por agregar capas
+    if optional_layers:
+        score -= 6 * len(optional_layers)
+
+    # Penalización adicional en clima templado-cálido
+    if 24 <= temp < 26:
+        score -= 12 * len(optional_layers)
+
+    # Penalización fuerte en calor real (backup por si pasan filtros)
+    if temp >= 26:
+        score -= 12 * len(optional_layers)
+    
     # =========================================================
     # PENALIZACIONES
     # =========================================================
