@@ -17,7 +17,7 @@ from models import Garment, OutfitFeedback
 # UTILS (helpers de prendas)
 # =========================================================
 
-from utils.garment_utils import garment_has_style
+from utils.garment_utils import garment_has_style, is_bottom_jeans, is_bottom_pants, is_bottom_short_or_light, is_bottom_skirt, is_shoe_boot_like, is_shoe_heel, is_shoe_sneaker_like
 from utils.garment_utils import all_styles
 
 # =========================================================
@@ -553,7 +553,78 @@ def outfit_score(
     # =========================================================
     if recent_outfits:
         score -= repetition_penalty(items, recent_outfits)
+    
+    # =========================================================
+    # 🔥 AJUSTE GLOBAL: TRABAJO + URBANO
+    # =========================================================
+    if occasion == "trabajo" and mood == "urbano":
 
+        has_jeans = any(is_bottom_jeans(g) for g in items)
+        has_sneakers = any(
+            g.category == "shoes" and is_shoe_sneaker_like(g)
+            for g in items
+        )
+
+        has_formal_shoes = any(
+            g.category == "shoes" and is_shoe_heel(g)
+            for g in items
+        )
+
+        has_formal_bottom = any(
+            g.category == "bottom" and is_bottom_pants(g) and not is_bottom_jeans(g)
+            for g in items
+        )
+
+        has_blazer_or_formal_outer = any(
+            g.category in ["midlayer", "outerwear"] and (
+                garment_has_style(g, "elegante") or
+                garment_has_style(g, "formal")
+            )
+            for g in items
+        )
+
+        # ❌ demasiado formal → bajar
+        if has_formal_shoes and has_formal_bottom and has_blazer_or_formal_outer:
+            score -= 20
+
+        # ✅ mezcla urbana → subir
+        is_urban_bottom = has_jeans
+
+        has_sneakers = any(
+            g.category == "shoes" and is_shoe_sneaker_like(g)
+            for g in items
+        )
+
+        has_boots = any(
+            g.category == "shoes" and is_shoe_boot_like(g)
+                for g in items
+        )
+
+        if is_urban_bottom and has_sneakers:
+            if rain or temp <= 10:
+                score += 32
+            else:
+                score += 22
+
+        elif is_urban_bottom and has_boots:
+            if rain or temp <= 10:
+                score += 20
+            else:
+                score += 14
+
+    # =========================================================
+    # 🔥 AJUSTE GLOBAL: TRABAJO + ELEGANTE
+    # =========================================================
+    if occasion == "trabajo" and mood == "elegante":
+
+        has_short = any(
+            g.category == "bottom" and is_bottom_short_or_light(g)
+            for g in items
+        )
+
+        if has_short:
+            score -= 28
+            
     return int(score)
 
 def explain_outfit_score(

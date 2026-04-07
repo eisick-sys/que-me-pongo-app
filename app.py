@@ -7,6 +7,8 @@ from typing import List
 from PIL import Image, ImageOps
 import streamlit as st
 
+from utils.garment_utils import is_bottom_skirt
+
 st.set_page_config(
     page_title="Lookia",
     page_icon="👕",
@@ -632,11 +634,10 @@ with tab1:
     st.subheader("Recomiéndame algo para hoy")
 
     col1, col2, col3 = st.columns(3)
-
     with col1:
         occasion = st.selectbox("Ocasión", OCCASION_OPTIONS)
         mood = st.selectbox("Mood / estilo deseado", MOOD_OPTIONS)
-
+        
     with col2:
         activity = st.selectbox("Actividad", ACTIVITY_OPTIONS)
         use_real_weather = st.toggle("Usar clima real", value=True)
@@ -810,78 +811,86 @@ with tab1:
 
     st.markdown("## Resultados")
 
-    for idx, (score, combo) in enumerate(outfits, start=1):
-        st.markdown(f"### Outfit {idx} · Score {score}")
+    if not outfits:
+        st.info("No hay prendas suficientes para armar este outfit.")
+    else:
+        for idx, (score, combo) in enumerate(outfits, start=1):
+            st.markdown(f"### Outfit {idx} · Score {score}")
         
-        if st.session_state.get("outfit_used_message_idx") == idx:
-            st.success(st.session_state.get("outfit_used_message_text", "Outfit guardado como usado."))
-            del st.session_state["outfit_used_message_idx"]
-            del st.session_state["outfit_used_message_text"]
+            if st.session_state.get("outfit_used_message_idx") == idx:
+                st.success(st.session_state.get("outfit_used_message_text", "Outfit guardado como usado."))
+                del st.session_state["outfit_used_message_idx"]
+                del st.session_state["outfit_used_message_text"]
 
-        cols = st.columns(len(combo))
+            cols = st.columns(len(combo))
 
-        for col, g in zip(cols, combo):
-            with col:
-                with st.container():
-                    st.markdown(f"**{g.name}**")
-                    st.caption(f"{CATEGORY_LABELS_ES.get(g.category, g.category)} · {garment_color_label(g)}")
-                    render_garment_image(g, width=140)
+            for col, g in zip(cols, combo):
+                with col:
+                    with st.container():
+                        st.markdown(f"**{g.name}**")
+                        st.caption(f"{CATEGORY_LABELS_ES.get(g.category, g.category)} · {garment_color_label(g)}")
+                        render_garment_image(g, width=140)
 
-        explanation = explain_outfit_score(
-            combo,
-            occasion,
-            temp,
-            rain,
-            mood,
-            activity,
-            feedback_list=st.session_state.feedback,
-            recent_outfits=get_recent_outfit_memory(),
-        )
-
-        if explanation:
-            st.caption(".".join(explanation))
-
-        ctx = {
-            "occasion": occasion,
-            "mood": mood,
-            "activity": activity,
-            "temp": temp,
-            "rain": rain,
-        }
-
-        weather_tag = get_weather_tag(temp, rain)
-
-        render_feedback_buttons(
-            combo,
-            outfit_index=idx,
-            ctx=ctx,
-            weather_tag=weather_tag,
-            section="tab1"
-        )
-
-        if st.button("💃 lo usaré", key=f"use_{idx}", use_container_width=True):
-            remember_outfit(combo)
-
-            current_used_outfits = st.session_state.get("used_outfits", [])
-
-            new_used_outfit = UsedOutfit(
-                id=get_next_used_outfit_id(current_used_outfits),
-                garment_ids=[g.id for g in combo],
-                used_at=str(date.today()),
-                occasion=ctx["occasion"],
-                mood=ctx["mood"],
-                activity=ctx["activity"],
-                weather_tag=weather_tag,
+            explanation = explain_outfit_score(
+                combo,
+                occasion,
+                temp,
+                rain,
+                mood,
+                activity,
+                feedback_list=st.session_state.feedback,
+                recent_outfits=get_recent_outfit_memory(),
             )
 
-            add_used_outfit(USED_OUTFITS_FILE, new_used_outfit)
-            st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+            if explanation:
+                st.caption(".".join(explanation))
 
-            st.session_state["outfit_used_message_idx"] = idx
-            st.session_state["outfit_used_message_text"] = "Outfit guardado como usado."
-            st.rerun()
+            has_skirt = any(g.category == "bottom" and is_bottom_skirt(g) for g in combo)
 
-        st.divider()
+            if has_skirt and (rain or temp <= 8):
+                st.info("❄️ Tip: si usas falda con este clima, no olvides tus pantys.")
+
+            ctx = {
+                "occasion": occasion,
+                "mood": mood,
+                "activity": activity,
+                "temp": temp,
+                "rain": rain,
+            }
+
+            weather_tag = get_weather_tag(temp, rain)
+
+            render_feedback_buttons(
+                combo,
+                outfit_index=idx,
+                ctx=ctx,
+                weather_tag=weather_tag,
+                section="tab1"
+            )
+
+            if st.button("💃 lo usaré", key=f"use_{idx}", use_container_width=True):
+                remember_outfit(combo)
+
+                current_used_outfits = st.session_state.get("used_outfits", [])
+
+                new_used_outfit = UsedOutfit(
+                    id=get_next_used_outfit_id(current_used_outfits),
+                    garment_ids=[g.id for g in combo],
+                    used_at=str(date.today()),
+                    occasion=ctx["occasion"],
+                    mood=ctx["mood"],
+                    activity=ctx["activity"],
+                    weather_tag=weather_tag,
+                )
+
+                add_used_outfit(USED_OUTFITS_FILE, new_used_outfit)
+                st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+
+                st.session_state["outfit_used_message_idx"] = idx
+                st.session_state["outfit_used_message_text"] = "Outfit guardado como usado."
+                st.rerun()
+
+            st.divider()
 
 # =========================================================
 # TAB 2: MI CLÓSET
@@ -1667,10 +1676,12 @@ with tab4:
     base_col1, base_col2, base_col3 = st.columns(3)
 
     with base_col1:
+        base_options = list(OCCASION_OPTIONS)
+
         base_occasion = st.selectbox(
             "Ocasión base",
-            OCCASION_OPTIONS,
-            index=OCCASION_OPTIONS.index("trabajo"),
+            base_options,
+            index=base_options.index("trabajo"),
             key="base_week_occasion"
         )
 

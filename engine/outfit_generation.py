@@ -456,115 +456,115 @@ def generate_outfits(
                         ):
                             register_combo(combo)
 
-        final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
+    final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
 
-        def is_too_similar(c1, c2):
-            ids1 = {g.category: g.id for g in c1}
-            ids2 = {g.category: g.id for g in c2}
+    def is_too_similar(c1, c2):
+        ids1 = {g.category: g.id for g in c1}
+        ids2 = {g.category: g.id for g in c2}
 
-            same_top = ids1.get("top") == ids2.get("top")
-            same_bottom = ids1.get("bottom") == ids2.get("bottom")
-            same_one_piece = ids1.get("one_piece") == ids2.get("one_piece")
-            same_shoes = ids1.get("shoes") == ids2.get("shoes")
+        same_top = ids1.get("top") == ids2.get("top")
+        same_bottom = ids1.get("bottom") == ids2.get("bottom")
+        same_one_piece = ids1.get("one_piece") == ids2.get("one_piece")
+        same_shoes = ids1.get("shoes") == ids2.get("shoes")
 
         # 🔥 NUEVO: detectar mismo tipo de combinacion
-            bottom1 = next((g for g in c1 if g.category == "bottom"), None)
-            bottom2 = next((g for g in c2 if g.category == "bottom"), None)
+        bottom1 = next((g for g in c1 if g.category == "bottom"), None)
+        bottom2 = next((g for g in c2 if g.category == "bottom"), None)
 
-            shoes1 = next((g for g in c1 if g.category == "shoes"), None)
-            shoes2 = next((g for g in c2 if g.category == "shoes"), None)
+        shoes1 = next((g for g in c1 if g.category == "shoes"), None)
+        shoes2 = next((g for g in c2 if g.category == "shoes"), None)
 
-            same_bottom_type = False
-            same_shoes_type = False
+        same_bottom_type = False
+        same_shoes_type = False
 
-            if bottom1 and bottom2:
-                name1 = bottom1.name.lower()
-                name2 = bottom2.name.lower()
+        if bottom1 and bottom2:
+            name1 = bottom1.name.lower()
+            name2 = bottom2.name.lower()
 
-                same_bottom_type = (
-                    ("buzo" in name1 and "buzo" in name2) or
-                    ("jean" in name1 and "jean" in name2) or
-                    ("short" in name1 and "short" in name2)
-                )
+            same_bottom_type = (
+                ("buzo" in name1 and "buzo" in name2) or
+                ("jean" in name1 and "jean" in name2) or
+                ("short" in name1 and "short" in name2)
+            )
 
-            if shoes1 and shoes2:
-                name1 = shoes1.name.lower()
-                name2 = shoes2.name.lower()
+        if shoes1 and shoes2:
+            name1 = shoes1.name.lower()
+            name2 = shoes2.name.lower()
 
-                same_shoes_type = (
-                    ("zapatilla" in name1 and "zapatilla" in name2)
-                )
+            same_shoes_type = (
+                ("zapatilla" in name1 and "zapatilla" in name2)
+            )
 
-            # 🔥 regla fuerte: mismo tipo de bottom + mismo tipo de calzado
-            if same_bottom_type and same_shoes_type:
-                return True
+        # 🔥 regla fuerte: mismo tipo de bottom + mismo tipo de calzado
+        if same_bottom_type and same_shoes_type:
+            return True
 
-            # reglas existentes (más suaves)
-            if same_top and same_bottom:
-                return True
+        # reglas existentes (más suaves)
+        if same_top and same_bottom:
+            return True
 
-            if same_top and same_shoes:
-                return True
+        if same_top and same_shoes:
+            return True
 
-            return False
+        return False
 
-        diverse_outfits = []
-        midlayer_outfits_count = 0
-        max_midlayer_outfits = 1 if 24 <= temp < 26 else top_n
-        top_usage = {}
-        shoes_usage = {}
-        max_same_top = 2 if top_n >= 3 else 1
-        max_same_shoes = 2 if top_n >= 3 else 1
+    diverse_outfits = []
+    midlayer_outfits_count = 0
+    max_midlayer_outfits = 1 if 24 <= temp < 26 else top_n
+    top_usage = {}
+    shoes_usage = {}
+    max_same_top = 2 if top_n >= 3 else 1
+    max_same_shoes = 2 if top_n >= 3 else 1
 
-        for score, combo in final_outfits:
-            ids = {g.category: g.id for g in combo}
-            has_midlayer = any(g.category == "midlayer" for g in combo)
+    for score, combo in final_outfits:
+        ids = {g.category: g.id for g in combo}
+        has_midlayer = any(g.category == "midlayer" for g in combo)
 
-            if has_midlayer and midlayer_outfits_count >= max_midlayer_outfits:
-                continue
+        if has_midlayer and midlayer_outfits_count >= max_midlayer_outfits:
+            continue
 
-            top_id = ids.get("top")
-            shoes_id = ids.get("shoes")
+        top_id = ids.get("top")
+        shoes_id = ids.get("shoes")
 
-            if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
-                continue
+        if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
+            continue
 
-            if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
-                continue
+        if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+            continue
 
-            too_similar = False
+        too_similar = False
 
-            for _, existing in diverse_outfits:
-                ids2 = {g.category: g.id for g in existing}
+        for _, existing in diverse_outfits:
+            ids2 = {g.category: g.id for g in existing}
 
-                if is_too_similar(combo, existing):
-                    too_similar = True
-                    break
-
-                if ids.get("one_piece") is not None and ids.get("one_piece") == ids2.get("one_piece"):
-                    too_similar = True
-                    break
-
-                if ids.get("bottom") == ids2.get("bottom") and ids.get("shoes") == ids2.get("shoes"):
-                    too_similar = True
-                    break
-
-            if not too_similar:
-                diverse_outfits.append((score, combo))
-
-                if has_midlayer:
-                    midlayer_outfits_count += 1
-
-                if top_id is not None:
-                    top_usage[top_id] = top_usage.get(top_id, 0) + 1
-
-                if shoes_id is not None:
-                    shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
-
-            if len(diverse_outfits) >= top_n:
+            if is_too_similar(combo, existing):
+                too_similar = True
                 break
 
-        return diverse_outfits[:top_n]
+            if ids.get("one_piece") is not None and ids.get("one_piece") == ids2.get("one_piece"):
+                too_similar = True
+                break
+
+            if ids.get("bottom") == ids2.get("bottom") and ids.get("shoes") == ids2.get("shoes"):
+                too_similar = True
+                break
+
+        if not too_similar:
+            diverse_outfits.append((score, combo))
+
+            if has_midlayer:
+                midlayer_outfits_count += 1
+
+            if top_id is not None:
+                top_usage[top_id] = top_usage.get(top_id, 0) + 1
+
+            if shoes_id is not None:
+                shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+
+        if len(diverse_outfits) >= top_n:
+            break
+
+    return diverse_outfits[:top_n]
 
 
 def generate_outfits_from_selected_garment(

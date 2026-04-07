@@ -1,4 +1,4 @@
-# category_rules.py
+# CATEGORY_RULES.py
 from typing import List
 
 from models import Garment
@@ -24,6 +24,43 @@ from utils.garment_utils import (
 # =========================================================
 # TOP
 # =========================================================
+
+def top_context_penalty(
+    garment: Garment,
+    occasion: str,
+    mood: str,
+    activity: str,
+    temp: int,
+    rain: bool,
+) -> int:
+    if garment.category != "top":
+        return 0
+
+    penalty = 0
+
+    if occasion in ["trabajo", "cita", "salida nocturna"]:
+        if is_top_too_sporty(garment):
+            penalty += 10
+
+    if occasion == "trabajo" and mood == "elegante":
+        if "polera" in garment.name.lower() or "tshirt" in garment.name.lower():
+            penalty += 18
+
+    if occasion in ["gala", "matrimonio"]:
+        if garment_has_style(garment, "casual"):
+            penalty += 12
+        if garment_has_style(garment, "sport"):
+            penalty += 20
+
+    if mood == "urbano":
+        if garment_has_style(garment, "formal") and not garment_has_style(garment, "urbano"):
+            penalty += 8
+
+    if temp >= 26 and garment.warmth == "frio":
+        penalty += 10
+
+    return penalty
+#---------------------------------------------------------------
 
 def top_context_bonus(
     garment: Garment,
@@ -71,39 +108,6 @@ def top_context_bonus(
         bonus += 3
 
     return bonus
-
-def top_context_penalty(
-    garment: Garment,
-    occasion: str,
-    mood: str,
-    activity: str,
-    temp: int,
-    rain: bool,
-) -> int:
-    if garment.category != "top":
-        return 0
-
-    penalty = 0
-
-    if occasion in ["trabajo", "cita", "salida nocturna"]:
-        if is_top_too_sporty(garment):
-            penalty += 10
-
-    if occasion in ["gala", "matrimonio"]:
-        if garment_has_style(garment, "casual"):
-            penalty += 12
-        if garment_has_style(garment, "sport"):
-            penalty += 20
-
-    if mood == "urbano":
-        if garment_has_style(garment, "formal") and not garment_has_style(garment, "urbano"):
-            penalty += 8
-
-    if temp >= 26 and garment.warmth == "frio":
-        penalty += 10
-
-    return penalty
-
 
 # =========================================================
 # BOTTOM
@@ -170,7 +174,10 @@ def bottom_context_penalty(
         if is_short_or_light:
             penalty += 12
 
-    # NUEVO: castigo fuerte al buzo/jogger fuera de contexto
+    if occasion == "trabajo" and mood == "elegante":
+        if is_short_or_light:
+            penalty += 25
+
     if is_jogger_like:
         if occasion == "trabajo":
             penalty += 22
@@ -207,6 +214,7 @@ def bottom_context_penalty(
             penalty += 10
 
     return penalty
+#---------------------------------------------------------------
 
 def bottom_context_bonus(
     garment: Garment,
@@ -221,7 +229,8 @@ def bottom_context_bonus(
 
     is_jeans = is_bottom_jeans(garment)
     is_pants = is_bottom_pants(garment)
-
+    is_skirt = is_bottom_skirt(garment)
+    
     bonus = 0
 
     if activity == "caminar":
@@ -252,12 +261,71 @@ def bottom_context_bonus(
         if is_pants:
             bonus += 6
     
+    if occasion == "trabajo" and mood == "urbano":
+        if is_jeans:
+            bonus += 12
+
+        if is_pants:
+            bonus += 4
+    if occasion == "trabajo" and mood == "elegante":
+        if is_pants:
+            bonus += 10
+        if is_skirt:
+            bonus += 6
+    
     return bonus
 
 
 # =========================================================
 # ONE PIECE
 # =========================================================
+
+def one_piece_context_penalty(
+    garment: Garment,
+    occasion: str,
+    mood: str,
+    activity: str,
+    temp: int,
+    rain: bool,
+) -> int:
+    if garment.category != "one_piece":
+        return 0
+
+    penalty = 0
+
+    if occasion in ["matrimonio", "gala"]:
+        if garment_has_style(garment, "casual"):
+            penalty += 12
+        if garment_has_style(garment, "sport"):
+            penalty += 20
+        if garment.dress_level == "relajado":
+            penalty += 18
+
+    if occasion == "trabajo":
+        if garment_has_style(garment, "sport"):
+            penalty += 12
+
+    if occasion == "salida nocturna":
+        if garment_has_style(garment, "sport"):
+            penalty += 12
+
+    if mood == "urbano":
+        if garment_has_style(garment, "formal") and not garment_has_style(garment, "urbano"):
+            penalty += 8
+
+    if temp <= 10 and garment.warmth == "caluroso":
+        penalty += 8
+
+    if temp >= 26 and garment.warmth == "frio":
+        penalty += 10
+
+    if garment.category == "one_piece":
+        if occasion == "casual" and mood == "elegante":
+            if garment.dress_level == "elegante":
+                penalty += 18
+
+    return penalty
+#---------------------------------------------------------------
 
 def one_piece_context_bonus(
     garment: Garment,
@@ -331,56 +399,10 @@ def one_piece_context_bonus(
     return bonus
 
 
-def one_piece_context_penalty(
-    garment: Garment,
-    occasion: str,
-    mood: str,
-    activity: str,
-    temp: int,
-    rain: bool,
-) -> int:
-    if garment.category != "one_piece":
-        return 0
-
-    penalty = 0
-
-    if occasion in ["matrimonio", "gala"]:
-        if garment_has_style(garment, "casual"):
-            penalty += 12
-        if garment_has_style(garment, "sport"):
-            penalty += 20
-        if garment.dress_level == "relajado":
-            penalty += 18
-
-    if occasion == "trabajo":
-        if garment_has_style(garment, "sport"):
-            penalty += 12
-
-    if occasion == "salida nocturna":
-        if garment_has_style(garment, "sport"):
-            penalty += 12
-
-    if mood == "urbano":
-        if garment_has_style(garment, "formal") and not garment_has_style(garment, "urbano"):
-            penalty += 8
-
-    if temp <= 10 and garment.warmth == "caluroso":
-        penalty += 8
-
-    if temp >= 26 and garment.warmth == "frio":
-        penalty += 10
-
-    if garment.category == "one_piece":
-        if occasion == "casual" and mood == "elegante":
-            if garment.dress_level == "elegante":
-                penalty += 18
-
-    return penalty
-
-
 # =========================================================
 # SHOES
 # =========================================================
+
 def shoe_context_penalty(
     garment: Garment,
     occasion: str,
@@ -442,6 +464,8 @@ def shoe_context_penalty(
         if is_heel:
             if occasion in ["matrimonio", "gala"]:
                 penalty += 5
+            elif occasion == "trabajo" and mood == "elegante" and activity == "normal":
+                penalty += 14
             else:
                 penalty += 25
 
@@ -530,8 +554,29 @@ def shoe_context_penalty(
         ):
             penalty += 10
 
+    if occasion == "trabajo" and mood == "urbano":
+
+        if is_heel:
+            penalty += 18
+            if temp >= 24:
+                penalty += 18
+        
+        if is_boot_like and garment_has_style(garment, "elegante"):
+            penalty += 6
+
+        if is_sneaker_like:
+            penalty -= 10
+        
+    if temp >= 24:
+        if is_boot_like:
+            penalty += 30
+
+            if occasion == "trabajo" and mood == "urbano":
+                penalty += 12
+
     return max(penalty, 0)
 
+#---------------------------------------------------------------
 
 def shoe_context_bonus(
     garment: Garment,
@@ -609,6 +654,7 @@ def midlayer_context_penalty(
             penalty += 16
 
     return penalty
+#---------------------------------------------------------------
 
 def midlayer_context_bonus(
     garment: Garment,
@@ -676,7 +722,7 @@ def outerwear_context_bonus(
         bonus += 12
         
     return bonus
-
+#---------------------------------------------------------------
 
 def outerwear_context_penalty(
     garment: Garment,
