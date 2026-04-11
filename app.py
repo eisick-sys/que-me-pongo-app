@@ -58,6 +58,7 @@ from engine.recommender import (
 from constants import (
     ACCESSORY_TYPE_OPTIONS,
     ACTIVITY_OPTIONS,
+    CATEGORY_LABELS_ES,
     CATEGORY_OPTIONS,
     COLOR_ALIASES,
     COLOR_OPTIONS,
@@ -72,16 +73,6 @@ from constants import (
 )
 from utils.attribute_inference import infer_attributes_from_name, suggest_name_from_filename
 
-CATEGORY_LABELS_ES = {
-    "top": "Arriba",
-    "midlayer": "Prenda intermedia",
-    "outerwear": "Abrigos",
-    "bottom": "Abajo",
-    "one_piece": "Una pieza",
-    "shoes": "Calzado",
-    "accessory": "Accesorios",
-}
-
 # =========================================================
 # CONFIGURACIÓN BASE
 # =========================================================
@@ -93,7 +84,10 @@ FEEDBACK_FILE = os.path.join(BASE_DIR, "feedback.json")
 USED_OUTFITS_FILE = os.path.join(BASE_DIR, "used_outfits.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "wardrobe_images")
 
-WEATHER_API_KEY = "38493ee8322364a415a1afb874180045"
+from dotenv import load_dotenv
+load_dotenv()
+WEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+DEFAULT_CITY = os.getenv("LOOKIA_CITY", "Punta Arenas")
 
 # Crear carpeta de imágenes si no existe
 if not os.path.exists(IMAGES_DIR):
@@ -618,6 +612,7 @@ if st.session_state.closet_profile is None:
 # =========================================================
 
 st.caption(f"Perfil del clóset: {st.session_state.closet_profile}")
+debug_mode = st.toggle("🔧 Modo debug", value=False, key="debug_mode")
 
 tab1, tab2, tab3, tab4 = st.tabs([
     "🌤️ Hoy",
@@ -642,73 +637,69 @@ with tab1:
         activity = st.selectbox("Actividad", ACTIVITY_OPTIONS)
         use_real_weather = st.toggle("Usar clima real", value=True)
 
-        DEFAULT_CITY = "Punta Arenas"
-
         if use_real_weather:
             weather_data = get_current_weather(DEFAULT_CITY, WEATHER_API_KEY)
-
             if weather_data:
                 temp = weather_data["temp"]
                 rain = weather_data["rain"]
-
                 st.success(f"{DEFAULT_CITY} · {format_weather_label(weather_data)}")
-
             else:
                 st.warning("No se pudo obtener el clima. Usa ajuste manual.")
-
                 temp = st.slider("Temperatura (°C)", 0, 35, 16)
                 rain = st.toggle("¿Llueve?")
-
         else:
             temp = st.slider("Temperatura (°C)", 0, 35, 16)
             rain = st.toggle("¿Llueve?")
 
-# =========================================================
-# 🔥 AJUSTES MANUALES 
-# =========================================================
-        thermal_sensitivity = "auto"
-        manual_sky = "auto"
-        indoor_outdoor = "auto"
-        # sensibilidad térmica
-        if thermal_sensitivity == "friolento/a":
-            temp -= 4
-        elif thermal_sensitivity == "caluroso/a":
-            temp += 4
+    # Variables por defecto — sin ajuste
+    thermal_sensitivity = "normal"
+    indoor_outdoor = "exterior"
+    manual_sky = "despejado"
+    expander_active = False
 
-        # cielo manual
-        if manual_sky == "nublado":
-            temp -= 2
-        elif manual_sky == "despejado":
-            temp += 2
+    with st.expander("Ajuste manual opcional", expanded=False):
+        expander_active = True
 
-        # interior / exterior
-        if indoor_outdoor == "interior":
-            temp += 4
-            rain = False
-        elif indoor_outdoor == "exterior":
-            temp -= 3
-
-# 🔥 AJUSTES AVANZADOS 
-    with st.expander("Ajuste manual opcional", expanded=not use_real_weather):
-        col_manual_1, col_manual_2, col_manual_3 = st.columns(3)
+        col_manual_1, col_manual_2 = st.columns(2)
 
         with col_manual_1:
             thermal_sensitivity = st.selectbox(
                 "Sensibilidad térmica",
-                ["auto", "friolento/a", "normal", "caluroso/a"],
+                ["normal", "friolento/a", "caluroso/a"],
+                key="thermal_sensitivity"
             )
 
         with col_manual_2:
-            manual_sky = st.selectbox(
-                "Cielo manual",
-                ["auto", "despejado", "nublado"],
+            indoor_outdoor = st.selectbox(
+                "¿Dónde estarás?",
+                ["exterior", "interior"],
+                key="indoor_outdoor"
             )
 
-        with col_manual_3:
-            indoor_outdoor = st.selectbox(
-                "¿Interior o exterior?",
-                ["auto", "interior", "exterior"],
+        if indoor_outdoor == "exterior":
+            manual_sky = st.selectbox(
+                "Cielo",
+                ["despejado", "nublado"],
+                key="manual_sky"
             )
+        else:
+            manual_sky = "despejado"
+
+        temp_ajustada = temp
+
+        if thermal_sensitivity == "friolento/a":
+            temp_ajustada -= 2
+        elif thermal_sensitivity == "caluroso/a":
+            temp_ajustada += 3
+
+        if indoor_outdoor == "interior":
+            temp_ajustada += 4
+        elif indoor_outdoor == "exterior" and manual_sky == "nublado":
+            temp_ajustada -= 2
+
+        temp = temp_ajustada
+
+        temp = temp_ajustada
 
 
     st.markdown("### Usar una prenda específica (opcional)")
@@ -738,6 +729,10 @@ with tab1:
         selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion, rain)
         if not selected_allowed:
             st.warning(reason)
+
+        # Advertencia de clima para prenda forzada
+        if selected_garment.category == "outerwear" and temp >= 24:
+            st.warning(f"{selected_garment.name} puede ser demasiado abrigada para {temp}°C — pero tú decides.")
 
     col_btn1, col_btn2, col_btn3 = st.columns(3)
 
@@ -779,6 +774,35 @@ with tab1:
                 recent_outfits=recent_memory,
             )
 
+            # Si es interior con frío, forzar al menos 1 outfit sin outerwear
+            if indoor_outdoor == "interior" and temp <= 14:
+                tiene_sin_abrigo = any(
+                    not any(g.category == "outerwear" for g in combo)
+                    for _, combo in outfits
+                )
+
+                if not tiene_sin_abrigo and len(outfits) >= 2:
+                    outfits_sin_abrigo = generate_outfits(
+                        garments=st.session_state.wardrobe,
+                        occasion=occasion,
+                        temp=temp + 6,
+                        rain=False,
+                        mood=mood,
+                        activity=activity,
+                        top_n=3,
+                        feedback_list=st.session_state.feedback,
+                        recent_outfits=recent_memory,
+                    )
+
+                    sin_abrigo = [
+                        (score, combo) for score, combo in outfits_sin_abrigo
+                        if not any(g.category == "outerwear" for g in combo)
+                    ]
+
+                    if sin_abrigo:
+                        outfits = list(outfits)
+                        outfits[-1] = sin_abrigo[0]
+
         remember_shown_outfits(outfits)
         st.session_state.last_outfits = outfits
     
@@ -811,12 +835,15 @@ with tab1:
 
     st.markdown("## Resultados")
 
-    if not outfits:
+    if not outfits and st.session_state.has_generated_outfits:
         st.info("No hay prendas suficientes para armar este outfit.")
     else:
         for idx, (score, combo) in enumerate(outfits, start=1):
-            st.markdown(f"### Outfit {idx} · Score {score}")
-        
+            if debug_mode:
+                st.markdown(f"### Outfit {idx} · Score {score}")
+            else:
+                st.markdown(f"### Outfit {idx}")        
+            
             if st.session_state.get("outfit_used_message_idx") == idx:
                 st.success(st.session_state.get("outfit_used_message_text", "Outfit guardado como usado."))
                 del st.session_state["outfit_used_message_idx"]
@@ -843,12 +870,21 @@ with tab1:
             )
 
             if explanation:
-                st.caption(".".join(explanation))
+                st.markdown(
+                    " &nbsp;|&nbsp; ".join(explanation),
+                    unsafe_allow_html=True
+                )
 
             has_skirt = any(g.category == "bottom" and is_bottom_skirt(g) for g in combo)
+            has_short = any(
+                g.category == "bottom" and "short" in g.name.lower()
+                for g in combo
+            )
 
-            if has_skirt and (rain or temp <= 8):
+            if has_skirt and (rain or temp <= 12):
                 st.info("❄️ Tip: si usas falda con este clima, no olvides tus pantys.")
+            elif has_short and (rain or temp <= 12):
+                st.info("❄️ Tip: si usas short con este clima, considera unas pantys o medias.")
 
             ctx = {
                 "occasion": occasion,
@@ -1205,16 +1241,7 @@ with tab2:
                                 index=ACCESSORY_TYPE_OPTIONS.index(current_accessory_type)
                                 if current_accessory_type in ACCESSORY_TYPE_OPTIONS else 0
                             )
-                        accessory_type = None
-                        if category == "accessory":
-                            current_accessory_type = getattr(garment, "accessory_type", None) or "reloj"
-                            accessory_type = st.selectbox(
-                                "Tipo de accesorio",
-                                ACCESSORY_TYPE_OPTIONS,
-                                index=ACCESSORY_TYPE_OPTIONS.index(current_accessory_type)
-                                if current_accessory_type in ACCESSORY_TYPE_OPTIONS else 0
-                            )
-
+                        
                         warmth = "medio"
                         show_warmth = (
                             category in ["top", "midlayer", "outerwear", "bottom", "shoes"]
@@ -1237,12 +1264,13 @@ with tab2:
                             index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
                             if garment.dress_level in DRESS_LEVEL_OPTIONS else 0
                         )
-
+                        
                         sexiness = st.slider(
                             "Nivel sexy",
                             min_value=0,
                             max_value=3,
                             value=getattr(garment, "sexiness", 0),
+                            key="form_sexiness_edit",
                             help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
 
@@ -1357,9 +1385,6 @@ with tab3:
     if "form_waterproof" not in st.session_state:
         st.session_state.form_waterproof = False
 
-    if "form_sexiness" not in st.session_state:
-        st.session_state.form_sexiness = 0
-
     if "form_dress_level" not in st.session_state:
         st.session_state.form_dress_level = "flexible"
 
@@ -1385,7 +1410,7 @@ with tab3:
         st.session_state.form_secondary_styles = []
         st.session_state.form_warmth = "medio"
         st.session_state.form_waterproof = False
-        st.session_state.form_sexiness = 0
+        st.session_state.form_sexiness_add = 0
         st.session_state.form_dress_level = "flexible"
         del st.session_state["reset_add_form"]
 
@@ -1612,12 +1637,12 @@ with tab3:
             "¿Es impermeable?",
             key="form_waterproof"
         )
-
+        
         sexiness = st.slider(
             "Nivel sexy",
             min_value=0,
-            max_value=10,
-            key="form_sexiness"
+            max_value=3,
+            key="form_sexiness_add"
         )
 
         dress_level = st.selectbox(
@@ -1709,7 +1734,7 @@ with tab4:
 
     planner_city = st.text_input(
         "Ciudad para pronóstico semanal",
-        value="Punta Arenas",
+        value=DEFAULT_CITY,
         key="weekly_weather_city"
     )
 

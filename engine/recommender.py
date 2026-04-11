@@ -226,7 +226,7 @@ def rank_garments(
     scored = []
 
     for g in filtered:
-        allowed, _ = garment_allowed_for_occasion(g, occasion, rain)
+        allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
         if not allowed:
             continue
 
@@ -476,6 +476,30 @@ def outfit_score(
 
         if all(g.sexiness == 0 for g in items):
             score -= 10
+
+        if occasion == "trabajo":
+            sexy_count = sum(1 for g in items if g.sexiness >= 2)
+
+            if sexy_count == 0:
+                score -= 20
+            elif sexy_count == 1:
+                score -= 8
+
+            top_or_one_piece = next(
+                (g for g in items if g.category in ["top", "one_piece"]),
+                None
+            )
+
+            if top_or_one_piece and getattr(top_or_one_piece, "sexiness", 0) == 0:
+                score -= 10
+
+            has_heels = any(
+                g.category == "shoes" and "taco" in g.name.lower()
+                for g in items
+            )
+
+            if has_heels:
+                score += 4
     # =========================================================
     # 🔥 COHERENCIA SEXY (OUTFIT COMPLETO)
     # =========================================================
@@ -526,7 +550,7 @@ def outfit_score(
     # PENALIZACIONES
     # =========================================================
     score -= coherence_penalty(items, occasion)
-    score -= practicality_penalty(items, occasion, temp, rain)
+    score -= practicality_penalty(items, occasion, temp, rain, mood)
     score -= outfit_accessory_penalty(items, occasion, mood, activity, temp, rain)
     has_one_piece = any(g.category == "one_piece" for g in items)
 
@@ -637,83 +661,164 @@ def explain_outfit_score(
     feedback_list: Optional[List[OutfitFeedback]] = None,
     recent_outfits: Optional[List[Any]] = None,
 ) -> List[str]:
+    import random
     if feedback_list is None:
         feedback_list = []
 
     reasons = []
     weather_tag = get_weather_tag(temp, rain)
 
+    # =========================================================
+    # CLIMA
+    # =========================================================
     weather_points = sum(weather_score(g, temp, rain) for g in items)
     if weather_points >= len(items) * 15:
-        reasons.append("✅ Muy adecuado para el clima")
+        reasons.append(random.choice([
+            "✅ Muy adecuado para el clima de hoy",
+            "🌤️ Las prendas calzan perfecto con el tiempo que hace",
+            "✅ Bien pensado para la temperatura de hoy",
+            "🌡️ Outfit armado para el clima, no para la ilusión",
+        ]))
 
+    if rain:
+        reasons.append(random.choice([
+            "🌧️ Preparada para la lluvia",
+            "☂️ Con esto no te mojas (o al menos lo intentas)",
+            "🌧️ Outfit lluvia-friendly",
+        ]))
+
+    # =========================================================
+    # MOOD
+    # =========================================================
     mood_points = sum(mood_bonus(g, mood) for g in items)
     if mood_points >= len(items) * 6:
-        reasons.append(f"✅ Va bien con el mood '{mood}'")
+        reasons.append(random.choice([
+            f"✅ Va bien con el mood '{mood}'",
+            f"💫 Transmite exactamente ese vibe '{mood}' que buscas",
+            f"✨ El outfit habla por sí solo: '{mood}'",
+            f"👌 Coherente con tu mood de hoy: {mood}",
+        ]))
 
+    # =========================================================
+    # ACTIVIDAD
+    # =========================================================
     activity_points = sum(activity_bonus(g, activity, occasion) for g in items)
     if activity_points >= len(items) * 6:
-        reasons.append(f"✅ Funciona bien para la actividad '{activity}'")
+        reasons.append(random.choice([
+            f"✅ Funciona bien para la actividad '{activity}'",
+            f"👟 Pensado para moverte con comodidad",
+            f"✅ Práctico y listo para el día",
+            f"💪 Ideal para lo que tienes planeado",
+        ]))
 
+    # =========================================================
+    # FORMALIDAD
+    # =========================================================
     dress_points = sum(dress_score(g.dress_level, occasion) for g in items)
     if dress_points >= len(items) * 12:
-        reasons.append(f"✅ Tiene buena formalidad para '{occasion}'")
+        reasons.append(random.choice([
+            f"✅ Tiene buena formalidad para '{occasion}'",
+            f"👗 El nivel justo para la ocasión",
+            f"✅ Ni demasiado, ni muy poco — perfecto para {occasion}",
+            f"🎯 Da exactamente el tono correcto para {occasion}",
+        ]))
 
+    # =========================================================
+    # COMPATIBILIDAD DE PRENDAS
+    # =========================================================
     category_bonus = sum(
         category_context_bonus(g, occasion, mood, activity, temp, rain)
         for g in items
     )
     if category_bonus >= 12:
-        reasons.append("✨ Las prendas encajan bien con el contexto y su categoría")
+        reasons.append(random.choice([
+            "✨ Las prendas encajan bien entre sí",
+            "👌 Buena combinación de prendas para este contexto",
+            "✅ Todo suma, nada sobra",
+            "✨ Cada prenda tiene su razón de estar ahí",
+        ]))
 
-    category_penalty = sum(
-        category_context_penalty(g, occasion, mood, activity, temp, rain)
-        for g in items
-    )
-    if category_penalty >= 12:
-        reasons.append("⚠️ Algunas prendas encajan peor con el contexto")
-
+    # =========================================================
+    # PATRONES
+    # =========================================================
     pattern_points = 0
     for i in range(len(items)):
         for j in range(i + 1, len(items)):
             pattern_points += pattern_compatibility(items[i], items[j])
 
     if pattern_points >= 12:
-        reasons.append("🎨 Buena armonía visual entre lisos y estampados")
+        reasons.append(random.choice([
+            "🎨 Buena armonía visual entre lisos y estampados",
+            "🎨 Los patrones no compiten, se complementan",
+            "👁️ Visualmente equilibrado, sin ruido",
+        ]))
     elif pattern_points <= -10:
-        reasons.append("⚠️ La mezcla de patrones puede verse demasiado cargada")
+        reasons.append(random.choice([
+            "⚠️ La mezcla de patrones puede verse un poco cargada",
+            "⚠️ Cuidado con tanto estampado junto",
+            "👀 Los patrones están peleando un poco entre sí",
+        ]))
 
+    # =========================================================
+    # FEEDBACK PREVIO
+    # =========================================================
     feedback_bonus = calculate_feedback_bonus(
         items, feedback_list, occasion, mood, activity, weather_tag
     )
     if feedback_bonus >= 12:
-        reasons.append("💚 Favorecido por feedback positivo previo")
+        reasons.append(random.choice([
+            "💚 Ya demostraste que este tipo de combinación te gusta",
+            "💚 Tu historial dice que esto funciona para ti",
+            "🔁 Una apuesta segura basada en tus gustos",
+        ]))
     elif feedback_bonus <= -12:
-        reasons.append("⚠️ Penalizado por feedback negativo previo")
+        reasons.append(random.choice([
+            "⚠️ Combinaciones similares no te han convencido antes",
+            "⚠️ Tu historial sugiere que esto no es lo tuyo",
+        ]))
 
+    # =========================================================
+    # COHERENCIA Y PRACTICIDAD
+    # =========================================================
     coherence = coherence_penalty(items, occasion)
     if coherence >= 10:
-        reasons.append("⚠️ Mezcla de estilos menos coherente")
+        reasons.append(random.choice([
+            "⚠️ Mezcla de estilos menos coherente",
+            "⚠️ Las prendas no terminan de hablar el mismo idioma",
+            "⚠️ El outfit tiene algo de personalidad dividida",
+        ]))
 
-    practicality = practicality_penalty(items, occasion, temp, rain)
+    practicality = practicality_penalty(items, occasion, temp, rain, mood)
     if practicality >= 15:
-        reasons.append("⚠️ Menos práctico para este contexto")
+        reasons.append(random.choice([
+            "⚠️ Menos práctico para este contexto",
+            "⚠️ Quizás no es la opción más cómoda para hoy",
+            "⚠️ Funciona, pero el contexto pide algo más práctico",
+        ]))
 
-    accessory_pen = outfit_accessory_penalty(
-        items, occasion, mood, activity, temp, rain
-    )
-    if accessory_pen >= 12:
-        reasons.append("⚠️ Los accesorios cargan demasiado el outfit")
-
+    # =========================================================
+    # REPETICIÓN
+    # =========================================================
     repeat_pen = repetition_penalty(items, recent_outfits)
     if repeat_pen >= 20:
-        reasons.append("🔁 Se penalizó por repetición reciente de prendas")
+        reasons.append(random.choice([
+            "🔁 Llevas un rato usando prendas similares",
+            "🔁 Quizás ya lo usaste hace poco",
+            "🔁 Tu clóset tiene más para ofrecer hoy",
+        ]))
 
+    # =========================================================
+    # FALLBACK
+    # =========================================================
     if not reasons:
-        reasons.append("ℹ️ Recomendación equilibrada según contexto general")
+        reasons.append(random.choice([
+            "ℹ️ Recomendación equilibrada para el día de hoy",
+            "👗 Una opción sólida sin complicaciones",
+            "✅ Simple, coherente y lista para usar",
+            "💡 A veces lo más directo es lo mejor",
+        ]))
 
     return reasons[:3]
-
 
 from engine.outfit_generation import (
     generate_outfits as generate_outfits,

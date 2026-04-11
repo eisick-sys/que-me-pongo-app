@@ -313,7 +313,7 @@ def coherence_penalty(items: List[Garment], occasion: str) -> int:
 
 
 def practicality_penalty(
-    items: List[Garment], occasion: str, temp: int, rain: bool
+    items: List[Garment], occasion: str, temp: int, rain: bool, mood: str = ""
 ) -> int:
     penalty = 0
 
@@ -336,7 +336,10 @@ def practicality_penalty(
                 elif "zapatilla" in name or garment_has_style(g, "sport"):
                     if g.dress_level == "relajado":
                         penalty += 45
-        
+        if mood == "comodo":
+            if g.category == "shoes":
+                if any(x in name for x in ["taco", "tacón", "heel", "heels", "stiletto"]):
+                    penalty += 50
         if rain:
             if g.category == "outerwear":
                 if not g.waterproof:
@@ -346,6 +349,10 @@ def practicality_penalty(
             if "short" in name:
                 if rain or temp <= 14:
                     penalty += 60
+        if rain:
+            if g.category == "shoes":
+                if any(x in name for x in ["taco", "tacón", "heel", "heels", "stiletto"]):
+                    penalty += 35
 
         if temp >= 26:
             if g.category == "outerwear":

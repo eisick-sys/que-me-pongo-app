@@ -146,7 +146,7 @@
     "warmth": "caluroso",
     "waterproof": false,
     "dress_level": "flexible",
-    "sexiness": 0,
+    "sexiness": 2,
     "accessory_type": null,
     "image_name": "21_prueba blusa 1.jpg"
   },
@@ -156,7 +156,7 @@
     "category": "outerwear",
     "color": "negro",
     "style": "formal",
-    "subcategory": null,
+    "subcategory": "abrigo",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante",
@@ -193,7 +193,7 @@
     "category": "accessory",
     "color": "blanco",
     "style": "elegante",
-    "subcategory": null,
+    "subcategory": "collar",
     "secondary_colors": [],
     "secondary_styles": [
       "formal"
@@ -202,8 +202,8 @@
     "warmth": "medio",
     "waterproof": false,
     "dress_level": "arreglado",
-    "sexiness": 0,
-    "accessory_type": null,
+    "sexiness": 1,
+    "accessory_type": "collar",
     "image_name": "37.jpg"
   },
   {
@@ -272,7 +272,7 @@
     "category": "accessory",
     "color": "azul",
     "style": "elegante",
-    "subcategory": null,
+    "subcategory": "pañuelo",
     "secondary_colors": [],
     "secondary_styles": [
       "formal",
@@ -282,8 +282,8 @@
     "warmth": "medio",
     "waterproof": false,
     "dress_level": "arreglado",
-    "sexiness": 0,
-    "accessory_type": null,
+    "sexiness": 1,
+    "accessory_type": "pañuelo",
     "image_name": "45.jpg"
   },
   {
@@ -323,7 +323,7 @@
     "warmth": "caluroso",
     "waterproof": false,
     "dress_level": "flexible",
-    "sexiness": 0,
+    "sexiness": 2,
     "accessory_type": null,
     "image_name": "49.jpg"
   },
@@ -585,10 +585,10 @@
       "formal"
     ],
     "pattern": "liso",
-    "warmth": "caluroso",
+    "warmth": "medio",
     "waterproof": false,
     "dress_level": "elegante",
-    "sexiness": 0,
+    "sexiness": 2,
     "accessory_type": null,
     "image_name": "garment_77.jpg"
   },
@@ -704,23 +704,6 @@
     "image_name": "garment_86.jpg"
   },
   {
-    "id": 87,
-    "name": "vestido cafe",
-    "category": "one_piece",
-    "color": "café",
-    "style": "casual",
-    "subcategory": "vestido",
-    "secondary_colors": [],
-    "secondary_styles": [],
-    "pattern": "liso",
-    "warmth": "medio",
-    "waterproof": false,
-    "dress_level": "relajado",
-    "sexiness": 0,
-    "accessory_type": null,
-    "image_name": null
-  },
-  {
     "id": 88,
     "name": "sweater grueso",
     "category": "midlayer",
@@ -736,5 +719,120 @@
     "sexiness": 0,
     "accessory_type": null,
     "image_name": "garment_88.jpg"
+  },
+  {
+    "id": 89,
+    "name": "falda cuadros",
+    "category": "bottom",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "falda",
+    "secondary_colors": [
+      "blanco"
+    ],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "cuadros",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 3,
+    "accessory_type": null,
+    "image_name": "garment_89.jpg"
+  },
+  {
+    "id": 90,
+    "name": "botin cafe",
+    "category": "shoes",
+    "color": "café",
+    "style": "casual",
+    "subcategory": "botin",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_90.jpg"
+  },
+  {
+    "id": 91,
+    "name": "mocasin cafe",
+    "category": "shoes",
+    "color": "café",
+    "style": "formal",
+    "subcategory": "mocasin",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_91.jpg"
+  },
+  {
+    "id": 92,
+    "name": "blazer gris",
+    "category": "midlayer",
+    "color": "gris",
+    "style": "formal",
+    "subcategory": "blazer",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "casual",
+      "elegante"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_92.jpg"
+  },
+  {
+    "id": 93,
+    "name": "blusa celeste",
+    "category": "top",
+    "color": "celeste",
+    "style": "casual",
+    "subcategory": "blusa",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_93.jpg"
+  },
+  {
+    "id": 94,
+    "name": "cinturon negro",
+    "category": "accessory",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "cinturon",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": "cinturón",
+    "image_name": "garment_94.jpg"
   }
 ]

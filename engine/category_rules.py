@@ -129,6 +129,7 @@ def bottom_context_penalty(
 
     is_skirt = is_bottom_skirt(garment)
     is_short_or_light = is_bottom_short_or_light(garment)
+    is_jeans = is_bottom_jeans(garment)
     is_relaxed_context = occasion == "casual" and mood in ["relajado", "comodo"]
 
     is_jogger_like = (
@@ -177,6 +178,16 @@ def bottom_context_penalty(
     if occasion == "trabajo" and mood == "elegante":
         if is_short_or_light:
             penalty += 25
+    
+    if occasion == "trabajo" and mood == "sexy" and is_short_or_light:
+        penalty += 8
+
+    if occasion == "trabajo" and mood == "sexy" and is_jeans:
+        penalty += 12
+
+    if occasion == "trabajo" and is_skirt:
+        if garment.dress_level in ["relajado", "flexible"] and garment.sexiness >= 3:
+            penalty += 14
 
     if is_jogger_like:
         if occasion == "trabajo":
@@ -267,11 +278,15 @@ def bottom_context_bonus(
 
         if is_pants:
             bonus += 4
+    
     if occasion == "trabajo" and mood == "elegante":
         if is_pants:
             bonus += 10
         if is_skirt:
             bonus += 6
+    
+    if occasion == "trabajo" and mood == "sexy" and is_skirt:
+        bonus += 6
     
     return bonus
 
@@ -460,6 +475,12 @@ def shoe_context_penalty(
         if is_sneaker_like:
             penalty += 10
 
+    if occasion == "trabajo" and is_sneaker_like:
+        penalty += 25
+
+    if occasion == "trabajo" and mood == "sexy" and is_sneaker_like:
+        penalty += 10
+    
     if activity in ["caminar", "normal"]:
         if is_heel:
             if occasion in ["matrimonio", "gala"]:
@@ -566,7 +587,14 @@ def shoe_context_penalty(
 
         if is_sneaker_like:
             penalty -= 10
-        
+    
+    if occasion == "trabajo" and mood == "sexy":
+        if is_sneaker_like:
+            if garment_has_style(garment, "sport"):
+                penalty += 22
+            else:
+                penalty += 14
+
     if temp >= 24:
         if is_boot_like:
             penalty += 30
@@ -840,6 +868,10 @@ def accessory_context_bonus(
         if is_cap and mood not in ["urbano", "relajado"]:
             bonus -= 4
 
+    if occasion == "trabajo" and mood == "sexy":
+        if garment_has_style(garment, "elegante") and garment.dress_level in ["arreglado", "elegante"]:
+            bonus += 10
+    
     if occasion == "cita":
         if is_night_friendly:
             bonus += 3
@@ -937,7 +969,9 @@ def should_include_accessory(
 
     if occasion in ["salida nocturna", "cita", "matrimonio", "gala"]:
         return True
-
+    if occasion == "trabajo" and mood in ["sexy", "elegante"]:
+        return True
+    
     return False
 
 
@@ -1034,7 +1068,8 @@ def accessory_relevance_penalty(
 
     if not is_scarf and not is_cap and not is_winter_hat:
         if occasion not in ["salida nocturna", "cita", "matrimonio", "gala"]:
-            penalty += 14
+           if not (occasion == "trabajo" and mood in ["sexy", "elegante"]):
+                penalty += 14
 
         if has_midlayer and has_outerwear:
             penalty += 8
