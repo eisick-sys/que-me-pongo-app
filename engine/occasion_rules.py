@@ -201,7 +201,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
     if (
         garment.category == "outerwear"
         and garment.waterproof
-        and garment.dress_level == "relajado"
+        and garment.dress_level in ["relajado", "flexible"]
         and "sport" in garment_styles
     ):
         if occasion in ["matrimonio", "gala"]:
