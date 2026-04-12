@@ -13,6 +13,77 @@ CATEGORY_LABELS_ES = {
     "accessory": "Accesorios",
 }
 
+SUBCATEGORY_OPTIONS = {
+    "top": [
+        "polera",
+        "blusa",
+        "camisa",
+        "top",
+        "body",
+        "crop_top",
+        "peto",
+    ],
+    "midlayer": [
+        "sweater",
+        "cardigan",
+        "chaleco",
+        "blazer",
+        "hoodie",
+        "polar",
+    ],
+    "outerwear": [
+        "chaqueta",
+        "abrigo",
+        "parka",
+        "trench",
+        "impermeable",
+        "poncho",
+    ],
+    "bottom": [
+        "jeans",
+        "pantalon",
+        "falda_corta",
+        "falda_midi",
+        "falda_larga",
+        "short_casual",
+        "short_elegante",
+        "legging",
+        "buzo",
+        "jogger",
+    ],
+    "one_piece": [
+        "vestido_casual",
+        "vestido_elegante",
+        "vestido_coctel",
+        "enterito",
+    ],
+    "shoes": [
+        "zapatilla_urbana",
+        "zapatilla_deporte",
+        "zapato",
+        "botin",
+        "bota",
+        "sandalia",
+        "taco_bajo",
+        "taco_alto",
+        "mocasin",
+    ],
+    "accessory": [
+        "reloj",
+        "collar",
+        "pulsera",
+        "anillo",
+        "aros",
+        "cinturon",
+        "bolso",
+        "cartera",
+        "bufanda",
+        "pañuelo",
+        "gorro",
+        "guantes",
+    ],
+}
+
 # =========================================================
 # COLORES
 # =========================================================
@@ -30,7 +101,7 @@ COLOR_OPTIONS = [
     "celeste",
 
     "verde",
-    "verde oliva",
+    "verde olivo",
     "verde oscuro",
 
     "rojo",
@@ -89,6 +160,7 @@ COLOR_ALIASES = {
     "orange": "naranja",
     "yellow": "amarillo",
     "green": "verde",
+    "verde oliva": "verde olivo",
     "blue": "azul",
     "red": "rojo",
     "white": "blanco",
@@ -147,3 +219,71 @@ MOOD_OPTIONS = ["relajado", "urbano", "elegante", "sexy", "comodo"]
 ACTIVITY_OPTIONS = ["normal", "caminar", "formal", "entrenar"]
 
 THERMAL_ACCESSORIES = ["bufanda", "pañuelo", "gorro", "guantes"]
+
+# =========================================================
+# ETIQUETAS EN ESPAÑOL PARA SUBCATEGORÍAS
+# =========================================================
+
+SUBCATEGORY_LABELS_ES = {
+    # top
+    "polera": "Polera",
+    "blusa": "Blusa",
+    "camisa": "Camisa",
+    "top": "Top",
+    "body": "Body",
+    "crop_top": "Crop top",
+    "peto": "Peto",
+    # midlayer
+    "sweater": "Sweater",
+    "cardigan": "Cárdigan",
+    "chaleco": "Chaleco",
+    "blazer": "Blazer",
+    "hoodie": "Hoodie",
+    "polar": "Polar",
+    # outerwear
+    "chaqueta": "Chaqueta",
+    "abrigo": "Abrigo",
+    "parka": "Parka",
+    "trench": "Trench",
+    "impermeable": "Impermeable",
+    "poncho": "Poncho",
+    # bottom
+    "jeans": "Jeans",
+    "pantalon": "Pantalón",
+    "falda_corta": "Falda corta",
+    "falda_midi": "Falda midi",
+    "falda_larga": "Falda larga",
+    "short_casual": "Short casual",
+    "short_elegante": "Short elegante",
+    "legging": "Legging",
+    "buzo": "Buzo/Jogging",
+    "jogger": "Jogger",
+    # one_piece
+    "vestido_casual": "Vestido casual",
+    "vestido_elegante": "Vestido elegante",
+    "vestido_coctel": "Vestido cóctel",
+    "enterito": "Enterito",
+    # shoes
+    "zapatilla_urbana": "Zapatilla urbana",
+    "zapatilla_deporte": "Zapatilla deporte",
+    "zapato": "Zapato",
+    "botin": "Botín",
+    "bota": "Bota",
+    "sandalia": "Sandalia",
+    "taco_bajo": "Taco bajo",
+    "taco_alto": "Taco alto",
+    "mocasin": "Mocasín",
+    # accessory
+    "reloj": "Reloj",
+    "collar": "Collar",
+    "pulsera": "Pulsera",
+    "anillo": "Anillo",
+    "aros": "Aros",
+    "cinturon": "Cinturón",
+    "bolso": "Bolso",
+    "cartera": "Cartera",
+    "bufanda": "Bufanda",
+    "pañuelo": "Pañuelo",
+    "gorro": "Gorro",
+    "guantes": "Guantes",
+}

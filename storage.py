@@ -1,4 +1,3 @@
-#storage.py
 import json
 import os
 import shutil
@@ -49,6 +48,7 @@ def garment_from_dict(item: dict) -> Garment:
         id=safe_int(item.get("id"), 0),
         name=str(item.get("name", "")),
         category=str(item.get("category", "top")),
+        subcategory=item.get("subcategory", None),
         color=str(item.get("color", "negro")),
         secondary_colors=[
             str(x).strip()
@@ -65,6 +65,7 @@ def garment_from_dict(item: dict) -> Garment:
         sexiness=safe_int(item.get("sexiness"), 0),
         accessory_type=item.get("accessory_type", None),
         image_name=item.get("image_name", None),
+        is_new=bool(item.get("is_new", False)),
     )
 
 

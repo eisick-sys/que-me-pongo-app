@@ -31,7 +31,7 @@ def color_family(color: str) -> str:
         "azul": "blue",
         "azul marino": "blue_dark",
         "verde": "green",
-        "verde oliva": "earth_green",
+        "verde olivo": "earth_green",
         "rojo": "red",
         "rosado": "pink",
         "amarillo": "yellow",
@@ -72,6 +72,12 @@ def color_compatibility(color1: str, color2: str) -> int:
         ("naranjo", "rosado"),
         ("amarillo", "rosado"),
         ("morado", "verde"),
+        ("rojo", "azul"),
+        ("rojo", "azul marino"),
+        ("burdeo", "verde"),
+        ("burdeo", "azul"),
+        ("naranjo", "morado"),
+        ("amarillo", "burdeo"),
     }
 
     good_pairs = {
@@ -88,15 +94,27 @@ def color_compatibility(color1: str, color2: str) -> int:
         ("amarillo", "blanco"),
         ("amarillo", "gris"),
         ("amarillo", "beige"),
-        ("verde oliva", "beige"),
-        ("verde oliva", "blanco"),
-        ("verde oliva", "café"),
+        ("verde olivo", "beige"),
+        ("verde olivo", "blanco"),
+        ("verde olivo", "café"),
         ("rojo", "blanco"),
         ("rojo", "negro"),
         ("rosado", "blanco"),
         ("rosado", "gris"),
         ("morado", "blanco"),
         ("morado", "gris"),
+        ("burdeo", "negro"),
+        ("burdeo", "blanco"),
+        ("burdeo", "beige"),
+        ("burdeo", "gris"),
+        ("rosado", "café"),
+        ("rosado", "azul marino"),
+        ("verde olivo", "negro"),
+        ("verde olivo", "azul marino"),
+        ("amarillo", "café"),
+        ("celeste", "blanco"),
+        ("celeste", "azul marino"),
+        ("celeste", "gris"),
     }
 
     if c1 == c2:
@@ -306,6 +324,31 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
 
         if shoes_are_sport and layer_is_elegant:
             return -20
+
+    # =========================================================
+    # BLOQUE NUEVO: PROTEGER INTENCIÓN ELEGANTE / SEXY
+    # =========================================================
+
+    if {garment1.category, garment2.category} == {"midlayer", "one_piece"}:
+        mid = garment1 if garment1.category == "midlayer" else garment2
+        base = garment1 if garment1.category == "one_piece" else garment2
+
+        base_styles = all_styles(base)
+        mid_styles = all_styles(mid)
+
+        base_is_elegant_or_sexy = (
+            "elegante" in base_styles
+            or base.dress_level in ["arreglado", "elegante"]
+            or getattr(base, "sexiness", 0) >= 2
+        )
+
+        mid_is_casual_or_urban = (
+            "casual" in mid_styles
+            or "urbano" in mid_styles
+        )
+
+        if base_is_elegant_or_sexy and mid_is_casual_or_urban:
+            return -18
 
     # =========================================================
     # RECOMPENSAS NORMALES

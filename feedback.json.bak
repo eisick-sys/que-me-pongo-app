@@ -913,5 +913,35 @@
     "mood": "sexy",
     "activity": "normal",
     "weather_tag": "lluvia"
+  },
+  {
+    "id": 63,
+    "garment_ids": [
+      69,
+      54,
+      59,
+      12,
+      22
+    ],
+    "liked": false,
+    "occasion": "trabajo",
+    "mood": "elegante",
+    "activity": "formal",
+    "weather_tag": "frio"
+  },
+  {
+    "id": 64,
+    "garment_ids": [
+      4,
+      17,
+      81,
+      70,
+      62
+    ],
+    "liked": true,
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio"
   }
 ]

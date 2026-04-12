@@ -249,5 +249,65 @@
     "activity": "normal",
     "weather_tag": "lluvia",
     "used_at": "2026-03-25"
+  },
+  {
+    "id": 18,
+    "garment_ids": [
+      4,
+      17,
+      81,
+      70,
+      62
+    ],
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio",
+    "used_at": "2026-03-29"
+  },
+  {
+    "id": 19,
+    "garment_ids": [
+      4,
+      6,
+      42,
+      70,
+      62
+    ],
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio",
+    "used_at": "2026-03-29"
+  },
+  {
+    "id": 20,
+    "garment_ids": [
+      69,
+      5,
+      42,
+      71,
+      62
+    ],
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio",
+    "used_at": "2026-03-29"
+  },
+  {
+    "id": 21,
+    "garment_ids": [
+      63,
+      7,
+      59,
+      71,
+      62
+    ],
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio",
+    "used_at": "2026-03-29"
   }
 ]

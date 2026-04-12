@@ -18,6 +18,7 @@ class Garment:
     category: str        # top, midlayer, outerwear, bottom, one_piece, shoes, accessory
     color: str
     style: str           # casual, formal, urbano, sport, elegante
+    subcategory: Optional[str] = None
     secondary_colors: List[str] = field(default_factory=list)
     secondary_styles: List[str] = field(default_factory=list)
     pattern: str = "liso"   # liso, rayas, cuadros, estampado, animal_print, floral, grafico
@@ -37,6 +38,9 @@ class Garment:
 
     # imagen asociada
     image_name: Optional[str] = None
+
+    # etiqueta de prenda recién agregada
+    is_new: bool = False
 
 
 # =========================================================

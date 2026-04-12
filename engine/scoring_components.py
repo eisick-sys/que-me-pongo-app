@@ -2,7 +2,7 @@
 from typing import List
 
 from models import Garment
-from utils.garment_utils import garment_has_style, all_styles
+from utils.garment_utils import garment_has_style, all_styles, is_shoe_heel
 
 
 def dress_score(dress_level: str, occasion: str) -> int:
@@ -55,6 +55,10 @@ def dress_score(dress_level: str, occasion: str) -> int:
 
 def weather_score(garment: Garment, temp: int, rain: bool) -> int:
     score = 0
+
+    # Un outerwear impermeable es siempre válido con lluvia sin importar su warmth
+    if rain and garment.category == "outerwear" and garment.waterproof:
+        return 15
 
     if temp <= 10:
         if garment.warmth == "frio":
@@ -114,7 +118,7 @@ def activity_bonus(garment: Garment, activity: str, occasion: str = "") -> int:
             if garment.category == "bottom":
                 if "jean" in lower_name or "jeans" in lower_name:
                     return 8
-                if "buzo" in lower_name or "jogger" in lower_name:
+                if "buzo" in lower_name or "jogger" in lower_name or garment.subcategory in ["buzo", "jogger"]:
                     return 2
                 return 5
 
@@ -298,6 +302,7 @@ def coherence_penalty(items: List[Garment], occasion: str) -> int:
                 "zapatilla", "sneaker", "converse",
                 "gorro", "beanie"
             ])
+            or g.subcategory in ["buzo", "jogger"]
         )
 
         if is_relaxed_base:
@@ -313,7 +318,7 @@ def coherence_penalty(items: List[Garment], occasion: str) -> int:
 
 
 def practicality_penalty(
-    items: List[Garment], occasion: str, temp: int, rain: bool
+    items: List[Garment], occasion: str, temp: int, rain: bool, mood: str = ""
 ) -> int:
     penalty = 0
 
@@ -336,7 +341,10 @@ def practicality_penalty(
                 elif "zapatilla" in name or garment_has_style(g, "sport"):
                     if g.dress_level == "relajado":
                         penalty += 45
-        
+        if mood == "comodo":
+            if g.category == "shoes":
+                if is_shoe_heel(g):
+                    penalty += 50
         if rain:
             if g.category == "outerwear":
                 if not g.waterproof:
@@ -346,6 +354,10 @@ def practicality_penalty(
             if "short" in name:
                 if rain or temp <= 14:
                     penalty += 60
+        if rain:
+            if g.category == "shoes":
+                if is_shoe_heel(g):
+                    penalty += 35
 
         if temp >= 26:
             if g.category == "outerwear":

@@ -1,11 +1,14 @@
 # app.py
 import os
+import re
 import random
 from datetime import date
 from typing import List
 
 from PIL import Image, ImageOps
 import streamlit as st
+
+from utils.garment_utils import is_bottom_skirt
 
 st.set_page_config(
     page_title="Lookia",
@@ -56,6 +59,7 @@ from engine.recommender import (
 from constants import (
     ACCESSORY_TYPE_OPTIONS,
     ACTIVITY_OPTIONS,
+    CATEGORY_LABELS_ES,
     CATEGORY_OPTIONS,
     COLOR_ALIASES,
     COLOR_OPTIONS,
@@ -64,20 +68,12 @@ from constants import (
     OCCASION_OPTIONS,
     PATTERN_OPTIONS,
     STYLE_OPTIONS,
+    SUBCATEGORY_LABELS_ES,
+    SUBCATEGORY_OPTIONS,
     THERMAL_ACCESSORIES,
     WARMTH_OPTIONS,
 )
 from utils.attribute_inference import infer_attributes_from_name, suggest_name_from_filename
-
-CATEGORY_LABELS_ES = {
-    "top": "Arriba",
-    "midlayer": "Prenda intermedia",
-    "outerwear": "Abrigos",
-    "bottom": "Abajo",
-    "one_piece": "Una pieza",
-    "shoes": "Calzado",
-    "accessory": "Accesorios",
-}
 
 # =========================================================
 # CONFIGURACIÓN BASE
@@ -90,7 +86,10 @@ FEEDBACK_FILE = os.path.join(BASE_DIR, "feedback.json")
 USED_OUTFITS_FILE = os.path.join(BASE_DIR, "used_outfits.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "wardrobe_images")
 
-WEATHER_API_KEY = "38493ee8322364a415a1afb874180045"
+from dotenv import load_dotenv
+load_dotenv()
+WEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+DEFAULT_CITY = os.getenv("LOOKIA_CITY", "Punta Arenas")
 
 # Crear carpeta de imágenes si no existe
 if not os.path.exists(IMAGES_DIR):
@@ -615,6 +614,7 @@ if st.session_state.closet_profile is None:
 # =========================================================
 
 st.caption(f"Perfil del clóset: {st.session_state.closet_profile}")
+debug_mode = st.toggle("🔧 Modo debug", value=False, key="debug_mode")
 
 tab1, tab2, tab3, tab4 = st.tabs([
     "🌤️ Hoy",
@@ -631,82 +631,77 @@ with tab1:
     st.subheader("Recomiéndame algo para hoy")
 
     col1, col2, col3 = st.columns(3)
-
     with col1:
         occasion = st.selectbox("Ocasión", OCCASION_OPTIONS)
         mood = st.selectbox("Mood / estilo deseado", MOOD_OPTIONS)
-
+        
     with col2:
         activity = st.selectbox("Actividad", ACTIVITY_OPTIONS)
         use_real_weather = st.toggle("Usar clima real", value=True)
 
-        DEFAULT_CITY = "Punta Arenas"
-
         if use_real_weather:
             weather_data = get_current_weather(DEFAULT_CITY, WEATHER_API_KEY)
-
             if weather_data:
                 temp = weather_data["temp"]
                 rain = weather_data["rain"]
-
                 st.success(f"{DEFAULT_CITY} · {format_weather_label(weather_data)}")
-
             else:
                 st.warning("No se pudo obtener el clima. Usa ajuste manual.")
-
                 temp = st.slider("Temperatura (°C)", 0, 35, 16)
                 rain = st.toggle("¿Llueve?")
-
         else:
             temp = st.slider("Temperatura (°C)", 0, 35, 16)
             rain = st.toggle("¿Llueve?")
 
-# =========================================================
-# 🔥 AJUSTES MANUALES 
-# =========================================================
-        thermal_sensitivity = "auto"
-        manual_sky = "auto"
-        indoor_outdoor = "auto"
-        # sensibilidad térmica
-        if thermal_sensitivity == "friolento/a":
-            temp -= 4
-        elif thermal_sensitivity == "caluroso/a":
-            temp += 4
+    # Variables por defecto — sin ajuste
+    thermal_sensitivity = "normal"
+    indoor_outdoor = "exterior"
+    manual_sky = "despejado"
+    expander_active = False
 
-        # cielo manual
-        if manual_sky == "nublado":
-            temp -= 2
-        elif manual_sky == "despejado":
-            temp += 2
+    with st.expander("Ajuste manual opcional", expanded=False):
+        expander_active = True
 
-        # interior / exterior
-        if indoor_outdoor == "interior":
-            temp += 4
-            rain = False
-        elif indoor_outdoor == "exterior":
-            temp -= 3
-
-# 🔥 AJUSTES AVANZADOS 
-    with st.expander("Ajuste manual opcional", expanded=not use_real_weather):
-        col_manual_1, col_manual_2, col_manual_3 = st.columns(3)
+        col_manual_1, col_manual_2 = st.columns(2)
 
         with col_manual_1:
             thermal_sensitivity = st.selectbox(
                 "Sensibilidad térmica",
-                ["auto", "friolento/a", "normal", "caluroso/a"],
+                ["normal", "friolento/a", "caluroso/a"],
+                key="thermal_sensitivity"
             )
 
         with col_manual_2:
-            manual_sky = st.selectbox(
-                "Cielo manual",
-                ["auto", "despejado", "nublado"],
+            indoor_outdoor = st.selectbox(
+                "¿Dónde estarás?",
+                ["exterior", "interior"],
+                key="indoor_outdoor"
             )
 
-        with col_manual_3:
-            indoor_outdoor = st.selectbox(
-                "¿Interior o exterior?",
-                ["auto", "interior", "exterior"],
+        if indoor_outdoor == "exterior":
+            manual_sky = st.selectbox(
+                "Cielo",
+                ["despejado", "nublado"],
+                key="manual_sky"
             )
+        else:
+            manual_sky = "despejado"
+
+        temp_ajustada = temp
+
+        if thermal_sensitivity == "friolento/a":
+            temp_ajustada -= 2
+        elif thermal_sensitivity == "caluroso/a":
+            temp_ajustada += 3
+
+        if indoor_outdoor == "interior":
+            temp_ajustada += 4
+        elif indoor_outdoor == "exterior" and manual_sky == "nublado":
+            temp_ajustada -= 2
+
+        temp = temp_ajustada
+
+        temp = temp_ajustada
 
 
     st.markdown("### Usar una prenda específica (opcional)")
@@ -736,6 +731,10 @@ with tab1:
         selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion, rain)
         if not selected_allowed:
             st.warning(reason)
+
+        # Advertencia de clima para prenda forzada
+        if selected_garment.category == "outerwear" and temp >= 24:
+            st.warning(f"{selected_garment.name} puede ser demasiado abrigada para {temp}°C — pero tú decides.")
 
     col_btn1, col_btn2, col_btn3 = st.columns(3)
 
@@ -777,6 +776,35 @@ with tab1:
                 recent_outfits=recent_memory,
             )
 
+            # Si es interior con frío, forzar al menos 1 outfit sin outerwear
+            if indoor_outdoor == "interior" and temp <= 14:
+                tiene_sin_abrigo = any(
+                    not any(g.category == "outerwear" for g in combo)
+                    for _, combo in outfits
+                )
+
+                if not tiene_sin_abrigo and len(outfits) >= 2:
+                    outfits_sin_abrigo = generate_outfits(
+                        garments=st.session_state.wardrobe,
+                        occasion=occasion,
+                        temp=temp + 6,
+                        rain=False,
+                        mood=mood,
+                        activity=activity,
+                        top_n=3,
+                        feedback_list=st.session_state.feedback,
+                        recent_outfits=recent_memory,
+                    )
+
+                    sin_abrigo = [
+                        (score, combo) for score, combo in outfits_sin_abrigo
+                        if not any(g.category == "outerwear" for g in combo)
+                    ]
+
+                    if sin_abrigo:
+                        outfits = list(outfits)
+                        outfits[-1] = sin_abrigo[0]
+
         remember_shown_outfits(outfits)
         st.session_state.last_outfits = outfits
     
@@ -809,72 +837,98 @@ with tab1:
 
     st.markdown("## Resultados")
 
-    for idx, (score, combo) in enumerate(outfits, start=1):
-        st.markdown(f"### Outfit {idx} · Score {score}")
+    if not outfits and st.session_state.has_generated_outfits:
+        st.info("No hay prendas suficientes para armar este outfit.")
+    else:
+        for idx, (score, combo) in enumerate(outfits, start=1):
+            if debug_mode:
+                st.markdown(f"### Outfit {idx} · Score {score}")
+            else:
+                st.markdown(f"### Outfit {idx}")        
+            
+            if st.session_state.get("outfit_used_message_idx") == idx:
+                st.success(st.session_state.get("outfit_used_message_text", "Outfit guardado como usado."))
+                del st.session_state["outfit_used_message_idx"]
+                del st.session_state["outfit_used_message_text"]
 
-        cols = st.columns(len(combo))
+            cols = st.columns(len(combo))
 
-        for col, g in zip(cols, combo):
-            with col:
-                with st.container():
-                    st.markdown(f"**{g.name}**")
-                    st.caption(f"{CATEGORY_LABELS_ES.get(g.category, g.category)} · {garment_color_label(g)}")
-                    render_garment_image(g, width=140)
+            for col, g in zip(cols, combo):
+                with col:
+                    with st.container():
+                        st.markdown(f"**{g.name}**")
+                        st.caption(f"{CATEGORY_LABELS_ES.get(g.category, g.category)} · {garment_color_label(g)}")
+                        render_garment_image(g, width=140)
 
-        explanation = explain_outfit_score(
-            combo,
-            occasion,
-            temp,
-            rain,
-            mood,
-            activity,
-            feedback_list=st.session_state.feedback,
-            recent_outfits=get_recent_outfit_memory(),
-        )
-
-        if explanation:
-            st.caption(".".join(explanation))
-
-        ctx = {
-            "occasion": occasion,
-            "mood": mood,
-            "activity": activity,
-            "temp": temp,
-            "rain": rain,
-        }
-
-        weather_tag = get_weather_tag(temp, rain)
-
-        render_feedback_buttons(
-            combo,
-            outfit_index=idx,
-            ctx=ctx,
-            weather_tag=weather_tag,
-            section="tab1"
-        )
-
-        if st.button("💃 lo usaré", key=f"use_{idx}", use_container_width=True):
-            remember_outfit(combo)
-
-            current_used_outfits = st.session_state.get("used_outfits", [])
-
-            new_used_outfit = UsedOutfit(
-                id=get_next_used_outfit_id(current_used_outfits),
-                garment_ids=[g.id for g in combo],
-                used_at=str(date.today()),
-                occasion=ctx["occasion"],
-                mood=ctx["mood"],
-                activity=ctx["activity"],
-                weather_tag=weather_tag,
+            explanation = explain_outfit_score(
+                combo,
+                occasion,
+                temp,
+                rain,
+                mood,
+                activity,
+                feedback_list=st.session_state.feedback,
+                recent_outfits=get_recent_outfit_memory(),
             )
 
-            add_used_outfit(USED_OUTFITS_FILE, new_used_outfit)
-            st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+            if explanation:
+                st.markdown(
+                    " &nbsp;|&nbsp; ".join(explanation),
+                    unsafe_allow_html=True
+                )
 
-            st.success("Outfit guardado como usado.")
-            st.rerun()
+            has_skirt = any(g.category == "bottom" and is_bottom_skirt(g) for g in combo)
+            has_short = any(
+                g.category == "bottom" and "short" in g.name.lower()
+                for g in combo
+            )
 
-        st.divider()
+            if has_skirt and (rain or temp <= 12):
+                st.info("❄️ Tip: si usas falda con este clima, no olvides tus pantys.")
+            elif has_short and (rain or temp <= 12):
+                st.info("❄️ Tip: si usas short con este clima, considera unas pantys o medias.")
+
+            ctx = {
+                "occasion": occasion,
+                "mood": mood,
+                "activity": activity,
+                "temp": temp,
+                "rain": rain,
+            }
+
+            weather_tag = get_weather_tag(temp, rain)
+
+            render_feedback_buttons(
+                combo,
+                outfit_index=idx,
+                ctx=ctx,
+                weather_tag=weather_tag,
+                section="tab1"
+            )
+
+            if st.button("💃 lo usaré", key=f"use_{idx}", use_container_width=True):
+                remember_outfit(combo)
+
+                current_used_outfits = st.session_state.get("used_outfits", [])
+
+                new_used_outfit = UsedOutfit(
+                    id=get_next_used_outfit_id(current_used_outfits),
+                    garment_ids=[g.id for g in combo],
+                    used_at=str(date.today()),
+                    occasion=ctx["occasion"],
+                    mood=ctx["mood"],
+                    activity=ctx["activity"],
+                    weather_tag=weather_tag,
+                )
+
+                add_used_outfit(USED_OUTFITS_FILE, new_used_outfit)
+                st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+
+                st.session_state["outfit_used_message_idx"] = idx
+                st.session_state["outfit_used_message_text"] = "Outfit guardado como usado."
+                st.rerun()
+
+            st.divider()
 
 # =========================================================
 # TAB 2: MI CLÓSET
@@ -925,7 +979,7 @@ with tab2:
                 "rojo": "🔴",
                 "rosado": "🟣",
                 "verde": "🟢",
-                "verde oliva": "🟢",
+                "verde olivo": "🟢",
                 "verde oscuro": "🟢",
             }
 
@@ -956,6 +1010,8 @@ with tab2:
                     with st.container(border=True):
                         render_garment_image(g, width=120)
                         st.markdown(f"**{g.name[:18]}**")
+                        if getattr(g, "is_new", False):
+                            st.caption("🆕 Nueva")
                         color_icons = {
                             "amarillo": "🟡",
                             "azul": "🔵",
@@ -981,7 +1037,7 @@ with tab2:
                             "rojo": "🔴",
                             "rosado": "🟣",
                             "verde": "🟢",
-                            "verde oliva": "🟢",
+                            "verde olivo": "🟢",
                             "verde oscuro": "🟢",
                         }
 
@@ -1098,7 +1154,7 @@ with tab2:
                         "azul marino": "🔵",
                         "celeste": "🔵",
                         "verde": "🟢",
-                        "verde oliva": "🟢",
+                        "verde olivo": "🟢",
                         "verde oscuro": "🟢",
                         "rojo": "🔴",
                         "burdeo": "🔴",
@@ -1166,6 +1222,21 @@ with tab2:
                             format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
                         )
 
+                        current_subcategory = getattr(garment, "subcategory", None)
+
+                        subcategory_options = ["— ninguna —"] + SUBCATEGORY_OPTIONS.get(category, [])
+
+                        subcategory = st.selectbox(
+                            "Subcategoría",
+                            subcategory_options,
+                            index=subcategory_options.index(current_subcategory)
+                            if current_subcategory in subcategory_options else 0,
+                            format_func=lambda x: "— ninguna —" if x == "— ninguna —" else SUBCATEGORY_LABELS_ES.get(x, x)
+                        )
+
+                        if subcategory == "— ninguna —":
+                            subcategory = None
+
                         accessory_type = None
                         if category == "accessory":
                             current_accessory_type = getattr(garment, "accessory_type", None) or "reloj"
@@ -1175,7 +1246,7 @@ with tab2:
                                 index=ACCESSORY_TYPE_OPTIONS.index(current_accessory_type)
                                 if current_accessory_type in ACCESSORY_TYPE_OPTIONS else 0
                             )
-
+                        
                         warmth = "medio"
                         show_warmth = (
                             category in ["top", "midlayer", "outerwear", "bottom", "shoes"]
@@ -1198,12 +1269,13 @@ with tab2:
                             index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
                             if garment.dress_level in DRESS_LEVEL_OPTIONS else 0
                         )
-
+                        
                         sexiness = st.slider(
                             "Nivel sexy",
                             min_value=0,
                             max_value=3,
                             value=getattr(garment, "sexiness", 0),
+                            key="form_sexiness_edit",
                             help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
 
@@ -1234,6 +1306,7 @@ with tab2:
                         else:
                             garment.name = name.strip()
                             garment.category = category
+                            garment.subcategory = subcategory
                             garment.color = normalize_color_name(color)
                             garment.secondary_colors = [normalize_color_name(c) for c in secondary_colors]
                             garment.style = style
@@ -1244,6 +1317,7 @@ with tab2:
                             garment.dress_level = dress_level
                             garment.sexiness = sexiness
                             garment.accessory_type = accessory_type if category == "accessory" else None
+                            garment.is_new = False
 
                             if new_uploaded_file:
                                 old_image_name = garment.image_name if garment.image_name else None
@@ -1285,7 +1359,7 @@ with tab2:
 # TAB 3: AGREGAR PRENDA
 # =========================================================
 with tab3:
-    st.subheader("Agregar prenda al clóset")
+    st.subheader("➕ Agregar prenda")
 
     if "form_name" not in st.session_state:
         st.session_state.form_name = ""
@@ -1312,24 +1386,144 @@ with tab3:
         st.session_state.form_secondary_styles = []
 
     if "form_warmth" not in st.session_state:
-        st.session_state.form_warmth = "templado"
+        st.session_state.form_warmth = "medio"
 
     if "form_waterproof" not in st.session_state:
         st.session_state.form_waterproof = False
 
-    if "form_sexiness" not in st.session_state:
-        st.session_state.form_sexiness = 0
-
     if "form_dress_level" not in st.session_state:
-        st.session_state.form_dress_level = "medio"
+        st.session_state.form_dress_level = "flexible"
 
+    if "form_uploader_key" not in st.session_state:
+        st.session_state.form_uploader_key = 0
+    
     if st.session_state.get("add_saved_message"):
         st.success(st.session_state["add_saved_message"])
         del st.session_state["add_saved_message"]
 
+    if "form_subcategory" not in st.session_state:
+        st.session_state.form_subcategory = None
+
+    if st.session_state.get("reset_add_form"):
+        st.session_state.form_name = ""
+        st.session_state.form_category = "top"
+        st.session_state.form_subcategory = None
+        st.session_state.form_accessory_type = "reloj"
+        st.session_state.form_color = "negro"
+        st.session_state.form_secondary_color = "ninguno"
+        st.session_state.form_pattern = "liso"
+        st.session_state.form_style = "casual"
+        st.session_state.form_secondary_styles = []
+        st.session_state.form_warmth = "medio"
+        st.session_state.form_waterproof = False
+        st.session_state.form_sexiness_add = 0
+        st.session_state.form_dress_level = "flexible"
+        del st.session_state["reset_add_form"]
+
+    # =========================================================
+    # SECCIÓN: SUBIDA MÚLTIPLE DE FOTOS
+    # =========================================================
+    st.markdown("### 📸 Agregar fotos")
+    st.caption("Puedes subir hasta 5 prendas a la vez")
+
+    if "bulk_uploader_key" not in st.session_state:
+        st.session_state.bulk_uploader_key = 0
+
+    if st.session_state.get("bulk_saved_summary"):
+        summary = st.session_state.pop("bulk_saved_summary")
+        st.success(summary["message"])
+        for item in summary["items"]:
+            st.markdown(f"- **{item['name']}** — {item['attrs']}")
+
+    bulk_files = st.file_uploader(
+        "Selecciona hasta 5 fotos",
+        type=["jpg", "jpeg", "png", "webp"],
+        accept_multiple_files=True,
+        key=f"bulk_uploader_{st.session_state.bulk_uploader_key}"
+    )
+
+    if bulk_files:
+        if len(bulk_files) > 5:
+            st.warning("Solo se procesarán las primeras 5 fotos.")
+            bulk_files = bulk_files[:5]
+
+        if st.button("Agregar prendas automáticamente", key="bulk_add_btn"):
+            added_items = []
+            for uf in bulk_files:
+                suggested = suggest_name_from_filename(uf.name)
+                if not suggested:
+                    base = os.path.splitext(uf.name)[0]
+                    suggested = re.sub(r"[_\-]+", " ", base).strip() or uf.name
+
+                inferred = infer_attributes_from_name(suggested)
+
+                cat = inferred.get("category") if inferred.get("category") in CATEGORY_OPTIONS else "top"
+                sub = inferred.get("subcategory")
+                if sub not in SUBCATEGORY_OPTIONS.get(cat, []):
+                    sub = None
+                acc_type = inferred.get("accessory_type") if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS else None
+
+                raw_color = COLOR_ALIASES.get(
+                    str(inferred.get("color", "")).strip().lower(),
+                    str(inferred.get("color", "")).strip().lower()
+                )
+                color_val = raw_color if raw_color in COLOR_OPTIONS else "negro"
+                pattern_val = inferred.get("pattern") if inferred.get("pattern") in PATTERN_OPTIONS else "liso"
+                warmth_val = inferred.get("warmth") if inferred.get("warmth") in WARMTH_OPTIONS else "medio"
+                waterproof_val = inferred.get("waterproof") if isinstance(inferred.get("waterproof"), bool) else False
+                dress_level_val = inferred.get("dress_level") if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS else "flexible"
+                style_val = inferred.get("style") if inferred.get("style") in STYLE_OPTIONS else "casual"
+
+                next_id = max([g.id for g in st.session_state.wardrobe], default=0) + 1
+                image_name = f"garment_{next_id}.jpg"
+                output_path = os.path.join(IMAGES_DIR, image_name)
+                save_square_image(uf, output_path)
+
+                garment = Garment(
+                    id=next_id,
+                    name=suggested,
+                    category=cat,
+                    subcategory=sub,
+                    accessory_type=acc_type,
+                    color=normalize_color_name(color_val),
+                    secondary_colors=[],
+                    pattern=pattern_val,
+                    style=style_val,
+                    secondary_styles=[],
+                    warmth=warmth_val,
+                    waterproof=waterproof_val,
+                    sexiness=0,
+                    dress_level=dress_level_val,
+                    image_name=image_name,
+                    is_new=True,
+                )
+                st.session_state.wardrobe.append(garment)
+
+                attrs_parts = [CATEGORY_LABELS_ES.get(cat, cat)]
+                if garment.color:
+                    attrs_parts.append(garment.color)
+                if pattern_val != "liso":
+                    attrs_parts.append(pattern_val)
+                if style_val != "casual":
+                    attrs_parts.append(style_val)
+
+                added_items.append({"name": suggested, "attrs": " · ".join(attrs_parts)})
+
+            save_wardrobe(DATA_FILE, st.session_state.wardrobe)
+            st.session_state.bulk_uploader_key += 1
+            st.session_state["bulk_saved_summary"] = {
+                "message": f"Se agregaron {len(added_items)} prenda(s) al clóset.",
+                "items": added_items
+            }
+            st.rerun()
+
+    st.divider()
+    st.markdown("### ➕ Agregar prenda manualmente")
+
     uploaded_file = st.file_uploader(
         "Sube una foto de la prenda",
-        type=["jpg", "jpeg", "png"]
+        type=["jpg", "jpeg", "png", "webp"],
+        key=f"form_uploader_{st.session_state.form_uploader_key}"
     )
 
     suggested_name = ""
@@ -1344,6 +1538,16 @@ with tab3:
 
         if inferred.get("category") in CATEGORY_OPTIONS:
             st.session_state.form_category = inferred["category"]
+
+        inferred_subcategory = inferred.get("subcategory")
+        current_category = st.session_state.form_category
+        valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
+
+        if st.session_state.form_subcategory not in valid_subcategories:
+            st.session_state.form_subcategory = None
+
+        if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
+            st.session_state.form_subcategory = inferred_subcategory
 
         if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
             st.session_state.form_accessory_type = inferred["accessory_type"]
@@ -1391,6 +1595,38 @@ with tab3:
         preview = Image.open(uploaded_file)
         preview = ImageOps.exif_transpose(preview)
         st.image(preview, caption="Vista previa", width=220)
+# manual_name_inference_tab3
+    if uploaded_file is None and st.session_state.form_name.strip():
+        inferred = infer_attributes_from_name(st.session_state.form_name.strip())
+
+        if inferred.get("category") in CATEGORY_OPTIONS:
+            st.session_state.form_category = inferred["category"]
+
+        inferred_subcategory = inferred.get("subcategory")
+        current_category = st.session_state.form_category
+        valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
+
+        if st.session_state.form_subcategory not in valid_subcategories:
+            st.session_state.form_subcategory = None
+
+        if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
+            st.session_state.form_subcategory = inferred_subcategory
+
+        if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
+            st.session_state.form_accessory_type = inferred["accessory_type"]
+
+        inferred_color = COLOR_ALIASES.get(
+            str(inferred.get("color", "")).strip().lower(),
+            str(inferred.get("color", "")).strip().lower()
+        )
+        if inferred_color in COLOR_OPTIONS:
+            st.session_state.form_color = inferred_color
+
+        if inferred.get("pattern") in PATTERN_OPTIONS:
+            st.session_state.form_pattern = inferred["pattern"]
+
+        if inferred.get("warmth") in WARMTH_OPTIONS:
+            st.session_state.form_warmth = inferred["warmth"]
 
     category = st.selectbox(
         "Categoría",
@@ -1398,7 +1634,18 @@ with tab3:
         key="form_category",
         format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
     )
+    subcategory = None
 
+    if category in SUBCATEGORY_OPTIONS and category != "accessory":
+        subcategory = st.selectbox(
+            "Subcategoría",
+            [None] + SUBCATEGORY_OPTIONS[category],
+            key="form_subcategory",
+            format_func=lambda x: "— ninguna —" if x is None else SUBCATEGORY_LABELS_ES.get(x, x)
+        )
+    else:
+        subcategory = None
+    
     name = st.text_input("Nombre de la prenda", key="form_name")
 
     if category == "accessory":
@@ -1435,7 +1682,7 @@ with tab3:
         "rojo": "🔴",
         "rosado": "🟣",
         "verde": "🟢",
-        "verde oliva": "🟢",
+        "verde olivo": "🟢",
         "verde oscuro": "🟢",
     }
 
@@ -1496,12 +1743,12 @@ with tab3:
             "¿Es impermeable?",
             key="form_waterproof"
         )
-
+        
         sexiness = st.slider(
             "Nivel sexy",
             min_value=0,
-            max_value=10,
-            key="form_sexiness"
+            max_value=3,
+            key="form_sexiness_add"
         )
 
         dress_level = st.selectbox(
@@ -1525,6 +1772,7 @@ with tab3:
             id=max([g.id for g in st.session_state.wardrobe], default=0) + 1,
             name=name,
             category=category,
+            subcategory=subcategory,
             accessory_type=accessory_type,
             color=normalize_color_name(color),
             secondary_colors=[normalize_color_name(secondary_color)] if secondary_color != "ninguno" else [],
@@ -1535,12 +1783,15 @@ with tab3:
             waterproof=waterproof,
             sexiness=sexiness,
             dress_level=dress_level,
-            image_name=image_name
+            image_name=image_name,
+            is_new=True,
         )
 
         st.session_state.wardrobe.append(garment)
         save_wardrobe(DATA_FILE, st.session_state.wardrobe)
-        st.success("Tu prenda quedó guardada.")
+        st.session_state["add_saved_message"] = "Tu prenda quedó guardada."
+        st.session_state["reset_add_form"] = True
+        st.session_state.form_uploader_key += 1
         st.rerun()
 # =========================================================
 # TAB 4: PLANIFICADOR SEMANAL
@@ -1557,10 +1808,12 @@ with tab4:
     base_col1, base_col2, base_col3 = st.columns(3)
 
     with base_col1:
+        base_options = list(OCCASION_OPTIONS)
+
         base_occasion = st.selectbox(
             "Ocasión base",
-            OCCASION_OPTIONS,
-            index=OCCASION_OPTIONS.index("trabajo"),
+            base_options,
+            index=base_options.index("trabajo"),
             key="base_week_occasion"
         )
 
@@ -1588,7 +1841,7 @@ with tab4:
 
     planner_city = st.text_input(
         "Ciudad para pronóstico semanal",
-        value="Punta Arenas",
+        value=DEFAULT_CITY,
         key="weekly_weather_city"
     )
 

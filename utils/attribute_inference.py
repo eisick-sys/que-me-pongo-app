@@ -1,4 +1,7 @@
 #attribute_inference.py
+import os
+import re
+import unicodedata
 from typing import Dict, Optional
 
 from constants import (
@@ -7,29 +10,41 @@ from constants import (
     COLOR_OPTIONS,
     PATTERN_OPTIONS,
     ACCESSORY_TYPE_OPTIONS,
+    SUBCATEGORY_OPTIONS,
 )
 
 
 def normalize_text(text: str) -> str:
-    return (text or "").strip().lower()
+    text = (text or "").strip().lower()
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    return text
 
 
 def infer_color_from_name(name: str) -> Optional[str]:
-    from constants import COLOR_ALIASES, COLOR_OPTIONS
-
     text = normalize_text(name)
 
-    # Buscar primero cualquier coincidencia de texto y normalizar con la función estándar
-    for alias in sorted(COLOR_ALIASES.keys(), key=len, reverse=True):
+    alias_map = {
+        normalize_text(alias): value
+        for alias, value in COLOR_ALIASES.items()
+    }
+
+    color_map = {
+        normalize_text(color): color
+        for color in COLOR_OPTIONS
+    }
+
+    # Buscar primero aliases
+    for alias in sorted(alias_map.keys(), key=len, reverse=True):
         if alias in text:
-            normalized = COLOR_ALIASES.get(alias)
+            normalized = alias_map.get(alias)
             if normalized in COLOR_OPTIONS:
                 return normalized
 
-    # Luego colores oficiales (también priorizando largos)
-    for color in sorted(COLOR_OPTIONS, key=len, reverse=True):
-        if color in text:
-            return color
+    # Luego colores oficiales
+    for normalized_color in sorted(color_map.keys(), key=len, reverse=True):
+        if normalized_color in text:
+            return color_map[normalized_color]
 
     return None
 
@@ -40,7 +55,7 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
     pattern_keywords = {
         "animal_print": [
             "animal print", "animal", "leopardo", "leopard", "zebra", "cebra",
-            "snake", "serpiente", "piton", "pitón"
+            "snake", "serpiente", "piton"
         ],
         "floral": [
             "floral", "floreada", "flores", "flower"
@@ -49,16 +64,16 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
             "rayas", "rayada", "rayado", "striped", "stripe"
         ],
         "cuadros": [
-            "cuadros", "cuadrillé", "cuadriculado", "tartan", "plaid"
+            "cuadros", "cuadrille", "cuadriculado", "tartan", "plaid"
         ],
         "grafico": [
-            "grafico", "gráfico", "print", "estampado grafico", "estampado gráfico"
+            "grafico", "print", "estampado grafico"
         ],
         "estampado": [
             "estampado", "estampada"
         ],
         "liso": [
-            "liso", "lisa", "basica", "básica", "basico", "básico"
+            "liso", "lisa", "basica", "basico"
         ],
     }
 
@@ -66,7 +81,7 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
         if pattern not in PATTERN_OPTIONS:
             continue
         for keyword in keywords:
-            if keyword in text:
+            if normalize_text(keyword) in text:
                 return pattern
 
     return None
@@ -81,28 +96,29 @@ def infer_category_from_name(name: str) -> Optional[str]:
         ],
         "top": [
             "polera", "camiseta", "remera", "top", "blusa", "camisa",
-            "body", "crop top", "camiseta", "beatle", "tank", "musculosa"
+            "body", "crop top", "beatle", "tank", "musculosa", "peto"
         ],
         "midlayer": [
-            "blazer", "cardigan", "cárdigan", "chaleco", "sweater", "sueter",
-            "suéter", "tejido"
+            "blazer", "cardigan", "chaleco", "sweater", "sueter",
+            "tejido", "hoodie", "polar",
         ],
         "outerwear": [
             "chaqueta", "abrigo", "parka", "impermeable", "trench",
-            "cortaviento", "anorak", "polar"
+            "cortaviento", "anorak", "poncho"
         ],
         "bottom": [
-            "jeans", "pantalon", "pantalón", "falda", "short", "shorts",
-            "calza", "leggings", "buzo", "palazzo", "mini", "minifalda"
+            "jeans", "pantalon", "falda", "short", "shorts",
+            "calza", "leggings", "legging", "buzo", "palazzo", "mini", "minifalda"
         ],
         "shoes": [
             "zapatillas", "zapatilla", "zapatos", "zapato", "botines",
-            "botin", "botín", "botas", "bota", "sandalias", "sandalia",
-            "mocasines", "mocasín", "mocasin", "tacos", "taco"
+            "botin", "botas", "bota", "sandalias", "sandalia",
+            "mocasines", "mocasin", "tacos", "taco", "mocasin",
+            "stiletto", "stilettos"
         ],
         "accessory": [
             "reloj", "collar", "pulsera", "anillo", "aros", "cinturon",
-            "cinturón", "bolso", "cartera", "bufanda", "pañuelo",
+            "bolso", "cartera", "bufanda", "panuelo",
             "gorro", "guantes", "lentes"
         ],
     }
@@ -111,8 +127,102 @@ def infer_category_from_name(name: str) -> Optional[str]:
         if category not in CATEGORY_OPTIONS:
             continue
         for keyword in keywords:
-            if keyword in text:
+            if normalize_text(keyword) in text:
                 return category
+
+    return None
+
+
+def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Optional[str]:
+    text = normalize_text(name)
+
+    subcategory_keywords = {
+        "top": {
+            "polera": ["polera", "camiseta", "remera"],
+            "blusa": ["blusa"],
+            "camisa": ["camisa"],
+            "top": ["top"],
+            "body": ["body"],
+            "crop_top": ["crop top", "crop"],
+            "peto": ["peto"],
+        },
+        "midlayer": {
+            "sweater": ["sweater", "sueter"],
+            "cardigan": ["cardigan"],
+            "chaleco": ["chaleco"],
+            "blazer": ["blazer"],
+            "hoodie": ["hoodie"],
+            "polar": ["polar"],
+        },
+        "outerwear": {
+            "chaqueta": ["chaqueta"],
+            "abrigo": ["abrigo"],
+            "parka": ["parka"],
+            "trench": ["trench"],
+            "impermeable": ["impermeable", "cortaviento"],
+            "poncho": ["poncho"],
+        },
+        "bottom": {
+            # más específicas primero para que no caigan en el fallback
+            "falda_corta": ["minifalda", "falda corta", "mini"],
+            "falda_larga": ["falda larga", "maxi falda", "maxi"],
+            "falda_midi": ["falda midi", "midi falda", "falda"],  # fallback genérico
+            "short_elegante": ["short elegante", "short formal"],
+            "short_casual": ["short", "shorts"],  # fallback genérico
+            "jeans": ["jeans", "jean", "denim"],
+            "pantalon": ["pantalon"],
+            "legging": ["legging", "leggings", "calza", "calzas"],
+            "buzo": ["buzo", "jogging"],
+            "jogger": ["jogger", "joggers"],
+        },
+        "one_piece": {
+            "vestido_elegante": ["vestido elegante", "vestido formal", "vestido de noche"],
+            "vestido_coctel": ["vestido coctel", "vestido cóctel", "vestido fiesta", "coctel"],
+            "vestido_casual": ["vestido casual", "vestido basico", "vestido"],  # fallback genérico
+            "enterito": ["enterito", "mono", "jumpsuit", "overall"],
+        },
+        "shoes": {
+            # más específicas primero
+            "zapatilla_deporte": ["zapatilla deporte", "zapatillas deporte", "running", "training"],
+            "zapatilla_urbana": ["zapatilla", "zapatillas", "sneaker", "sneakers"],  # fallback genérico
+            "zapato": ["zapato", "zapatos"],
+            "botin": ["botin", "botines"],
+            "bota": ["bota", "botas"],
+            "sandalia": ["sandalia", "sandalias"],
+            "taco_bajo": ["taco bajo", "kitten heel", "kitten", "tacón bajo"],
+            "taco_alto": ["taco", "tacos", "tacon", "tacones", "heel", "heels", "stiletto", "stilettos"],
+            "mocasin": ["mocasin", "mocasines", "loafer", "loafers"],
+        },
+        "accessory": {
+            "reloj": ["reloj"],
+            "collar": ["collar"],
+            "pulsera": ["pulsera", "brazalete"],
+            "anillo": ["anillo"],
+            "aros": ["aros", "aretes"],
+            "cinturon": ["cinturon"],
+            "bolso": ["bolso"],
+            "cartera": ["cartera"],
+            "bufanda": ["bufanda"],
+            "pañuelo": ["panuelo", "pañuelo"],
+            "gorro": ["gorro", "beanie"],
+            "guantes": ["guantes", "guante"],
+        },
+    }
+
+    categories_to_check = [category] if category else list(subcategory_keywords.keys())
+
+    for current_category in categories_to_check:
+        if current_category not in subcategory_keywords:
+            continue
+
+        valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
+
+        for subcategory, keywords in subcategory_keywords[current_category].items():
+            if subcategory not in valid_subcategories:
+                continue
+            for keyword in keywords:
+                if normalize_text(keyword) in text:
+                    return subcategory
 
     return None
 
@@ -126,8 +236,8 @@ def infer_accessory_type_from_name(name: str) -> Optional[str]:
         "pulsera": ["pulsera", "brazalete"],
         "anillo": ["anillo"],
         "aros": ["aros", "aretes"],
-        "cinturón": ["cinturon", "cinturón"],
-        "bolso": ["bolso", "cartera"],
+        "cinturón": ["cinturon"],
+        "bolso/cartera": ["bolso", "cartera"],
         "bufanda": ["bufanda"],
         "pañuelo": ["pañuelo", "panuelo"],
         "gorro": ["gorro", "beanie"],
@@ -138,7 +248,7 @@ def infer_accessory_type_from_name(name: str) -> Optional[str]:
         if accessory_type not in ACCESSORY_TYPE_OPTIONS:
             continue
         for keyword in keywords:
-            if keyword in text:
+            if normalize_text(keyword) in text:
                 return accessory_type
 
     return None
@@ -152,7 +262,7 @@ def infer_waterproof_from_name(name: str) -> Optional[bool]:
     ]
 
     for keyword in waterproof_keywords:
-        if keyword in text:
+        if normalize_text(keyword) in text:
             return True
 
     return None
@@ -170,11 +280,11 @@ def infer_warmth_from_name(name: str) -> Optional[str]:
     ]
 
     for keyword in cold_keywords:
-        if keyword in text:
+        if normalize_text(keyword) in text:
             return "frio"
 
     for keyword in hot_keywords:
-        if keyword in text:
+        if normalize_text(keyword) in text:
             return "caluroso"
 
     return None
@@ -188,17 +298,17 @@ def infer_attributes_from_name(name: str) -> Dict[str, Optional[object]]:
     if inferred_accessory_type:
         inferred_category = "accessory"
 
+    inferred_subcategory = infer_subcategory_from_name(name, inferred_category)
+
     return {
         "category": inferred_category,
+        "subcategory": inferred_subcategory,
         "pattern": infer_pattern_from_name(name),
         "color": infer_color_from_name(name),
         "waterproof": infer_waterproof_from_name(name),
         "warmth": infer_warmth_from_name(name),
         "accessory_type": inferred_accessory_type,
     }
-
-import os
-import re
 
 
 def suggest_name_from_filename(filename: str) -> str:

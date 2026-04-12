@@ -928,5 +928,35 @@
     "mood": "elegante",
     "activity": "formal",
     "weather_tag": "frio"
+  },
+  {
+    "id": 64,
+    "garment_ids": [
+      4,
+      17,
+      81,
+      70,
+      62
+    ],
+    "liked": true,
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio"
+  },
+  {
+    "id": 65,
+    "garment_ids": [
+      4,
+      17,
+      81,
+      70,
+      62
+    ],
+    "liked": false,
+    "occasion": "casual",
+    "mood": "relajado",
+    "activity": "normal",
+    "weather_tag": "frio"
   }
 ]

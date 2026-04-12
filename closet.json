@@ -5,6 +5,7 @@
     "category": "top",
     "color": "negro",
     "style": "casual",
+    "subcategory": "polera",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano",
@@ -16,7 +17,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "3_polera negra prueba.jpg"
+    "image_name": "3_polera negra prueba.jpg",
+    "is_new": false
   },
   {
     "id": 4,
@@ -24,6 +26,7 @@
     "category": "top",
     "color": "blanco",
     "style": "casual",
+    "subcategory": "polera",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano",
@@ -35,7 +38,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "4_polera blanca basica prueba.jpg"
+    "image_name": "4_polera blanca basica prueba.jpg",
+    "is_new": false
   },
   {
     "id": 5,
@@ -43,6 +47,7 @@
     "category": "bottom",
     "color": "azul",
     "style": "urbano",
+    "subcategory": "jeans",
     "secondary_colors": [],
     "secondary_styles": [
       "casual"
@@ -53,7 +58,8 @@
     "dress_level": "flexible",
     "sexiness": 1,
     "accessory_type": null,
-    "image_name": "5_jeans ajustados prueba 1.jpg"
+    "image_name": "5_jeans ajustados prueba 1.jpg",
+    "is_new": false
   },
   {
     "id": 6,
@@ -61,6 +67,7 @@
     "category": "bottom",
     "color": "azul",
     "style": "casual",
+    "subcategory": "jeans",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano"
@@ -71,7 +78,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "6_jeans anchos prueba 1.webp"
+    "image_name": "6_jeans anchos prueba 1.webp",
+    "is_new": false
   },
   {
     "id": 7,
@@ -79,6 +87,7 @@
     "category": "bottom",
     "color": "azul oscuro",
     "style": "formal",
+    "subcategory": "pantalon",
     "secondary_colors": [],
     "secondary_styles": [
       "casual",
@@ -90,7 +99,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "7_pantalon tela azul oscuro prueba.jpg"
+    "image_name": "7_pantalon tela azul oscuro prueba.jpg",
+    "is_new": false
   },
   {
     "id": 17,
@@ -98,6 +108,7 @@
     "category": "bottom",
     "color": "gris",
     "style": "sport",
+    "subcategory": "buzo",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano"
@@ -108,7 +119,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "17.jpg"
+    "image_name": "17.jpg",
+    "is_new": false
   },
   {
     "id": 19,
@@ -116,6 +128,7 @@
     "category": "shoes",
     "color": "negro",
     "style": "sport",
+    "subcategory": "zapatilla_deporte",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
@@ -124,7 +137,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "19.jpg"
+    "image_name": "19.jpg",
+    "is_new": false
   },
   {
     "id": 21,
@@ -132,15 +146,17 @@
     "category": "top",
     "color": "blanco",
     "style": "formal",
+    "subcategory": "blusa",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
     "warmth": "caluroso",
     "waterproof": false,
     "dress_level": "flexible",
-    "sexiness": 0,
+    "sexiness": 2,
     "accessory_type": null,
-    "image_name": "21_prueba blusa 1.jpg"
+    "image_name": "21_prueba blusa 1.jpg",
+    "is_new": false
   },
   {
     "id": 22,
@@ -148,6 +164,7 @@
     "category": "outerwear",
     "color": "negro",
     "style": "formal",
+    "subcategory": "abrigo",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante",
@@ -159,7 +176,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "22.jpg"
+    "image_name": "22.jpg",
+    "is_new": false
   },
   {
     "id": 33,
@@ -167,6 +185,7 @@
     "category": "shoes",
     "color": "negro",
     "style": "formal",
+    "subcategory": "taco_alto",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
@@ -175,7 +194,8 @@
     "dress_level": "arreglado",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "33.jpg"
+    "image_name": "33.jpg",
+    "is_new": false
   },
   {
     "id": 37,
@@ -183,6 +203,7 @@
     "category": "accessory",
     "color": "blanco",
     "style": "elegante",
+    "subcategory": "collar",
     "secondary_colors": [],
     "secondary_styles": [
       "formal"
@@ -191,9 +212,10 @@
     "warmth": "medio",
     "waterproof": false,
     "dress_level": "arreglado",
-    "sexiness": 0,
-    "accessory_type": null,
-    "image_name": "37.jpg"
+    "sexiness": 1,
+    "accessory_type": "collar",
+    "image_name": "37.jpg",
+    "is_new": false
   },
   {
     "id": 40,
@@ -201,6 +223,7 @@
     "category": "top",
     "color": "blanco",
     "style": "casual",
+    "subcategory": "polera",
     "secondary_colors": [
       "gris"
     ],
@@ -213,7 +236,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "40.jpg"
+    "image_name": "40.jpg",
+    "is_new": false
   },
   {
     "id": 42,
@@ -221,6 +245,7 @@
     "category": "shoes",
     "color": "blanco",
     "style": "urbano",
+    "subcategory": "zapatilla_urbana",
     "secondary_colors": [],
     "secondary_styles": [
       "casual"
@@ -231,7 +256,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "42.jpg"
+    "image_name": "42.jpg",
+    "is_new": false
   },
   {
     "id": 43,
@@ -239,6 +265,7 @@
     "category": "midlayer",
     "color": "negro",
     "style": "formal",
+    "subcategory": "blazer",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante",
@@ -250,7 +277,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "43.jpg"
+    "image_name": "43.jpg",
+    "is_new": false
   },
   {
     "id": 45,
@@ -258,6 +286,7 @@
     "category": "accessory",
     "color": "azul",
     "style": "elegante",
+    "subcategory": "pañuelo",
     "secondary_colors": [],
     "secondary_styles": [
       "formal",
@@ -267,9 +296,10 @@
     "warmth": "medio",
     "waterproof": false,
     "dress_level": "arreglado",
-    "sexiness": 0,
-    "accessory_type": null,
-    "image_name": "45.jpg"
+    "sexiness": 1,
+    "accessory_type": "pañuelo",
+    "image_name": "45.jpg",
+    "is_new": false
   },
   {
     "id": 46,
@@ -277,6 +307,7 @@
     "category": "accessory",
     "color": "plateado",
     "style": "casual",
+    "subcategory": "aros",
     "secondary_colors": [],
     "secondary_styles": [
       "formal",
@@ -289,7 +320,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "46.jpg"
+    "image_name": "46.jpg",
+    "is_new": false
   },
   {
     "id": 49,
@@ -297,6 +329,7 @@
     "category": "top",
     "color": "negro",
     "style": "formal",
+    "subcategory": "blusa",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano",
@@ -306,9 +339,10 @@
     "warmth": "caluroso",
     "waterproof": false,
     "dress_level": "flexible",
-    "sexiness": 0,
+    "sexiness": 2,
     "accessory_type": null,
-    "image_name": "49.jpg"
+    "image_name": "49.jpg",
+    "is_new": false
   },
   {
     "id": 50,
@@ -316,6 +350,7 @@
     "category": "bottom",
     "color": "café",
     "style": "formal",
+    "subcategory": "pantalon",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano",
@@ -328,7 +363,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "50.jpg"
+    "image_name": "50.jpg",
+    "is_new": false
   },
   {
     "id": 53,
@@ -336,6 +372,7 @@
     "category": "shoes",
     "color": "negro",
     "style": "urbano",
+    "subcategory": "zapatilla_urbana",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
@@ -344,7 +381,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "53.jpg"
+    "image_name": "53.jpg",
+    "is_new": false
   },
   {
     "id": 54,
@@ -352,6 +390,7 @@
     "category": "bottom",
     "color": "café",
     "style": "formal",
+    "subcategory": "falda_midi",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante"
@@ -362,7 +401,8 @@
     "dress_level": "arreglado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "54.jpg"
+    "image_name": "54.jpg",
+    "is_new": false
   },
   {
     "id": 59,
@@ -370,6 +410,7 @@
     "category": "shoes",
     "color": "negro",
     "style": "formal",
+    "subcategory": "botin",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
@@ -378,7 +419,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "59.jpg"
+    "image_name": "59.jpg",
+    "is_new": false
   },
   {
     "id": 61,
@@ -386,6 +428,7 @@
     "category": "bottom",
     "color": "gris",
     "style": "casual",
+    "subcategory": "falda_corta",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano"
@@ -396,7 +439,8 @@
     "dress_level": "relajado",
     "sexiness": 3,
     "accessory_type": null,
-    "image_name": "61.jpg"
+    "image_name": "61.jpg",
+    "is_new": false
   },
   {
     "id": 62,
@@ -404,6 +448,7 @@
     "category": "accessory",
     "color": "beige",
     "style": "casual",
+    "subcategory": "gorro",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano"
@@ -414,7 +459,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "62.jpg"
+    "image_name": "62.jpg",
+    "is_new": false
   },
   {
     "id": 63,
@@ -422,6 +468,7 @@
     "category": "top",
     "color": "café",
     "style": "casual",
+    "subcategory": "top",
     "secondary_colors": [
       "beige",
       "negro"
@@ -435,7 +482,8 @@
     "dress_level": "flexible",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "63.jpg"
+    "image_name": "63.jpg",
+    "is_new": false
   },
   {
     "id": 69,
@@ -443,6 +491,7 @@
     "category": "top",
     "color": "café",
     "style": "casual",
+    "subcategory": "polera",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante"
@@ -453,7 +502,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "69.jpg"
+    "image_name": "69.jpg",
+    "is_new": false
   },
   {
     "id": 70,
@@ -461,6 +511,7 @@
     "category": "midlayer",
     "color": "blanco",
     "style": "casual",
+    "subcategory": "chaleco",
     "secondary_colors": [
       "negro"
     ],
@@ -471,7 +522,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "70.jpg"
+    "image_name": "70.jpg",
+    "is_new": false
   },
   {
     "id": 71,
@@ -479,6 +531,7 @@
     "category": "outerwear",
     "color": "azul",
     "style": "casual",
+    "subcategory": "impermeable",
     "secondary_colors": [],
     "secondary_styles": [
       "formal"
@@ -489,7 +542,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "71.jpg"
+    "image_name": "71.jpg",
+    "is_new": false
   },
   {
     "id": 74,
@@ -497,6 +551,7 @@
     "category": "outerwear",
     "color": "celeste",
     "style": "casual",
+    "subcategory": "parka",
     "secondary_colors": [],
     "secondary_styles": [
       "sport"
@@ -507,7 +562,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "74.jpg"
+    "image_name": "74.jpg",
+    "is_new": false
   },
   {
     "id": 75,
@@ -515,6 +571,7 @@
     "category": "bottom",
     "color": "gris",
     "style": "casual",
+    "subcategory": "short_elegante",
     "secondary_colors": [],
     "secondary_styles": [
       "elegante"
@@ -525,7 +582,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "75.jpg"
+    "image_name": "75.jpg",
+    "is_new": false
   },
   {
     "id": 76,
@@ -533,6 +591,7 @@
     "category": "outerwear",
     "color": "café",
     "style": "casual",
+    "subcategory": "chaqueta",
     "secondary_colors": [],
     "secondary_styles": [],
     "pattern": "liso",
@@ -541,7 +600,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_76.jpg"
+    "image_name": "garment_76.jpg",
+    "is_new": false
   },
   {
     "id": 77,
@@ -549,6 +609,243 @@
     "category": "one_piece",
     "color": "rosado",
     "style": "elegante",
+    "subcategory": "vestido_elegante",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "elegante",
+    "sexiness": 2,
+    "accessory_type": null,
+    "image_name": "garment_77.jpg",
+    "is_new": false
+  },
+  {
+    "id": 79,
+    "name": "cardigan amarillo",
+    "category": "midlayer",
+    "color": "amarillo",
+    "style": "casual",
+    "subcategory": "cardigan",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_79.jpg",
+    "is_new": false
+  },
+  {
+    "id": 81,
+    "name": "tacos rojos",
+    "category": "shoes",
+    "color": "rojo",
+    "style": "casual",
+    "subcategory": "taco_alto",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_81.jpg",
+    "is_new": false
+  },
+  {
+    "id": 83,
+    "name": "abrigo leopardo",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "abrigo",
+    "secondary_colors": [
+      "café"
+    ],
+    "secondary_styles": [
+      "elegante"
+    ],
+    "pattern": "animal_print",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_83.jpg",
+    "is_new": false
+  },
+  {
+    "id": 84,
+    "name": "polar negro",
+    "category": "midlayer",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "polar",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "sport",
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_84.jpg",
+    "is_new": false
+  },
+  {
+    "id": 85,
+    "name": "sweater cuello v",
+    "category": "midlayer",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "sweater",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_85.jpg",
+    "is_new": false
+  },
+  {
+    "id": 86,
+    "name": "parka verde",
+    "category": "outerwear",
+    "color": "verde",
+    "style": "casual",
+    "subcategory": "parka",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_86.jpg",
+    "is_new": false
+  },
+  {
+    "id": 88,
+    "name": "sweater grueso",
+    "category": "midlayer",
+    "color": "azul",
+    "style": "casual",
+    "subcategory": "sweater",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_88.jpg",
+    "is_new": false
+  },
+  {
+    "id": 89,
+    "name": "falda cuadros",
+    "category": "bottom",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "falda_corta",
+    "secondary_colors": [
+      "blanco"
+    ],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "cuadros",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 3,
+    "accessory_type": null,
+    "image_name": "garment_89.jpg",
+    "is_new": false
+  },
+  {
+    "id": 90,
+    "name": "botin cafe",
+    "category": "shoes",
+    "color": "café",
+    "style": "casual",
+    "subcategory": "botin",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_90.jpg",
+    "is_new": false
+  },
+  {
+    "id": 91,
+    "name": "mocasin cafe",
+    "category": "shoes",
+    "color": "café",
+    "style": "formal",
+    "subcategory": "mocasin",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_91.jpg",
+    "is_new": false
+  },
+  {
+    "id": 92,
+    "name": "blazer gris",
+    "category": "midlayer",
+    "color": "gris",
+    "style": "formal",
+    "subcategory": "blazer",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "casual",
+      "elegante"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_92.jpg",
+    "is_new": false
+  },
+  {
+    "id": 93,
+    "name": "blusa celeste",
+    "category": "top",
+    "color": "celeste",
+    "style": "casual",
+    "subcategory": "blusa",
     "secondary_colors": [],
     "secondary_styles": [
       "formal"
@@ -556,9 +853,309 @@
     "pattern": "liso",
     "warmth": "caluroso",
     "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_93.jpg",
+    "is_new": false
+  },
+  {
+    "id": 94,
+    "name": "cinturon negro",
+    "category": "accessory",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "cinturon",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": "cinturón",
+    "image_name": "garment_94.jpg",
+    "is_new": false
+  },
+  {
+    "id": 95,
+    "name": "parka pluma negra",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "parka",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano",
+      "sport"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_95.jpg",
+    "is_new": false
+  },
+  {
+    "id": 96,
+    "name": "stiletto blanco",
+    "category": "shoes",
+    "color": "blanco",
+    "style": "elegante",
+    "subcategory": "taco_alto",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
     "dress_level": "elegante",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_77.jpg"
+    "image_name": "garment_96.jpg",
+    "is_new": false
+  },
+  {
+    "id": 97,
+    "name": "impermeable negro",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "impermeable",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": true,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_97.jpg",
+    "is_new": false
+  },
+  {
+    "id": 98,
+    "name": "chaleco cuello v cafe",
+    "category": "midlayer",
+    "color": "café",
+    "style": "casual",
+    "subcategory": "chaleco",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_98.jpg",
+    "is_new": false
+  },
+  {
+    "id": 99,
+    "name": "pantalon cebra",
+    "category": "bottom",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "pantalon",
+    "secondary_colors": [
+      "blanco"
+    ],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "animal_print",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 1,
+    "accessory_type": null,
+    "image_name": "garment_99.jpg",
+    "is_new": false
+  },
+  {
+    "id": 100,
+    "name": "polera azul marino",
+    "category": "top",
+    "color": "azul marino",
+    "style": "casual",
+    "subcategory": "polera",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_100.jpg",
+    "is_new": false
+  },
+  {
+    "id": 101,
+    "name": "sweater cuello alto blanco",
+    "category": "midlayer",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": "sweater",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_101.jpg",
+    "is_new": false
+  },
+  {
+    "id": 102,
+    "name": "trench",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "trench",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_102.jpg",
+    "is_new": false
+  },
+  {
+    "id": 103,
+    "name": "abrigo impermeable verde",
+    "category": "outerwear",
+    "color": "verde oliva",
+    "style": "casual",
+    "subcategory": "abrigo",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": true,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_103.jpg",
+    "is_new": false
+  },
+  {
+    "id": 104,
+    "name": "beatle blanco",
+    "category": "top",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": null,
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 1,
+    "accessory_type": null,
+    "image_name": "garment_104.jpg",
+    "is_new": false
+  },
+  {
+    "id": 105,
+    "name": "blazer negro elegante",
+    "category": "midlayer",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "blazer",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "elegante",
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "arreglado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_105.jpg",
+    "is_new": false
+  },
+  {
+    "id": 106,
+    "name": "bufanda",
+    "category": "accessory",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "bufanda",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": "bufanda",
+    "image_name": "garment_106.jpg",
+    "is_new": false
+  },
+  {
+    "id": 107,
+    "name": "buzo blanco",
+    "category": "bottom",
+    "color": "blanco",
+    "style": "urbano",
+    "subcategory": "buzo",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "casual",
+      "sport"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_107.jpg",
+    "is_new": false
+  },
+  {
+    "id": 108,
+    "name": "reloj plateado",
+    "category": "accessory",
+    "color": "plateado",
+    "style": "formal",
+    "subcategory": null,
+    "secondary_colors": [],
+    "secondary_styles": [
+      "elegante"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "arreglado",
+    "sexiness": 0,
+    "accessory_type": "reloj",
+    "image_name": "garment_108.jpg",
+    "is_new": true
   }
 ]
