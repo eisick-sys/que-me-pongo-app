@@ -56,9 +56,15 @@ def dress_score(dress_level: str, occasion: str) -> int:
 def weather_score(garment: Garment, temp: int, rain: bool) -> int:
     score = 0
 
-    # Un outerwear impermeable es siempre válido con lluvia sin importar su warmth
+    # Un outerwear impermeable es siempre válido con lluvia; se diferencia por warmth según temp
     if rain and garment.category == "outerwear" and garment.waterproof:
-        return 15
+        if temp <= 10:
+            warmth_bonus = {"frio": 5, "medio": 2, "caluroso": -5}.get(garment.warmth, 0)
+        elif temp <= 20:
+            warmth_bonus = {"frio": 2, "medio": 5, "caluroso": 0}.get(garment.warmth, 0)
+        else:
+            warmth_bonus = {"frio": -5, "medio": 2, "caluroso": 5}.get(garment.warmth, 0)
+        return 15 + warmth_bonus
 
     if temp <= 10:
         if garment.warmth == "frio":

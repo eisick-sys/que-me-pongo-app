@@ -108,7 +108,7 @@
     "category": "bottom",
     "color": "gris",
     "style": "sport",
-    "subcategory": "pantalon",
+    "subcategory": "buzo",
     "secondary_colors": [],
     "secondary_styles": [
       "urbano"
@@ -1119,21 +1119,24 @@
   },
   {
     "id": 107,
-    "name": "buzo blanco prueba mujer",
+    "name": "buzo blanco",
     "category": "bottom",
     "color": "blanco",
-    "style": "casual",
-    "subcategory": null,
+    "style": "urbano",
+    "subcategory": "buzo",
     "secondary_colors": [],
-    "secondary_styles": [],
+    "secondary_styles": [
+      "casual",
+      "sport"
+    ],
     "pattern": "liso",
     "warmth": "medio",
     "waterproof": false,
-    "dress_level": "flexible",
+    "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
     "image_name": "garment_107.jpg",
-    "is_new": true
+    "is_new": false
   },
   {
     "id": 108,
@@ -1153,6 +1156,26 @@
     "sexiness": 0,
     "accessory_type": "reloj",
     "image_name": "garment_108.jpg",
+    "is_new": true
+  },
+  {
+    "id": 109,
+    "name": "falda flores",
+    "category": "bottom",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": "falda_larga",
+    "secondary_colors": [
+      "multicolor"
+    ],
+    "secondary_styles": [],
+    "pattern": "floral",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_109.jpg",
     "is_new": true
   }
 ]

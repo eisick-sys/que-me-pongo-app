@@ -1137,7 +1137,8 @@ with tab2:
                     pattern = st.selectbox(
                         "Patrón / diseño",
                         pattern_options_edit,
-                        index=0
+                        index=0,
+                        key=f"edit_pattern_{garment.id}"
                     )
                     
                     color_key = f"edit_color_{garment.id}"
@@ -1275,7 +1276,7 @@ with tab2:
                             min_value=0,
                             max_value=3,
                             value=getattr(garment, "sexiness", 0),
-                            key="form_sexiness_edit",
+                            key=f"edit_sexiness_{garment.id}",
                             help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
 
@@ -1404,6 +1405,9 @@ with tab3:
     if "form_subcategory" not in st.session_state:
         st.session_state.form_subcategory = None
 
+    if "form_inferred_done" not in st.session_state:
+        st.session_state.form_inferred_done = False
+
     if st.session_state.get("reset_add_form"):
         st.session_state.form_name = ""
         st.session_state.form_category = "top"
@@ -1418,6 +1422,7 @@ with tab3:
         st.session_state.form_waterproof = False
         st.session_state.form_sexiness_add = 0
         st.session_state.form_dress_level = "flexible"
+        st.session_state.form_inferred_done = False
         del st.session_state["reset_add_form"]
 
     # =========================================================
@@ -1536,60 +1541,63 @@ with tab3:
         if not st.session_state.form_name:
             st.session_state.form_name = suggested_name
 
-        if inferred.get("category") in CATEGORY_OPTIONS:
-            st.session_state.form_category = inferred["category"]
+        if not st.session_state.form_inferred_done:
+            if inferred.get("category") in CATEGORY_OPTIONS:
+                st.session_state.form_category = inferred["category"]
 
-        inferred_subcategory = inferred.get("subcategory")
-        current_category = st.session_state.form_category
-        valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
+            inferred_subcategory = inferred.get("subcategory")
+            current_category = st.session_state.form_category
+            valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
 
-        if st.session_state.form_subcategory not in valid_subcategories:
-            st.session_state.form_subcategory = None
+            if st.session_state.form_subcategory not in valid_subcategories:
+                st.session_state.form_subcategory = None
 
-        if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
-            st.session_state.form_subcategory = inferred_subcategory
+            if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
+                st.session_state.form_subcategory = inferred_subcategory
 
-        if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
-            st.session_state.form_accessory_type = inferred["accessory_type"]
+            if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
+                st.session_state.form_accessory_type = inferred["accessory_type"]
 
-        inferred_color = COLOR_ALIASES.get(
-            str(inferred.get("color", "")).strip().lower(),
-            str(inferred.get("color", "")).strip().lower()
-        )
-        if inferred_color in COLOR_OPTIONS:
-            st.session_state.form_color = inferred_color
+            inferred_color = COLOR_ALIASES.get(
+                str(inferred.get("color", "")).strip().lower(),
+                str(inferred.get("color", "")).strip().lower()
+            )
+            if inferred_color in COLOR_OPTIONS:
+                st.session_state.form_color = inferred_color
 
-        inferred_secondary_color = COLOR_ALIASES.get(
-            str(inferred.get("secondary_color", "")).strip().lower(),
-            str(inferred.get("secondary_color", "")).strip().lower()
-        )
-        if inferred_secondary_color in COLOR_OPTIONS:
-            st.session_state.form_secondary_color = inferred_secondary_color
+            inferred_secondary_color = COLOR_ALIASES.get(
+                str(inferred.get("secondary_color", "")).strip().lower(),
+                str(inferred.get("secondary_color", "")).strip().lower()
+            )
+            if inferred_secondary_color in COLOR_OPTIONS:
+                st.session_state.form_secondary_color = inferred_secondary_color
 
-        if inferred.get("pattern") in PATTERN_OPTIONS:
-            st.session_state.form_pattern = inferred["pattern"]
+            if inferred.get("pattern") in PATTERN_OPTIONS:
+                st.session_state.form_pattern = inferred["pattern"]
 
-        if inferred.get("style") in STYLE_OPTIONS:
-            st.session_state.form_style = inferred["style"]
+            if inferred.get("style") in STYLE_OPTIONS:
+                st.session_state.form_style = inferred["style"]
 
-        inferred_secondary_styles = [
-            s for s in inferred.get("secondary_styles", [])
-            if s in STYLE_OPTIONS and s != st.session_state.form_style
-        ]
-        if inferred_secondary_styles:
-            st.session_state.form_secondary_styles = inferred_secondary_styles
+            inferred_secondary_styles = [
+                s for s in inferred.get("secondary_styles", [])
+                if s in STYLE_OPTIONS and s != st.session_state.form_style
+            ]
+            if inferred_secondary_styles:
+                st.session_state.form_secondary_styles = inferred_secondary_styles
 
-        if inferred.get("warmth") in WARMTH_OPTIONS:
-            st.session_state.form_warmth = inferred["warmth"]
+            if inferred.get("warmth") in WARMTH_OPTIONS:
+                st.session_state.form_warmth = inferred["warmth"]
 
-        if isinstance(inferred.get("waterproof"), bool):
-            st.session_state.form_waterproof = inferred["waterproof"]
+            if isinstance(inferred.get("waterproof"), bool):
+                st.session_state.form_waterproof = inferred["waterproof"]
 
-        if isinstance(inferred.get("sexiness"), int):
-            st.session_state.form_sexiness = inferred["sexiness"]
+            if isinstance(inferred.get("sexiness"), int):
+                st.session_state.form_sexiness = inferred["sexiness"]
 
-        if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS:
-            st.session_state.form_dress_level = inferred["dress_level"]
+            if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS:
+                st.session_state.form_dress_level = inferred["dress_level"]
+
+            st.session_state.form_inferred_done = True
 
     if uploaded_file is not None:
         preview = Image.open(uploaded_file)
@@ -1599,34 +1607,37 @@ with tab3:
     if uploaded_file is None and st.session_state.form_name.strip():
         inferred = infer_attributes_from_name(st.session_state.form_name.strip())
 
-        if inferred.get("category") in CATEGORY_OPTIONS:
-            st.session_state.form_category = inferred["category"]
+        if not st.session_state.form_inferred_done:
+            if inferred.get("category") in CATEGORY_OPTIONS:
+                st.session_state.form_category = inferred["category"]
 
-        inferred_subcategory = inferred.get("subcategory")
-        current_category = st.session_state.form_category
-        valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
+            inferred_subcategory = inferred.get("subcategory")
+            current_category = st.session_state.form_category
+            valid_subcategories = SUBCATEGORY_OPTIONS.get(current_category, [])
 
-        if st.session_state.form_subcategory not in valid_subcategories:
-            st.session_state.form_subcategory = None
+            if st.session_state.form_subcategory not in valid_subcategories:
+                st.session_state.form_subcategory = None
 
-        if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
-            st.session_state.form_subcategory = inferred_subcategory
+            if st.session_state.form_subcategory is None and inferred_subcategory in valid_subcategories:
+                st.session_state.form_subcategory = inferred_subcategory
 
-        if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
-            st.session_state.form_accessory_type = inferred["accessory_type"]
+            if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS:
+                st.session_state.form_accessory_type = inferred["accessory_type"]
 
-        inferred_color = COLOR_ALIASES.get(
-            str(inferred.get("color", "")).strip().lower(),
-            str(inferred.get("color", "")).strip().lower()
-        )
-        if inferred_color in COLOR_OPTIONS:
-            st.session_state.form_color = inferred_color
+            inferred_color = COLOR_ALIASES.get(
+                str(inferred.get("color", "")).strip().lower(),
+                str(inferred.get("color", "")).strip().lower()
+            )
+            if inferred_color in COLOR_OPTIONS:
+                st.session_state.form_color = inferred_color
 
-        if inferred.get("pattern") in PATTERN_OPTIONS:
-            st.session_state.form_pattern = inferred["pattern"]
+            if inferred.get("pattern") in PATTERN_OPTIONS:
+                st.session_state.form_pattern = inferred["pattern"]
 
-        if inferred.get("warmth") in WARMTH_OPTIONS:
-            st.session_state.form_warmth = inferred["warmth"]
+            if inferred.get("warmth") in WARMTH_OPTIONS:
+                st.session_state.form_warmth = inferred["warmth"]
+
+            st.session_state.form_inferred_done = True
 
     category = st.selectbox(
         "Categoría",

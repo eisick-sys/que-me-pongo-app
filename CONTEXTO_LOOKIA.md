@@ -190,3 +190,29 @@ LOOKIA_CITY=Punta Arenas
 - Comando para correr la app: `python -m streamlit run app.py`
 - Retomar Claude Code: `claude --resume [session_id]` o simplemente `claude` en la carpeta
 - Al sugerir cambios: cada regla va en el archivo que corresponde según arquitectura
+
+### Fixes UI y motor
+- ✅ Color "verde oliva" eliminado de COLOR_OPTIONS — queda solo "verde olivo"
+- ✅ COLOR_ALIASES corregido: "verde oliva" → "verde olivo" (antes estaba al revés)
+- ✅ Todas las ocurrencias de "verde oliva" actualizadas en compatibility.py y app.py
+- ✅ Formulario de accesorios: subcategoría oculta cuando categoría es "accessory" (campo duplicado eliminado)
+
+### Subcategorías buzo/jogger
+- ✅ "buzo" y "jogger" agregados a SUBCATEGORY_OPTIONS["bottom"] y SUBCATEGORY_LABELS_ES
+- ✅ attribute_inference.py — inferencia de subcategoría buzo/jogger desde nombre de archivo
+- ✅ occasion_rules.py — bloqueos en matrimonio, gala y cita usan subcategory además de nombre
+- ✅ scoring_components.py — activity_bonus y coherence_penalty usan subcategory además de nombre
+- ✅ closet.json — 2 prendas migradas: "pantalon buzo 2" (pantalon → buzo) y "buzo blanco" (null → buzo)
+
+Luego hacer commit de CONTEXTO_LOOKIA.md con el mensaje "docs: actualizar contexto sesión 5" y push a main y version-sana.
+
+Agrega a CONTEXTO_LOOKIA.md dentro de "## Cambios realizados (sesión 5 — abril 2026)" una nueva sección:
+
+### Rotación de impermeables y garantía de 3 outfits
+- ✅ Bug resuelto: impermeables ya rotan con lluvia (antes siempre salía la parka celeste)
+- ✅ scoring_components.py — weather_score diferencia impermeables por warmth según temperatura en lugar de retornar 15 fijo
+- ✅ outfit_generation.py — shuffle aleatorio de impermeables antes del slice [:4] para romper empates de score
+- ✅ outfit_generation.py — segunda pasada que relaja is_too_similar para garantizar siempre 3 outfits cuando hay prendas suficientes
+- ✅ Prints de debug eliminados
+
+Luego commit "docs: actualizar contexto sesión 5" y push a main y version-sana.

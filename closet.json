@@ -1157,5 +1157,45 @@
     "accessory_type": "reloj",
     "image_name": "garment_108.jpg",
     "is_new": true
+  },
+  {
+    "id": 109,
+    "name": "falda flores",
+    "category": "bottom",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": "falda_larga",
+    "secondary_colors": [
+      "multicolor"
+    ],
+    "secondary_styles": [],
+    "pattern": "floral",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_109.jpg",
+    "is_new": true
+  },
+  {
+    "id": 110,
+    "name": "zapatillas urbanas negras ",
+    "category": "shoes",
+    "color": "negro",
+    "style": "urbano",
+    "subcategory": "zapatilla_urbana",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "casual"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_110.jpg",
+    "is_new": true
   }
 ]

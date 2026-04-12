@@ -82,7 +82,6 @@ def generate_outfits(
         "bottom": [g for _, g in ranked["bottom"][:base_bottom_limit]],
         "shoes": [g for _, g in ranked["shoes"][:base_shoes_limit]],
         "midlayer": [g for _, g in ranked["midlayer"][:4]],
-        "accessory": [g for _, g in ranked["accessory"][:accessory_limit]],
         "one_piece": [g for _, g in ranked["one_piece"][:base_top_limit]],
     }
     # Shuffle impermeables para rotar cuál aparece primero y evitar siempre el mismo
@@ -90,6 +89,10 @@ def generate_outfits(
     _non_waterproof_outer = [g for _, g in ranked["outerwear"] if not g.waterproof]
     random.shuffle(_waterproof_outer)
     top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
+    # Shuffle accesorios para rotar cuál aparece en cada tanda y evitar siempre el mismo
+    _accessories = [g for _, g in ranked["accessory"][:max(accessory_limit + 3, 5)]]
+    random.shuffle(_accessories)
+    top_candidates["accessory"] = _accessories  # pool completo; la rotación se maneja en la selección
 
     if occasion == "matrimonio" and top_candidates["one_piece"]:
         top_candidates["top"] = [
@@ -184,7 +187,7 @@ def generate_outfits(
             return
 
         core_ids = tuple(sorted(
-            g.id for g in combo if g.category in ["top", "bottom", "one_piece", "shoes", "midlayer"]
+            g.id for g in combo if g.category in ["top", "bottom", "one_piece", "shoes", "midlayer", "accessory"]
         ))
 
         if core_ids not in unique or score > unique[core_ids][0]:
@@ -212,6 +215,7 @@ def generate_outfits(
 
             for shoes in top_candidates["shoes"]:
                 base = [top, bottom, shoes]
+                include_accessory = occasion in ["matrimonio", "gala"] or random.random() < 0.6
 
                 outerwear_required = "outerwear" in required and not top_is_outer_like
 
@@ -223,7 +227,7 @@ def generate_outfits(
                                     combo2 = base + [mid, outer]
                                     register_combo(combo2)
 
-                                    if "accessory" in optional:
+                                    if "accessory" in optional and include_accessory:
                                         for acc in top_candidates["accessory"]:
                                             combo3 = base + [mid, outer, acc]
                                             if should_include_accessory(
@@ -242,7 +246,7 @@ def generate_outfits(
                             combo = base + [outer]
                             register_combo(combo)
 
-                            if "accessory" in optional:
+                            if "accessory" in optional and include_accessory:
                                 for acc in top_candidates["accessory"]:
                                     combo_outer_acc = base + [outer, acc]
                                     if should_include_accessory(
@@ -270,7 +274,7 @@ def generate_outfits(
                         combo = base + [mid]
                         register_combo(combo)
 
-                        if "accessory" in optional:
+                        if "accessory" in optional and include_accessory:
                             for acc in top_candidates["accessory"]:
                                 combo_mid_acc = base + [mid, acc]
                                 if should_include_accessory(
@@ -289,7 +293,7 @@ def generate_outfits(
                                 combo2 = base + [mid, outer]
                                 register_combo(combo2)
 
-                                if "accessory" in optional:
+                                if "accessory" in optional and include_accessory:
                                     for acc in top_candidates["accessory"]:
                                         combo3 = base + [mid, outer, acc]
                                         if should_include_accessory(
@@ -308,7 +312,7 @@ def generate_outfits(
                         combo = base + [outer]
                         register_combo(combo)
 
-                if "accessory" in optional:
+                if "accessory" in optional and include_accessory:
                     for acc in top_candidates["accessory"]:
                         combo = base + [acc]
                         if should_include_accessory(
@@ -318,7 +322,7 @@ def generate_outfits(
 
                 if (
                     "outerwear" in optional
-                    and "accessory" in optional
+                    and "accessory" in optional and include_accessory
                     and not top_is_outer_like
                 ):
                     for outer in top_candidates["outerwear"]:
@@ -344,6 +348,7 @@ def generate_outfits(
 
         for shoes in top_candidates["shoes"]:
             base = [one_piece, shoes]
+            include_accessory = occasion in ["matrimonio", "gala"] or random.random() < 0.6
 
             outerwear_required = "outerwear" in required and not one_piece_is_outer_like
 
@@ -355,7 +360,7 @@ def generate_outfits(
                                 combo2 = base + [mid, outer]
                                 register_combo(combo2)
 
-                                if "accessory" in optional:
+                                if "accessory" in optional and include_accessory:
                                     for acc in top_candidates["accessory"]:
                                         combo3 = base + [mid, outer, acc]
                                         if should_include_accessory(
@@ -374,7 +379,7 @@ def generate_outfits(
                         combo = base + [outer]
                         register_combo(combo)
 
-                        if "accessory" in optional:
+                        if "accessory" in optional and include_accessory:
                             for acc in top_candidates["accessory"]:
                                 combo_outer_acc = base + [outer, acc]
                                 if should_include_accessory(
@@ -397,7 +402,7 @@ def generate_outfits(
                     combo = base + [mid]
                     register_combo(combo)
 
-                    if "accessory" in optional:
+                    if "accessory" in optional and include_accessory:
                         for acc in top_candidates["accessory"]:
                             combo_mid_acc = base + [mid, acc]
                             if should_include_accessory(
@@ -416,7 +421,7 @@ def generate_outfits(
                             combo2 = base + [mid, outer]
                             register_combo(combo2)
 
-                            if "accessory" in optional:
+                            if "accessory" in optional and include_accessory:
                                 for acc in top_candidates["accessory"]:
                                     combo3 = base + [mid, outer, acc]
                                     if should_include_accessory(
@@ -435,7 +440,7 @@ def generate_outfits(
                     combo = base + [outer]
                     register_combo(combo)
 
-            if "accessory" in optional:
+            if "accessory" in optional and include_accessory:
                 for acc in top_candidates["accessory"]:
                     combo = base + [acc]
                     if should_include_accessory(
@@ -445,7 +450,7 @@ def generate_outfits(
 
             if (
                 "outerwear" in optional
-                and "accessory" in optional
+                and "accessory" in optional and include_accessory
                 and not one_piece_is_outer_like
             ):
                 for outer in top_candidates["outerwear"]:
@@ -520,6 +525,7 @@ def generate_outfits(
     top_usage = {}
     shoes_usage = {}
     outerwear_usage = {}
+    accessory_usage_in_batch = {}
     max_same_top = 2 if top_n >= 3 else 1
     max_same_shoes = 2 if top_n >= 3 else 1
     _n_waterproof_outer = sum(1 for g in top_candidates["outerwear"] if g.waterproof)
@@ -532,66 +538,80 @@ def generate_outfits(
     else:
         max_same_outerwear = 2
 
-    for score, combo in final_outfits:
+    remaining_outfits = list(final_outfits)
+
+    while len(diverse_outfits) < top_n and remaining_outfits:
+        best_idx = None
+        best_effective = float('-inf')
+
+        for i, (score, combo) in enumerate(remaining_outfits):
+            ids = {g.category: g.id for g in combo}
+            has_midlayer = any(g.category == "midlayer" for g in combo)
+            top_id = ids.get("top")
+            shoes_id = ids.get("shoes")
+            outerwear_id = ids.get("outerwear")
+            acc_id = ids.get("accessory")
+
+            if has_midlayer and midlayer_outfits_count >= max_midlayer_outfits:
+                continue
+            if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
+                continue
+            if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+                continue
+            if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
+                continue
+
+            too_similar = False
+            for _, existing in diverse_outfits:
+                ids_ex = {g.category: g.id for g in existing}
+                if is_too_similar(combo, existing):
+                    too_similar = True
+                    break
+                if ids.get("one_piece") is not None and ids.get("one_piece") == ids_ex.get("one_piece"):
+                    too_similar = True
+                    break
+                if ids.get("bottom") == ids_ex.get("bottom") and ids.get("shoes") == ids_ex.get("shoes"):
+                    too_similar = True
+                    break
+            if too_similar:
+                continue
+
+            penalty = 30 * accessory_usage_in_batch.get(acc_id, 0) if acc_id else 0
+            effective = score - penalty
+
+            if effective > best_effective:
+                best_effective = effective
+                best_idx = i
+
+        if best_idx is None:
+            break
+
+        score, combo = remaining_outfits.pop(best_idx)
         ids = {g.category: g.id for g in combo}
         has_midlayer = any(g.category == "midlayer" for g in combo)
-
-        if has_midlayer and midlayer_outfits_count >= max_midlayer_outfits:
-            continue
-
         top_id = ids.get("top")
         shoes_id = ids.get("shoes")
         outerwear_id = ids.get("outerwear")
+        acc_id = ids.get("accessory")
 
-        if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
-            continue
+        diverse_outfits.append((score, combo))
 
-        if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
-            continue
-
-        if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
-            continue
-
-        too_similar = False
-
-        for _, existing in diverse_outfits:
-            ids2 = {g.category: g.id for g in existing}
-
-            if is_too_similar(combo, existing):
-                too_similar = True
-                break
-
-            if ids.get("one_piece") is not None and ids.get("one_piece") == ids2.get("one_piece"):
-                too_similar = True
-                break
-
-            if ids.get("bottom") == ids2.get("bottom") and ids.get("shoes") == ids2.get("shoes"):
-                too_similar = True
-                break
-
-        if not too_similar:
-            diverse_outfits.append((score, combo))
-
-            if has_midlayer:
-                midlayer_outfits_count += 1
-
-            if top_id is not None:
-                top_usage[top_id] = top_usage.get(top_id, 0) + 1
-
-            if shoes_id is not None:
-                shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
-
-            if outerwear_id is not None:
-                outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
-
-        if len(diverse_outfits) >= top_n:
-            break
+        if has_midlayer:
+            midlayer_outfits_count += 1
+        if top_id is not None:
+            top_usage[top_id] = top_usage.get(top_id, 0) + 1
+        if shoes_id is not None:
+            shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+        if outerwear_id is not None:
+            outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
+        if acc_id is not None:
+            accessory_usage_in_batch[acc_id] = accessory_usage_in_batch.get(acc_id, 0) + 1
 
     # Fallback: si no llegamos a 3 outfits, segunda pasada sin filtro is_too_similar
     min_outfits = min(3, top_n)
     if len(diverse_outfits) < min_outfits:
         existing_ids = {id(combo) for _, combo in diverse_outfits}
-        for score, combo in final_outfits:
+        for score, combo in sorted(remaining_outfits, key=lambda x: x[0], reverse=True):
             if len(diverse_outfits) >= min_outfits:
                 break
             if id(combo) in existing_ids:
@@ -801,6 +821,7 @@ def generate_outfits_from_selected_garment(
         outfits.append((score, combo))
 
     def maybe_add_extras(base: List[Garment], top_item: Optional[Garment] = None):
+        include_accessory = occasion in ["matrimonio", "gala"] or random.random() < 0.6
         top_is_outer_like = False
         if top_item is not None:
             top_name = top_item.name.lower()
@@ -830,7 +851,7 @@ def generate_outfits_from_selected_garment(
                         combo_mid_outer = combo_mid + [outer]
                         add_combo(combo_mid_outer)
 
-                if "accessory" in optional and not has_accessory:
+                if "accessory" in optional and include_accessory and not has_accessory:
                     for acc in top_candidates["accessory"][:4]:
                         combo_mid_acc = combo_mid + [acc]
                         if should_include_accessory(
@@ -843,7 +864,7 @@ def generate_outfits_from_selected_garment(
                 combo_outer = base + [outer]
                 add_combo(combo_outer)
 
-                if "accessory" in optional and not has_accessory:
+                if "accessory" in optional and include_accessory and not has_accessory:
                     for acc in top_candidates["accessory"][:2]:
                         combo_outer_acc = combo_outer + [acc]
                         if should_include_accessory(
@@ -851,7 +872,7 @@ def generate_outfits_from_selected_garment(
                         ):
                             add_combo(combo_outer_acc)
 
-        if "accessory" in optional and not has_accessory:
+        if "accessory" in optional and include_accessory and not has_accessory:
             for acc in top_candidates["accessory"][:2]:
                 combo_acc = base + [acc]
                 if should_include_accessory(
@@ -910,6 +931,7 @@ def generate_outfits_from_selected_garment(
             for bottom in top_candidates["bottom"]:
                 for shoes in top_candidates["shoes"]:
                     base = [top, bottom, shoes, selected_garment]
+                    include_accessory = occasion in ["matrimonio", "gala"] or random.random() < 0.6
                     add_combo(base)
 
                     if "midlayer" in optional:
@@ -917,7 +939,7 @@ def generate_outfits_from_selected_garment(
                             combo = [top, bottom, shoes, mid, selected_garment]
                             add_combo(combo)
 
-                    if "accessory" in optional:
+                    if "accessory" in optional and include_accessory:
                         base_outer = [top, bottom, shoes, selected_garment]
                         for acc in top_candidates["accessory"][:2]:
                             combo = base_outer + [acc]
@@ -929,6 +951,7 @@ def generate_outfits_from_selected_garment(
         for one_piece in top_candidates["one_piece"]:
             for shoes in top_candidates["shoes"]:
                 base = [one_piece, shoes, selected_garment]
+                include_accessory = occasion in ["matrimonio", "gala"] or random.random() < 0.6
                 add_combo(base)
 
                 if "midlayer" in optional:
@@ -936,7 +959,7 @@ def generate_outfits_from_selected_garment(
                         combo = [one_piece, shoes, mid, selected_garment]
                         add_combo(combo)
 
-                if "accessory" in optional:
+                if "accessory" in optional and include_accessory:
                     base_outer = [one_piece, shoes, selected_garment]
                     for acc in top_candidates["accessory"][:2]:
                         combo = base_outer + [acc]
