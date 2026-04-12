@@ -930,6 +930,14 @@ with tab1:
 
             st.divider()
 
+        if st.session_state.has_generated_outfits:
+            if len(outfits) == 0:
+                st.info("No encontré outfits para estos parámetros. Prueba cambiando la ocasión, mood o clima, o agrega más prendas a tu clóset.")
+            elif len(outfits) == 1:
+                st.info("Solo encontré 1 combinación para estos parámetros. Para ver más opciones, prueba cambiar algún parámetro o agrega más prendas.")
+            elif len(outfits) == 2:
+                st.info("Solo encontré 2 combinaciones para estos parámetros. Para ver más opciones, prueba cambiar algún parámetro o agrega más prendas.")
+
 # =========================================================
 # TAB 2: MI CLÓSET
 # =========================================================
