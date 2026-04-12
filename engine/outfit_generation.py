@@ -530,6 +530,11 @@ def generate_outfits(
     max_accessory_outfits = top_n if occasion in ["matrimonio", "gala"] else random.choice([1, 1, 2])
     max_same_top = 2 if top_n >= 3 else 1
     max_same_shoes = 2 if top_n >= 3 else 1
+    if occasion in ["cita", "salida nocturna"]:
+        elegant_shoes = [g for g in top_candidates["shoes"]
+                         if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
+        if len(elegant_shoes) >= 2:
+            max_same_shoes = 1
     _n_waterproof_outer = sum(1 for g in top_candidates["outerwear"] if g.waterproof)
     if _n_waterproof_outer >= 3:
         max_same_outerwear = 1
