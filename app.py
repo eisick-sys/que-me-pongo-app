@@ -3,7 +3,7 @@ import os
 import re
 import random
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from PIL import Image, ImageOps
 import streamlit as st
@@ -99,6 +99,45 @@ if not os.path.exists(IMAGES_DIR):
 # =========================================================
 # FUNCIONES AUXILIARES
 # =========================================================
+
+def detect_garment_issues(garment: Garment) -> Optional[str]:
+    """Retorna un mensaje corto si detecta inconsistencia, None si está ok."""
+    name = garment.name.lower()
+    style = garment.style
+    secondary = garment.secondary_styles or []
+    all_s = [style] + secondary
+    sub = garment.subcategory or ""
+    dl = garment.dress_level
+
+    # Calzado
+    if garment.category == "shoes":
+        if sub in ["taco_alto", "taco_bajo"] and dl == "relajado":
+            return "Nivel de formalidad 'relajado' — para citas cambia a 'arreglado'"
+        if sub == "zapatilla_deporte" and dl in ["elegante", "arreglado"]:
+            return "Zapatilla deporte con nivel formal alto — ¿es correcto?"
+        if sub == "mocasin" and style == "sport":
+            return "Mocasín con estilo sport — ¿querías decir casual o formal?"
+
+    # Outerwear
+    if garment.category == "outerwear":
+        if garment.waterproof and "sport" in all_s and dl in ["relajado", "flexible"]:
+            return "Impermeable sport — quedará bloqueado en citas y salidas elegantes"
+        if any(x in name for x in ["parka", "celeste", "impermeable"]) and dl == "elegante":
+            return "Parka marcada como elegante — ¿es correcto?"
+
+    # Bottoms
+    if garment.category == "bottom":
+        if sub in ["buzo", "jogger"] and dl in ["elegante", "arreglado"]:
+            return "Buzo/jogger con nivel formal alto — cambia a 'relajado'"
+        if sub in ["short_casual"] and dl == "elegante":
+            return "Short casual marcado como elegante — ¿querías decir flexible?"
+
+    # General
+    if "sport" in all_s and dl == "elegante":
+        return "Estilo sport + nivel elegante — posible contradicción"
+
+    return None
+
 
 def normalize_color_name(color: str) -> str:
     from constants import COLOR_ALIASES
@@ -1020,6 +1059,18 @@ with tab2:
                         st.markdown(f"**{g.name[:18]}**")
                         if getattr(g, "is_new", False):
                             st.caption("🆕 Nueva")
+                        issue = detect_garment_issues(g)
+                        if issue and not st.session_state.get(f"issue_ignored_{g.id}", False):
+                            st.caption(f"⚠️ {issue}")
+                            col_ignore, col_edit = st.columns(2)
+                            with col_ignore:
+                                if st.button("Ignorar", key=f"ignore_issue_{g.id}", use_container_width=True):
+                                    st.session_state[f"issue_ignored_{g.id}"] = True
+                                    st.rerun()
+                            with col_edit:
+                                if st.button("✏️ Revisar", key=f"review_issue_{g.id}", use_container_width=True):
+                                    st.session_state.selected_garment_id = g.id
+                                    st.rerun()
                         color_icons = {
                             "amarillo": "🟡",
                             "azul": "🔵",
