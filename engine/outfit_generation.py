@@ -629,6 +629,8 @@ def generate_outfits(
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
                 continue
+            if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
+                continue
             diverse_outfits.append((score, combo))
             existing_ids.add(id(combo))
             if top_id is not None:
