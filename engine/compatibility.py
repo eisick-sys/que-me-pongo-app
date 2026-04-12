@@ -351,6 +351,33 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
             return -18
 
     # =========================================================
+    # PENALIZACIÓN: VESTIDO ELEGANTE/CÓCTEL CON CALZADO INFORMAL
+    # =========================================================
+
+    if {garment1.category, garment2.category} == {"one_piece", "shoes"}:
+        one_piece = garment1 if garment1.category == "one_piece" else garment2
+        shoes = garment1 if garment1.category == "shoes" else garment2
+
+        elegant_dress_subcats = {"vestido_elegante", "vestido_coctel"}
+        informal_shoes_subcats = {"mocasin", "zapatilla_urbana", "zapatilla_deporte", "botin"}
+        elegant_shoes_subcats = {"taco_alto", "taco_bajo", "sandalia"}
+
+        one_piece_subcat = getattr(one_piece, "subcategory", None)
+        shoes_subcat = getattr(shoes, "subcategory", None)
+
+        if one_piece_subcat in elegant_dress_subcats:
+            if shoes_subcat in elegant_shoes_subcats:
+                pass  # sin penalización
+            else:
+                penalty = 0
+                if shoes_subcat in informal_shoes_subcats:
+                    penalty -= 30
+                if getattr(shoes, "dress_level", None) == "relajado":
+                    penalty -= 25
+                if penalty < 0:
+                    return penalty
+
+    # =========================================================
     # RECOMPENSAS NORMALES
     # =========================================================
 
