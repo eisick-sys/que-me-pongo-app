@@ -670,7 +670,7 @@ def generate_outfits_from_selected_garment(
     optional = rules["optional"]
 
     if not ignore_occasion_for_selected:
-        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain)
+        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain, mood, temp)
         if not selected_allowed:
             return []
 
@@ -795,8 +795,7 @@ def generate_outfits_from_selected_garment(
         for g in combo:
             if g.id == selected_garment.id:
                 continue
-            # FIX: pasar rain correctamente
-            allowed, _ = garment_allowed_for_occasion(g, occasion, rain)
+            allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
             if not allowed:
                 return
 
