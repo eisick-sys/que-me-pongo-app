@@ -136,6 +136,28 @@ def detect_garment_issues(garment: Garment) -> Optional[str]:
     if "sport" in all_s and dl == "elegante":
         return "Estilo sport + nivel elegante — posible contradicción"
 
+    # Inconsistencias térmicas
+    if garment.category == "bottom":
+        if sub in ["short_casual", "short_elegante", "falda_corta"] and garment.warmth == "frio":
+            return "Short/mini marcado como 'frío' — ¿querías decir 'caluroso'?"
+
+    if garment.category in ["top", "one_piece"]:
+        name_lower = garment.name.lower()
+        is_light = any(x in name_lower for x in ["polera", "top", "body", "crop", "musculosa", "tank"])
+        if is_light and garment.warmth == "frio":
+            return "Top liviano marcado como 'frío' — ¿querías decir 'caluroso'?"
+
+    if garment.category in ["outerwear", "midlayer"]:
+        name_lower = garment.name.lower()
+        is_warm = any(x in name_lower for x in ["abrigo", "parka", "polar", "sweater grueso", "lana"])
+        if is_warm and garment.warmth == "caluroso":
+            return "Prenda abrigada marcada como 'caluroso' — ¿querías decir 'frío'?"
+
+    if garment.category == "outerwear":
+        name_lower = garment.name.lower()
+        if "impermeable" in name_lower and not garment.waterproof:
+            return "Tiene 'impermeable' en el nombre pero no está marcado como impermeable — ¿falta activar esa opción?"
+
     return None
 
 
