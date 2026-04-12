@@ -1,4 +1,5 @@
 #outfit_generation.py
+import random
 from typing import Any, List, Optional
 
 from models import Garment, OutfitFeedback
@@ -81,10 +82,15 @@ def generate_outfits(
         "bottom": [g for _, g in ranked["bottom"][:base_bottom_limit]],
         "shoes": [g for _, g in ranked["shoes"][:base_shoes_limit]],
         "midlayer": [g for _, g in ranked["midlayer"][:4]],
-        "outerwear": [g for _, g in ranked["outerwear"][:4]],
         "accessory": [g for _, g in ranked["accessory"][:accessory_limit]],
         "one_piece": [g for _, g in ranked["one_piece"][:base_top_limit]],
     }
+    # Shuffle impermeables para rotar cuál aparece primero y evitar siempre el mismo
+    _waterproof_outer = [g for _, g in ranked["outerwear"] if g.waterproof]
+    _non_waterproof_outer = [g for _, g in ranked["outerwear"] if not g.waterproof]
+    random.shuffle(_waterproof_outer)
+    top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
+
     if occasion == "matrimonio" and top_candidates["one_piece"]:
         top_candidates["top"] = [
             g for g in top_candidates["top"]
@@ -526,10 +532,6 @@ def generate_outfits(
     else:
         max_same_outerwear = 2
 
-    print(f"[DEBUG] outerwear en top_candidates: {[g.name for g in top_candidates['outerwear']]}")
-    print(f"[DEBUG] impermeables contados (_n_waterproof_outer): {_n_waterproof_outer}")
-    print(f"[DEBUG] max_same_outerwear calculado: {max_same_outerwear}")
-
     for score, combo in final_outfits:
         ids = {g.category: g.id for g in combo}
         has_midlayer = any(g.category == "midlayer" for g in combo)
@@ -584,6 +586,34 @@ def generate_outfits(
 
         if len(diverse_outfits) >= top_n:
             break
+
+    # Fallback: si no llegamos a 3 outfits, segunda pasada sin filtro is_too_similar
+    min_outfits = min(3, top_n)
+    if len(diverse_outfits) < min_outfits:
+        existing_ids = {id(combo) for _, combo in diverse_outfits}
+        for score, combo in final_outfits:
+            if len(diverse_outfits) >= min_outfits:
+                break
+            if id(combo) in existing_ids:
+                continue
+            ids = {g.category: g.id for g in combo}
+            outerwear_id = ids.get("outerwear")
+            top_id = ids.get("top")
+            shoes_id = ids.get("shoes")
+            if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
+                continue
+            if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+                continue
+            if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
+                continue
+            diverse_outfits.append((score, combo))
+            existing_ids.add(id(combo))
+            if top_id is not None:
+                top_usage[top_id] = top_usage.get(top_id, 0) + 1
+            if shoes_id is not None:
+                shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            if outerwear_id is not None:
+                outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
 
     return diverse_outfits[:top_n]
 
