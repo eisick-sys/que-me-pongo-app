@@ -411,6 +411,15 @@ def one_piece_context_bonus(
         elif garment.warmth == "medio":
             bonus += 2
 
+    subcategory = getattr(garment, "subcategory", None)
+    if subcategory in ["vestido_elegante", "vestido_coctel"]:
+        occasion_match = occasion in ["cita", "salida nocturna"]
+        mood_match = mood in ["elegante", "sexy"]
+        if occasion_match:
+            bonus += 25
+        if mood_match:
+            bonus += 20
+
     return bonus
 
 
