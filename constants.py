@@ -48,6 +48,8 @@ SUBCATEGORY_OPTIONS = {
         "short_casual",
         "short_elegante",
         "legging",
+        "buzo",
+        "jogger",
     ],
     "one_piece": [
         "vestido_casual",
@@ -99,7 +101,6 @@ COLOR_OPTIONS = [
     "celeste",
 
     "verde",
-    "verde oliva",
     "verde olivo",
     "verde oscuro",
 
@@ -159,7 +160,7 @@ COLOR_ALIASES = {
     "orange": "naranja",
     "yellow": "amarillo",
     "green": "verde",
-    "verde olivo" : "verde oliva",
+    "verde oliva": "verde olivo",
     "blue": "azul",
     "red": "rojo",
     "white": "blanco",
@@ -255,6 +256,8 @@ SUBCATEGORY_LABELS_ES = {
     "short_casual": "Short casual",
     "short_elegante": "Short elegante",
     "legging": "Legging",
+    "buzo": "Buzo/Jogging",
+    "jogger": "Jogger",
     # one_piece
     "vestido_casual": "Vestido casual",
     "vestido_elegante": "Vestido elegante",

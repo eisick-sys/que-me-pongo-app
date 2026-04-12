@@ -120,7 +120,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
         if garment.category == "bottom":
             if is_bottom_short(garment):
                 return False, f"{garment.name} no va con un {occasion}."
-            if any(x in lower_name for x in ["buzo", "jogger", "joggers"]):
+            if any(x in lower_name for x in ["buzo", "jogger", "joggers"]) or garment.subcategory in ["buzo", "jogger"]:
                 return False, f"{garment.name} no va con un {occasion}."
             if "jean" in lower_name or "jeans" in lower_name:
                 return False, f"{garment.name} no va con un {occasion}."
@@ -166,7 +166,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
 
     if occasion == "cita" and mood != "urbano":
         if garment.category == "bottom":
-            if any(x in lower_name for x in ["buzo", "jogger", "joggers"]):
+            if any(x in lower_name for x in ["buzo", "jogger", "joggers"]) or garment.subcategory in ["buzo", "jogger"]:
                 return False, f"{garment.name} no va para una cita."
 
         if garment.category == "shoes":

@@ -65,6 +65,7 @@ def garment_from_dict(item: dict) -> Garment:
         sexiness=safe_int(item.get("sexiness"), 0),
         accessory_type=item.get("accessory_type", None),
         image_name=item.get("image_name", None),
+        is_new=bool(item.get("is_new", False)),
     )
 
 

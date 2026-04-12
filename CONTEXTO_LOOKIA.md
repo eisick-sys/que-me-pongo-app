@@ -52,7 +52,7 @@ LOOKIA_CITY=Punta Arenas
 ## Tabs de la app
 1. **🌤️ Hoy** — Recomendador principal con clima real, ajustes manuales y prenda forzada
 2. **👕 Mi clóset** — Galería de prendas con edición
-3. **➕ Agregar prenda** — Formulario con inferencia automática de atributos
+3. **➕ Agregar prenda** — Subida múltiple (hasta 5 fotos) + formulario individual
 4. **📅 Planificador semanal** — Outfits para la semana evitando repetir prendas
 
 ---
@@ -82,96 +82,111 @@ LOOKIA_CITY=Punta Arenas
 - ✅ Ciudad hardcodeada movida a `.env` como `LOOKIA_CITY`
 
 ### Motor
-- ✅ Ajustes manuales de clima activados (sensibilidad térmica, interior/exterior, cielo)
+- ✅ Ajustes manuales de clima activados
 - ✅ Interior + frío: fuerza al menos 1 outfit sin outerwear
 - ✅ 24-25°C: mantiene opción de midlayer liviana
 - ✅ `generate_outfits_from_selected_garment` reescrita para igualar lógica de `generate_outfits`
-- ✅ Filtro `is_too_similar` relajado para evitar congelamiento en tanda 3
+- ✅ Filtro `is_too_similar` relajado
 - ✅ Gorro/beanie bloqueado en gala y matrimonio
-
-### Advertencias de prenda forzada
-- ✅ Mini sexy (sexiness >= 3) en trabajo → advertencia + "Mostrar de todos modos"
-- ✅ Outerwear con calor (>= 24°C) → advertencia + "Mostrar de todos modos"
 
 ### UI
 - ✅ Score eliminado de la UI (reemplazado por modo debug con toggle)
-- ✅ Explicaciones de outfits con más variedad de lenguaje y tono (usando random)
-- ✅ Explicaciones mostradas en texto normal con separadores `|`
-- ✅ Expander "Ajuste manual opcional" siempre cerrado al inicio (`expanded=False`)
-- ✅ "No hay prendas suficientes" solo aparece si ya se generó
-- ✅ Tip de pantys solo aparece si ya se generó y hay falda + frío/lluvia
-- ✅ `CATEGORY_LABELS_ES` duplicado eliminado de `app.py`
+- ✅ Explicaciones con más variedad de lenguaje
+- ✅ Tip de pantys con falda + frío/lluvia
 
 ---
 
 ## Cambios realizados (sesión 2 — abril 2026)
 
-### Motor — penalizaciones y bloqueos
-- ✅ Tacos penalizados con lluvia (+35 en `practicality_penalty`)
-- ✅ Tacos penalizados en mood cómodo (+50 en `practicality_penalty`)
-- ✅ `practicality_penalty` recibe `mood` como parámetro opcional
-- ✅ Vestido elegante bloqueado en trabajo + mood cómodo (`occasion_rules.py`)
-- ✅ Pantalón buzo bloqueado en cita (salvo mood urbano) (`occasion_rules.py`)
-- ✅ Zapatillas deporte bloqueadas en cita (salvo mood urbano) (`occasion_rules.py`)
-- ✅ Mini/short bloqueados con temp <= 9° (`occasion_rules.py`)
-- ✅ `garment_allowed_for_occasion` recibe `mood` y `temp` como parámetros opcionales
-- ✅ Llamadas actualizadas en `recommender.py` para pasar `mood` y `temp`
-- ✅ `occasion_rules.py` reordenado por ocasión con comentarios claros
+### Motor
+- ✅ Tacos penalizados con lluvia (+35) y mood cómodo (+50) en `practicality_penalty`
+- ✅ `practicality_penalty` recibe `mood` como parámetro
+- ✅ Vestido elegante bloqueado en trabajo + mood cómodo
+- ✅ Pantalón buzo bloqueado en cita (salvo mood urbano)
+- ✅ Zapatillas deporte bloqueadas en cita (salvo mood urbano)
+- ✅ Mini/short bloqueados con temp <= 9°
+- ✅ `garment_allowed_for_occasion` recibe `mood` y `temp`
+- ✅ `occasion_rules.py` reordenado por ocasión
 
 ### UI
-- ✅ Tip de pantys extendido a short con frío/lluvia (`app.py`)
+- ✅ Tip de pantys extendido a short con frío/lluvia
 
-### Pruebas realizadas
-- ✅ Trabajo + sexy (frío, lluvia, calor, 24-25°)
-- ✅ Trabajo + cómodo (frío, lluvia, calor, 24-25°)
-- ✅ Cita + relajado (frío parcial)
+---
+
+## Cambios realizados (sesión 3 — abril 2026)
+
+### Subcategorías
+- ✅ bottom: `falda_corta`, `falda_midi`, `falda_larga`, `short_casual`, `short_elegante`
+- ✅ one_piece: `vestido_casual`, `vestido_elegante`, `vestido_coctel`
+- ✅ shoes: `zapatilla_urbana`, `zapatilla_deporte`, `taco_bajo`, `taco_alto`
+- ✅ `SUBCATEGORY_LABELS_ES` con nombres en español
+- ✅ `garment_utils.py` — detectores usan subcategory primero, nombre como fallback
+- ✅ Nuevas funciones: `is_shoe_high_heel`, `is_shoe_low_heel`, `is_shoe_sport_sneaker`, `is_bottom_short`
+- ✅ `attribute_inference.py` — inferencia específica antes que genérica, "stiletto" agregado
+- ✅ 46+ prendas migradas con subcategoría correcta en `closet.json`
+
+### Motor — variedad outerwear (EN PROGRESO - NO SUBIR AÚN)
+- ✅ Penalización de outerwear entre tandas aumentada de 10 a 24
+- ✅ Control dinámico `max_same_outerwear` según cantidad de impermeables
+- ✅ `weather_score` — outerwear impermeable retorna 15 con lluvia
+- ⚠️ **BUG PENDIENTE**: impermeable negro no aparece en top_candidates con lluvia
+  - Tiene warmth "frio", waterproof True, estilo casual
+  - Debug muestra solo 2 impermeables (celeste y azul) en top_candidates
+  - Causa desconocida — investigar qué filtro lo descarta
+  - **NO hacer git push hasta resolver**
+
+---
+
+## Cambios realizados (sesión 4 — abril 2026)
+
+### UI — Subida múltiple de fotos
+- ✅ Nueva sección "📸 Agregar fotos" en tab ➕ Agregar prenda
+- ✅ Subida de hasta 5 fotos a la vez (jpg, jpeg, png, webp)
+- ✅ Atributos inferidos automáticamente desde nombre del archivo
+- ✅ Resumen de prendas agregadas al terminar
+- ✅ Formulario individual conservado como "➕ Agregar prenda manualmente"
+- ✅ Formulario individual actualizado para aceptar webp también
+
+### UI — Badge "Nueva"
+- ✅ `models.py` — campo `is_new: bool = False` agregado a Garment
+- ✅ `storage.py` — carga `is_new` desde JSON (default False para prendas existentes)
+- ✅ Prendas nuevas (subida múltiple y formulario) se guardan con `is_new=True`
+- ✅ Badge "🆕 Nueva" visible en galería "Mi clóset" cuando `is_new=True`
+- ✅ Al editar y guardar una prenda, `is_new` cambia a `False`
 
 ---
 
 ## Pendiente para próximas sesiones
 
-### PRIORITARIO — Subcategorías
-Necesidad identificada en pruebas. Afecta múltiples archivos:
-- `constants.py` — ampliar SUBCATEGORY_OPTIONS
-- `models.py` — ya tiene campo subcategory
-- `occasion_rules.py` — usar subcategoría en lugar de detectar por nombre
-- `garment_utils.py` — actualizar detectores
-- `scoring_components.py` — reglas por subcategoría
-- `app.py` — formulario de agregar/editar prenda
-- `attribute_inference.py` — inferencia automática de subcategoría
-
-Subcategorías prioritarias a implementar:
-- **bottom**: falda_corta, falda_midi, falda_larga, short_casual, short_elegante
-- **shoes**: taco_bajo, taco_alto, zapatilla_urbana, zapatilla_deporte
-- **one_piece**: vestido_casual, vestido_elegante, vestido_coctel
+### INMEDIATO — Resolver bug outerwear
+- Impermeable negro no aparece en top_candidates con lluvia
+- Investigar qué filtro lo descarta antes de llegar a outfit_generation
+- Una vez resuelto, hacer git push de todo lo pendiente
 
 ### Motor
-- ⬜ Continuar pruebas cita (lluvia, calor, 24-25°) + todos los moods
+- ⬜ Continuar pruebas cita (calor, 24-25°) + moods elegante, sexy, urbano, cómodo
 - ⬜ Pruebas salida nocturna, casual, matrimonio, gala, deporte
-- ⬜ Afinar compatibilidad de colores con evidencia de pruebas reales
+
+### Subcategorías pendientes
+- taco_bajo → permitido en mood cómodo, penalizado en relajado
+- taco_alto → penalizado en cómodo, bloqueado en relajado
 
 ### Funcionalidades nuevas
-- ⬜ Estadísticas en tab "Mi clóset" (prendas más usadas, más gustadas, nunca usadas)
-- ⬜ Perfil de usuario completo (ciudad, preferencias, onboarding)
-- ⬜ Integración IA Anthropic:
-  - Onboarding de prendas por foto (autocompletar atributos)
-  - Explicaciones con personalidad generadas por IA
-  - Modelo virtual: vestir figura con prendas del clóset
+- ⬜ Estadísticas en tab "Mi clóset"
+- ⬜ Perfil de usuario completo
+- ⬜ Integración IA Anthropic (foto → atributos, explicaciones con personalidad, modelo virtual)
 - ⬜ Login de usuario
-- ⬜ Calzado plano de trabajo para calor (bailarina, sandalia formal) — clóset
+- ⬜ Calzado plano de trabajo para calor
 
 ### Técnico
-- ⬜ Implementar subcategorías con Claude Code
 - ⬜ Migrar a base de datos real (Supabase) para multi-usuario
-
-### Pendiente de subcategorías (tacos)
-- taco_bajo (kitten heel 3-5cm) → permitido en mood cómodo, penalizado en relajado
-- taco_alto (stiletto 7cm+) → penalizado en cómodo, bloqueado en relajado
 
 ---
 
 ## Notas importantes
 - La app usa archivos JSON locales — funciona para 1 usuaria, no escala sin refactor
-- El perfil de usuario completo y la IA de Anthropic van juntos en una misma sesión futura
 - Rama activa de desarrollo: **main** | Rama testers: **version sana**
-- Al sugerir cambios de código: cada regla va en el archivo que corresponde según arquitectura
+- Claude Code tiende a incluir .env en commits — siempre verificar antes del push
+- Comando para correr la app: `python -m streamlit run app.py`
+- Retomar Claude Code: `claude --resume [session_id]` o simplemente `claude` en la carpeta
+- Al sugerir cambios: cada regla va en el archivo que corresponde según arquitectura

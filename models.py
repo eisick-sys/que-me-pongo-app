@@ -39,6 +39,9 @@ class Garment:
     # imagen asociada
     image_name: Optional[str] = None
 
+    # etiqueta de prenda recién agregada
+    is_new: bool = False
+
 
 # =========================================================
 # FEEDBACK DE OUTFITS

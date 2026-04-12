@@ -513,8 +513,22 @@ def generate_outfits(
     max_midlayer_outfits = 1 if 24 <= temp < 26 else top_n
     top_usage = {}
     shoes_usage = {}
+    outerwear_usage = {}
     max_same_top = 2 if top_n >= 3 else 1
     max_same_shoes = 2 if top_n >= 3 else 1
+    _n_waterproof_outer = sum(1 for g in top_candidates["outerwear"] if g.waterproof)
+    if _n_waterproof_outer >= 3:
+        max_same_outerwear = 1
+    elif _n_waterproof_outer == 2:
+        max_same_outerwear = 2
+    elif _n_waterproof_outer == 1:
+        max_same_outerwear = 3
+    else:
+        max_same_outerwear = 2
+
+    print(f"[DEBUG] outerwear en top_candidates: {[g.name for g in top_candidates['outerwear']]}")
+    print(f"[DEBUG] impermeables contados (_n_waterproof_outer): {_n_waterproof_outer}")
+    print(f"[DEBUG] max_same_outerwear calculado: {max_same_outerwear}")
 
     for score, combo in final_outfits:
         ids = {g.category: g.id for g in combo}
@@ -525,11 +539,15 @@ def generate_outfits(
 
         top_id = ids.get("top")
         shoes_id = ids.get("shoes")
+        outerwear_id = ids.get("outerwear")
 
         if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
             continue
 
         if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+            continue
+
+        if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
             continue
 
         too_similar = False
@@ -560,6 +578,9 @@ def generate_outfits(
 
             if shoes_id is not None:
                 shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+
+            if outerwear_id is not None:
+                outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
 
         if len(diverse_outfits) >= top_n:
             break
@@ -1029,7 +1050,7 @@ def generate_week_plan(
                 elif g.category == "shoes":
                     repetition_penalty_value += times_used_in_category * 16
                 elif g.category == "outerwear":
-                    repetition_penalty_value += times_used_in_category * 10
+                    repetition_penalty_value += times_used_in_category * 24
                 elif g.category == "midlayer":
                     repetition_penalty_value += times_used_in_category * 9
                 else:
@@ -1053,8 +1074,8 @@ def generate_week_plan(
 
                 for g in combo:
                     if previous_by_category.get(g.category) == g.id:
-                        if g.category in ["top", "bottom", "shoes"]:
-                            repetition_penalty_value += 12
+                        if g.category in ["top", "bottom", "shoes", "outerwear"]:
+                            repetition_penalty_value += 16
                         else:
                             repetition_penalty_value += 6
 

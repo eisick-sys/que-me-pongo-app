@@ -56,6 +56,10 @@ def dress_score(dress_level: str, occasion: str) -> int:
 def weather_score(garment: Garment, temp: int, rain: bool) -> int:
     score = 0
 
+    # Un outerwear impermeable es siempre válido con lluvia sin importar su warmth
+    if rain and garment.category == "outerwear" and garment.waterproof:
+        return 15
+
     if temp <= 10:
         if garment.warmth == "frio":
             score += 18
@@ -114,7 +118,7 @@ def activity_bonus(garment: Garment, activity: str, occasion: str = "") -> int:
             if garment.category == "bottom":
                 if "jean" in lower_name or "jeans" in lower_name:
                     return 8
-                if "buzo" in lower_name or "jogger" in lower_name:
+                if "buzo" in lower_name or "jogger" in lower_name or garment.subcategory in ["buzo", "jogger"]:
                     return 2
                 return 5
 
@@ -298,6 +302,7 @@ def coherence_penalty(items: List[Garment], occasion: str) -> int:
                 "zapatilla", "sneaker", "converse",
                 "gorro", "beanie"
             ])
+            or g.subcategory in ["buzo", "jogger"]
         )
 
         if is_relaxed_base:

@@ -17,7 +17,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "3_polera negra prueba.jpg"
+    "image_name": "3_polera negra prueba.jpg",
+    "is_new": false
   },
   {
     "id": 4,
@@ -37,7 +38,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "4_polera blanca basica prueba.jpg"
+    "image_name": "4_polera blanca basica prueba.jpg",
+    "is_new": false
   },
   {
     "id": 5,
@@ -56,7 +58,8 @@
     "dress_level": "flexible",
     "sexiness": 1,
     "accessory_type": null,
-    "image_name": "5_jeans ajustados prueba 1.jpg"
+    "image_name": "5_jeans ajustados prueba 1.jpg",
+    "is_new": false
   },
   {
     "id": 6,
@@ -75,7 +78,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "6_jeans anchos prueba 1.webp"
+    "image_name": "6_jeans anchos prueba 1.webp",
+    "is_new": false
   },
   {
     "id": 7,
@@ -95,7 +99,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "7_pantalon tela azul oscuro prueba.jpg"
+    "image_name": "7_pantalon tela azul oscuro prueba.jpg",
+    "is_new": false
   },
   {
     "id": 17,
@@ -114,7 +119,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "17.jpg"
+    "image_name": "17.jpg",
+    "is_new": false
   },
   {
     "id": 19,
@@ -131,7 +137,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "19.jpg"
+    "image_name": "19.jpg",
+    "is_new": false
   },
   {
     "id": 21,
@@ -148,7 +155,8 @@
     "dress_level": "flexible",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "21_prueba blusa 1.jpg"
+    "image_name": "21_prueba blusa 1.jpg",
+    "is_new": false
   },
   {
     "id": 22,
@@ -168,7 +176,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "22.jpg"
+    "image_name": "22.jpg",
+    "is_new": false
   },
   {
     "id": 33,
@@ -185,7 +194,8 @@
     "dress_level": "arreglado",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "33.jpg"
+    "image_name": "33.jpg",
+    "is_new": false
   },
   {
     "id": 37,
@@ -204,7 +214,8 @@
     "dress_level": "arreglado",
     "sexiness": 1,
     "accessory_type": "collar",
-    "image_name": "37.jpg"
+    "image_name": "37.jpg",
+    "is_new": false
   },
   {
     "id": 40,
@@ -225,7 +236,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "40.jpg"
+    "image_name": "40.jpg",
+    "is_new": false
   },
   {
     "id": 42,
@@ -244,7 +256,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "42.jpg"
+    "image_name": "42.jpg",
+    "is_new": false
   },
   {
     "id": 43,
@@ -264,7 +277,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "43.jpg"
+    "image_name": "43.jpg",
+    "is_new": false
   },
   {
     "id": 45,
@@ -284,7 +298,8 @@
     "dress_level": "arreglado",
     "sexiness": 1,
     "accessory_type": "pañuelo",
-    "image_name": "45.jpg"
+    "image_name": "45.jpg",
+    "is_new": false
   },
   {
     "id": 46,
@@ -305,7 +320,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "46.jpg"
+    "image_name": "46.jpg",
+    "is_new": false
   },
   {
     "id": 49,
@@ -325,7 +341,8 @@
     "dress_level": "flexible",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "49.jpg"
+    "image_name": "49.jpg",
+    "is_new": false
   },
   {
     "id": 50,
@@ -346,7 +363,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "50.jpg"
+    "image_name": "50.jpg",
+    "is_new": false
   },
   {
     "id": 53,
@@ -363,7 +381,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "53.jpg"
+    "image_name": "53.jpg",
+    "is_new": false
   },
   {
     "id": 54,
@@ -382,7 +401,8 @@
     "dress_level": "arreglado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "54.jpg"
+    "image_name": "54.jpg",
+    "is_new": false
   },
   {
     "id": 59,
@@ -399,7 +419,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "59.jpg"
+    "image_name": "59.jpg",
+    "is_new": false
   },
   {
     "id": 61,
@@ -418,7 +439,8 @@
     "dress_level": "relajado",
     "sexiness": 3,
     "accessory_type": null,
-    "image_name": "61.jpg"
+    "image_name": "61.jpg",
+    "is_new": false
   },
   {
     "id": 62,
@@ -437,7 +459,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "62.jpg"
+    "image_name": "62.jpg",
+    "is_new": false
   },
   {
     "id": 63,
@@ -459,7 +482,8 @@
     "dress_level": "flexible",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "63.jpg"
+    "image_name": "63.jpg",
+    "is_new": false
   },
   {
     "id": 69,
@@ -478,7 +502,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "69.jpg"
+    "image_name": "69.jpg",
+    "is_new": false
   },
   {
     "id": 70,
@@ -497,7 +522,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "70.jpg"
+    "image_name": "70.jpg",
+    "is_new": false
   },
   {
     "id": 71,
@@ -516,7 +542,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "71.jpg"
+    "image_name": "71.jpg",
+    "is_new": false
   },
   {
     "id": 74,
@@ -535,7 +562,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "74.jpg"
+    "image_name": "74.jpg",
+    "is_new": false
   },
   {
     "id": 75,
@@ -554,7 +582,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "75.jpg"
+    "image_name": "75.jpg",
+    "is_new": false
   },
   {
     "id": 76,
@@ -571,7 +600,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_76.jpg"
+    "image_name": "garment_76.jpg",
+    "is_new": false
   },
   {
     "id": 77,
@@ -590,7 +620,8 @@
     "dress_level": "elegante",
     "sexiness": 2,
     "accessory_type": null,
-    "image_name": "garment_77.jpg"
+    "image_name": "garment_77.jpg",
+    "is_new": false
   },
   {
     "id": 79,
@@ -607,7 +638,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_79.jpg"
+    "image_name": "garment_79.jpg",
+    "is_new": false
   },
   {
     "id": 81,
@@ -624,7 +656,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_81.jpg"
+    "image_name": "garment_81.jpg",
+    "is_new": false
   },
   {
     "id": 83,
@@ -645,7 +678,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_83.jpg"
+    "image_name": "garment_83.jpg",
+    "is_new": false
   },
   {
     "id": 84,
@@ -665,7 +699,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_84.jpg"
+    "image_name": "garment_84.jpg",
+    "is_new": false
   },
   {
     "id": 85,
@@ -682,7 +717,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_85.jpg"
+    "image_name": "garment_85.jpg",
+    "is_new": false
   },
   {
     "id": 86,
@@ -701,7 +737,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_86.jpg"
+    "image_name": "garment_86.jpg",
+    "is_new": false
   },
   {
     "id": 88,
@@ -718,7 +755,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_88.jpg"
+    "image_name": "garment_88.jpg",
+    "is_new": false
   },
   {
     "id": 89,
@@ -739,7 +777,8 @@
     "dress_level": "relajado",
     "sexiness": 3,
     "accessory_type": null,
-    "image_name": "garment_89.jpg"
+    "image_name": "garment_89.jpg",
+    "is_new": false
   },
   {
     "id": 90,
@@ -758,7 +797,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_90.jpg"
+    "image_name": "garment_90.jpg",
+    "is_new": false
   },
   {
     "id": 91,
@@ -775,7 +815,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_91.jpg"
+    "image_name": "garment_91.jpg",
+    "is_new": false
   },
   {
     "id": 92,
@@ -795,7 +836,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_92.jpg"
+    "image_name": "garment_92.jpg",
+    "is_new": false
   },
   {
     "id": 93,
@@ -814,7 +856,8 @@
     "dress_level": "flexible",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_93.jpg"
+    "image_name": "garment_93.jpg",
+    "is_new": false
   },
   {
     "id": 94,
@@ -833,7 +876,8 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": "cinturón",
-    "image_name": "garment_94.jpg"
+    "image_name": "garment_94.jpg",
+    "is_new": false
   },
   {
     "id": 95,
@@ -853,6 +897,262 @@
     "dress_level": "relajado",
     "sexiness": 0,
     "accessory_type": null,
-    "image_name": "garment_95.jpg"
+    "image_name": "garment_95.jpg",
+    "is_new": false
+  },
+  {
+    "id": 96,
+    "name": "stiletto blanco",
+    "category": "shoes",
+    "color": "blanco",
+    "style": "elegante",
+    "subcategory": "taco_alto",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "elegante",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_96.jpg",
+    "is_new": false
+  },
+  {
+    "id": 97,
+    "name": "impermeable negro",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "impermeable",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": true,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_97.jpg",
+    "is_new": false
+  },
+  {
+    "id": 98,
+    "name": "chaleco cuello v cafe",
+    "category": "midlayer",
+    "color": "café",
+    "style": "casual",
+    "subcategory": "chaleco",
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_98.jpg",
+    "is_new": false
+  },
+  {
+    "id": 99,
+    "name": "pantalon cebra",
+    "category": "bottom",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "pantalon",
+    "secondary_colors": [
+      "blanco"
+    ],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "animal_print",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 1,
+    "accessory_type": null,
+    "image_name": "garment_99.jpg",
+    "is_new": false
+  },
+  {
+    "id": 100,
+    "name": "polera azul marino",
+    "category": "top",
+    "color": "azul marino",
+    "style": "casual",
+    "subcategory": "polera",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "caluroso",
+    "waterproof": false,
+    "dress_level": "relajado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_100.jpg",
+    "is_new": false
+  },
+  {
+    "id": 101,
+    "name": "sweater cuello alto blanco",
+    "category": "midlayer",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": "sweater",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "urbano"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_101.jpg",
+    "is_new": false
+  },
+  {
+    "id": 102,
+    "name": "trench",
+    "category": "outerwear",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "trench",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_102.jpg",
+    "is_new": false
+  },
+  {
+    "id": 103,
+    "name": "abrigo impermeable verde",
+    "category": "outerwear",
+    "color": "verde oliva",
+    "style": "casual",
+    "subcategory": "abrigo",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": true,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_103.jpg",
+    "is_new": false
+  },
+  {
+    "id": 104,
+    "name": "beatle blanco",
+    "category": "top",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": null,
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 1,
+    "accessory_type": null,
+    "image_name": "garment_104.jpg",
+    "is_new": false
+  },
+  {
+    "id": 105,
+    "name": "blazer negro elegante",
+    "category": "midlayer",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "blazer",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "elegante",
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "arreglado",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_105.jpg",
+    "is_new": false
+  },
+  {
+    "id": 106,
+    "name": "bufanda",
+    "category": "accessory",
+    "color": "negro",
+    "style": "casual",
+    "subcategory": "bufanda",
+    "secondary_colors": [],
+    "secondary_styles": [
+      "formal"
+    ],
+    "pattern": "liso",
+    "warmth": "frio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": "bufanda",
+    "image_name": "garment_106.jpg",
+    "is_new": false
+  },
+  {
+    "id": 107,
+    "name": "buzo blanco prueba mujer",
+    "category": "bottom",
+    "color": "blanco",
+    "style": "casual",
+    "subcategory": null,
+    "secondary_colors": [],
+    "secondary_styles": [],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "flexible",
+    "sexiness": 0,
+    "accessory_type": null,
+    "image_name": "garment_107.jpg",
+    "is_new": true
+  },
+  {
+    "id": 108,
+    "name": "reloj plateado",
+    "category": "accessory",
+    "color": "plateado",
+    "style": "formal",
+    "subcategory": null,
+    "secondary_colors": [],
+    "secondary_styles": [
+      "elegante"
+    ],
+    "pattern": "liso",
+    "warmth": "medio",
+    "waterproof": false,
+    "dress_level": "arreglado",
+    "sexiness": 0,
+    "accessory_type": "reloj",
+    "image_name": "garment_108.jpg",
+    "is_new": true
   }
 ]

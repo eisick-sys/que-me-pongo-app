@@ -1,5 +1,6 @@
 # app.py
 import os
+import re
 import random
 from datetime import date
 from typing import List
@@ -978,7 +979,7 @@ with tab2:
                 "rojo": "🔴",
                 "rosado": "🟣",
                 "verde": "🟢",
-                "verde oliva": "🟢",
+                "verde olivo": "🟢",
                 "verde oscuro": "🟢",
             }
 
@@ -1009,6 +1010,8 @@ with tab2:
                     with st.container(border=True):
                         render_garment_image(g, width=120)
                         st.markdown(f"**{g.name[:18]}**")
+                        if getattr(g, "is_new", False):
+                            st.caption("🆕 Nueva")
                         color_icons = {
                             "amarillo": "🟡",
                             "azul": "🔵",
@@ -1034,7 +1037,7 @@ with tab2:
                             "rojo": "🔴",
                             "rosado": "🟣",
                             "verde": "🟢",
-                            "verde oliva": "🟢",
+                            "verde olivo": "🟢",
                             "verde oscuro": "🟢",
                         }
 
@@ -1151,7 +1154,7 @@ with tab2:
                         "azul marino": "🔵",
                         "celeste": "🔵",
                         "verde": "🟢",
-                        "verde oliva": "🟢",
+                        "verde olivo": "🟢",
                         "verde oscuro": "🟢",
                         "rojo": "🔴",
                         "burdeo": "🔴",
@@ -1314,6 +1317,7 @@ with tab2:
                             garment.dress_level = dress_level
                             garment.sexiness = sexiness
                             garment.accessory_type = accessory_type if category == "accessory" else None
+                            garment.is_new = False
 
                             if new_uploaded_file:
                                 old_image_name = garment.image_name if garment.image_name else None
@@ -1355,7 +1359,7 @@ with tab2:
 # TAB 3: AGREGAR PRENDA
 # =========================================================
 with tab3:
-    st.subheader("Agregar prenda al clóset")
+    st.subheader("➕ Agregar prenda")
 
     if "form_name" not in st.session_state:
         st.session_state.form_name = ""
@@ -1416,9 +1420,109 @@ with tab3:
         st.session_state.form_dress_level = "flexible"
         del st.session_state["reset_add_form"]
 
+    # =========================================================
+    # SECCIÓN: SUBIDA MÚLTIPLE DE FOTOS
+    # =========================================================
+    st.markdown("### 📸 Agregar fotos")
+    st.caption("Puedes subir hasta 5 prendas a la vez")
+
+    if "bulk_uploader_key" not in st.session_state:
+        st.session_state.bulk_uploader_key = 0
+
+    if st.session_state.get("bulk_saved_summary"):
+        summary = st.session_state.pop("bulk_saved_summary")
+        st.success(summary["message"])
+        for item in summary["items"]:
+            st.markdown(f"- **{item['name']}** — {item['attrs']}")
+
+    bulk_files = st.file_uploader(
+        "Selecciona hasta 5 fotos",
+        type=["jpg", "jpeg", "png", "webp"],
+        accept_multiple_files=True,
+        key=f"bulk_uploader_{st.session_state.bulk_uploader_key}"
+    )
+
+    if bulk_files:
+        if len(bulk_files) > 5:
+            st.warning("Solo se procesarán las primeras 5 fotos.")
+            bulk_files = bulk_files[:5]
+
+        if st.button("Agregar prendas automáticamente", key="bulk_add_btn"):
+            added_items = []
+            for uf in bulk_files:
+                suggested = suggest_name_from_filename(uf.name)
+                if not suggested:
+                    base = os.path.splitext(uf.name)[0]
+                    suggested = re.sub(r"[_\-]+", " ", base).strip() or uf.name
+
+                inferred = infer_attributes_from_name(suggested)
+
+                cat = inferred.get("category") if inferred.get("category") in CATEGORY_OPTIONS else "top"
+                sub = inferred.get("subcategory")
+                if sub not in SUBCATEGORY_OPTIONS.get(cat, []):
+                    sub = None
+                acc_type = inferred.get("accessory_type") if inferred.get("accessory_type") in ACCESSORY_TYPE_OPTIONS else None
+
+                raw_color = COLOR_ALIASES.get(
+                    str(inferred.get("color", "")).strip().lower(),
+                    str(inferred.get("color", "")).strip().lower()
+                )
+                color_val = raw_color if raw_color in COLOR_OPTIONS else "negro"
+                pattern_val = inferred.get("pattern") if inferred.get("pattern") in PATTERN_OPTIONS else "liso"
+                warmth_val = inferred.get("warmth") if inferred.get("warmth") in WARMTH_OPTIONS else "medio"
+                waterproof_val = inferred.get("waterproof") if isinstance(inferred.get("waterproof"), bool) else False
+                dress_level_val = inferred.get("dress_level") if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS else "flexible"
+                style_val = inferred.get("style") if inferred.get("style") in STYLE_OPTIONS else "casual"
+
+                next_id = max([g.id for g in st.session_state.wardrobe], default=0) + 1
+                image_name = f"garment_{next_id}.jpg"
+                output_path = os.path.join(IMAGES_DIR, image_name)
+                save_square_image(uf, output_path)
+
+                garment = Garment(
+                    id=next_id,
+                    name=suggested,
+                    category=cat,
+                    subcategory=sub,
+                    accessory_type=acc_type,
+                    color=normalize_color_name(color_val),
+                    secondary_colors=[],
+                    pattern=pattern_val,
+                    style=style_val,
+                    secondary_styles=[],
+                    warmth=warmth_val,
+                    waterproof=waterproof_val,
+                    sexiness=0,
+                    dress_level=dress_level_val,
+                    image_name=image_name,
+                    is_new=True,
+                )
+                st.session_state.wardrobe.append(garment)
+
+                attrs_parts = [CATEGORY_LABELS_ES.get(cat, cat)]
+                if garment.color:
+                    attrs_parts.append(garment.color)
+                if pattern_val != "liso":
+                    attrs_parts.append(pattern_val)
+                if style_val != "casual":
+                    attrs_parts.append(style_val)
+
+                added_items.append({"name": suggested, "attrs": " · ".join(attrs_parts)})
+
+            save_wardrobe(DATA_FILE, st.session_state.wardrobe)
+            st.session_state.bulk_uploader_key += 1
+            st.session_state["bulk_saved_summary"] = {
+                "message": f"Se agregaron {len(added_items)} prenda(s) al clóset.",
+                "items": added_items
+            }
+            st.rerun()
+
+    st.divider()
+    st.markdown("### ➕ Agregar prenda manualmente")
+
     uploaded_file = st.file_uploader(
         "Sube una foto de la prenda",
-        type=["jpg", "jpeg", "png"],
+        type=["jpg", "jpeg", "png", "webp"],
         key=f"form_uploader_{st.session_state.form_uploader_key}"
     )
 
@@ -1532,7 +1636,7 @@ with tab3:
     )
     subcategory = None
 
-    if category in SUBCATEGORY_OPTIONS:
+    if category in SUBCATEGORY_OPTIONS and category != "accessory":
         subcategory = st.selectbox(
             "Subcategoría",
             [None] + SUBCATEGORY_OPTIONS[category],
@@ -1578,7 +1682,7 @@ with tab3:
         "rojo": "🔴",
         "rosado": "🟣",
         "verde": "🟢",
-        "verde oliva": "🟢",
+        "verde olivo": "🟢",
         "verde oscuro": "🟢",
     }
 
@@ -1679,7 +1783,8 @@ with tab3:
             waterproof=waterproof,
             sexiness=sexiness,
             dress_level=dress_level,
-            image_name=image_name
+            image_name=image_name,
+            is_new=True,
         )
 
         st.session_state.wardrobe.append(garment)

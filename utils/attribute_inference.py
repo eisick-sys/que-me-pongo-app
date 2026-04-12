@@ -172,6 +172,8 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "jeans": ["jeans", "jean", "denim"],
             "pantalon": ["pantalon"],
             "legging": ["legging", "leggings", "calza", "calzas"],
+            "buzo": ["buzo", "jogging"],
+            "jogger": ["jogger", "joggers"],
         },
         "one_piece": {
             "vestido_elegante": ["vestido elegante", "vestido formal", "vestido de noche"],
