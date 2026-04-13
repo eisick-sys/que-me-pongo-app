@@ -109,6 +109,17 @@ def weather_score(garment: Garment, temp: int, rain: bool, occasion: str = "", m
     else:
         score += 5
 
+    # Boost a parkas con frío sin lluvia en salida nocturna
+    if (
+        not rain
+        and temp <= 8
+        and occasion == "salida nocturna"
+        and garment.category == "outerwear"
+        and garment.subcategory in ["parka"]
+        and garment.dress_level in ["flexible", "arreglado", "elegante"]
+    ):
+        score += 10
+
     return score
 
 
@@ -400,6 +411,8 @@ def practicality_penalty(
         if rain:
             if g.category == "shoes":
                 if is_shoe_heel(g):
+                    penalty += 35
+                if g.subcategory == "mocasin":
                     penalty += 35
 
         if temp >= 26:

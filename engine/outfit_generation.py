@@ -645,6 +645,34 @@ def generate_outfits(
             if outerwear_id is not None:
                 outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
 
+    # Tercera pasada: relajar max_same_outerwear si el outerwear disponible es escaso
+    if len(diverse_outfits) < min_outfits:
+        existing_ids = {id(combo) for _, combo in diverse_outfits}
+        all_remaining = sorted(
+            [(s, c) for s, c in final_outfits if id(c) not in existing_ids],
+            key=lambda x: x[0],
+            reverse=True,
+        )
+        for score, combo in all_remaining:
+            if len(diverse_outfits) >= min_outfits:
+                break
+            if id(combo) in existing_ids:
+                continue
+            ids = {g.category: g.id for g in combo}
+            top_id = ids.get("top")
+            shoes_id = ids.get("shoes")
+            if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
+                continue
+            if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+                continue
+            # max_same_outerwear relajado: permitir repetir outerwear cuando es el único disponible
+            diverse_outfits.append((score, combo))
+            existing_ids.add(id(combo))
+            if top_id is not None:
+                top_usage[top_id] = top_usage.get(top_id, 0) + 1
+            if shoes_id is not None:
+                shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+
     return diverse_outfits[:top_n]
 
 
