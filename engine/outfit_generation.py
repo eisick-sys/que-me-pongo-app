@@ -539,7 +539,9 @@ def generate_outfits(
         if len(elegant_shoes) >= 2:
             max_same_shoes = 1
     _n_waterproof_outer = sum(1 for g in top_candidates["outerwear"] if g.waterproof)
-    if _n_waterproof_outer >= 3:
+    if not rain:
+        max_same_outerwear = 1
+    elif _n_waterproof_outer >= 3:
         max_same_outerwear = 1
     elif _n_waterproof_outer == 2:
         max_same_outerwear = 2
