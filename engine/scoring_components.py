@@ -95,6 +95,8 @@ def weather_score(garment: Garment, temp: int, rain: bool, occasion: str = "", m
             score += 10
         elif occasion in ["cita", "trabajo"] and mood in cold_moods:
             score += 8
+        if temp <= 8:
+            score += 15
 
     # lluvia
     if rain:
@@ -388,6 +390,13 @@ def practicality_penalty(
                     penalty += 60
             if temp <= 8 and g.subcategory in ["falda_midi", "falda_larga"]:
                 penalty += 35
+            if temp <= 8 and g.subcategory == "pantalon":
+                if g.warmth == "caluroso":
+                    penalty += 25
+                elif g.warmth == "medio":
+                    penalty += 12
+                elif g.warmth == "frio":
+                    penalty -= 15
         if rain:
             if g.category == "shoes":
                 if is_shoe_heel(g):
