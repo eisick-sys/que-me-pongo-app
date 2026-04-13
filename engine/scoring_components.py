@@ -445,6 +445,17 @@ def practicality_penalty(
             if g.category == "outerwear":
                 penalty += 20
 
+        # Bonus outerwear abrigado en salida nocturna mood relajado con frío extremo
+        if (
+            occasion == "salida nocturna"
+            and mood == "relajado"
+            and temp <= 8
+            and g.category == "outerwear"
+            and g.warmth == "frio"
+            and g.subcategory in ["parka", "chaqueta"]
+        ):
+            penalty -= 20
+
     layer_count = sum(1 for g in items if g.category in ["midlayer", "outerwear"])
 
     if temp >= 26 and layer_count >= 1:
