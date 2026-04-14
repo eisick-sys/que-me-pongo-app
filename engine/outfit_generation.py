@@ -473,6 +473,11 @@ def generate_outfits(
     final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
 
     def is_too_similar(c1, c2):
+        ow1 = next((g for g in c1 if g.category == "outerwear"), None)
+        ow2 = next((g for g in c2 if g.category == "outerwear"), None)
+        if ow1 and ow2 and ow1.id != ow2.id:
+            return False
+
         ids1 = {g.category: g.id for g in c1}
         ids2 = {g.category: g.id for g in c2}
 
@@ -1045,6 +1050,11 @@ def generate_outfits_from_selected_garment(
     final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
 
     def is_too_similar(c1, c2):
+        ow1 = next((g for g in c1 if g.category == "outerwear"), None)
+        ow2 = next((g for g in c2 if g.category == "outerwear"), None)
+        if ow1 and ow2 and ow1.id != ow2.id:
+            return False
+
         ids1 = {g.category: g.id for g in c1}
         ids2 = {g.category: g.id for g in c2}
 
