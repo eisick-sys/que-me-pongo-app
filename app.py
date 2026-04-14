@@ -872,7 +872,7 @@ with tab1:
     elif surprise_clicked:
         surprise_candidates = [
             g for g in st.session_state.wardrobe
-            if garment_allowed_for_occasion(g, occasion, rain)[0]
+            if garment_allowed_for_occasion(g, occasion, rain, mood=mood, temp=temp)[0]
         ]
 
         if surprise_candidates:
