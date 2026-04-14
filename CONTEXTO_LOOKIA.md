@@ -246,6 +246,14 @@ LOOKIA_CITY=Punta Arenas
 - ✅ `generate_outfits_from_selected_garment` respeta `required_categories` (outerwear incluido con lluvia y frío extremo)
 - ✅ Penalización +80 vestido elegante/cóctel con mood relajado (en vez de bloqueo duro)
 
+**Motor — calzado y ocasión**
+- ✅ `garment_allowed_for_occasion` recibe `mood` y `temp` en todas las llamadas (`app.py`, `recommender.py`)
+- ✅ Zapatilla urbana permitida en salida nocturna con mood relajado/cómodo
+- ✅ Boost zapatilla urbana salida nocturna mood relajado/cómodo con calor
+- ✅ Penalización taco_alto con temp >= 26°C: +20
+- ✅ Penalización taco_alto/bajo en salida nocturna mood relajado: +35/+15
+- ✅ Penalización mocasín en salida nocturna: relajado/cómodo +45, urbano/elegante/sexy +55
+
 **Fixes de datos**
 - ✅ __pycache__/ y wardrobe_images/ agregados a .gitignore
 
@@ -271,10 +279,14 @@ LOOKIA_CITY=Punta Arenas
 - ⬜ Seleccionar prenda específica en distintos escenarios
 
 ### Motor
+- ⬜ Refactor `generate_outfits_from_selected_garment` — alinear lógica completa con `generate_outfits` (ocasión, mood, temp, required_categories, scoring completo)
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
 - ⬜ taco_alto → penalizado en cómodo, bloqueado en relajado
 - ⬜ Calzado plano de trabajo para calor
 - ⬜ Mayor diversidad de tops en mood urbano (ajuste fino)
+
+### Clóset
+- ⬜ Agregar sandalias, ballerinas y chalas al clóset
 
 ### UI
 - ⬜ Botón "Mostrar de todos modos" cuando prenda forzada está bloqueada por mood (requiere cambio en app.py)
