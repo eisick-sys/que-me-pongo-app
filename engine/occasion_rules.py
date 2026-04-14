@@ -179,6 +179,9 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             if is_shoe_sport_sneaker(garment):
                 return False, f"{garment.name} no va para una cita."
 
+        if garment.style == "sport" and garment.category != "shoes" and mood != "relajado":
+            return False, f"{garment.name} es demasiado sport para cita."
+
     # =========================================================
     # DEPORTE
     # =========================================================
