@@ -206,6 +206,14 @@ def garment_base_score(
         elif occasion in ["cita", "salida nocturna"]:
             score += 12
 
+    # Penalizar vestido elegante/cóctel con mood relajado o urbano
+    if (
+        g.category == "one_piece"
+        and g.subcategory in ["vestido_elegante", "vestido_coctel"]
+        and mood in ["relajado", "urbano"]
+    ):
+        score -= 150
+
     return score
 
 def rank_garments(
