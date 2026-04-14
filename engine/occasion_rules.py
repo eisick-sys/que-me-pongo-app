@@ -113,6 +113,14 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             if temp <= 10:
                 return False, f"{garment.name} no es adecuada para este frío."
 
+    if (
+        mood == "relajado"
+        and garment.category == "one_piece"
+        and garment.subcategory in ["vestido_elegante", "vestido_coctel"]
+        and occasion != "deporte"
+    ):
+        return False, "Un vestido elegante no va con mood relajado."
+
     # =========================================================
     # MATRIMONIO Y GALA
     # =========================================================
