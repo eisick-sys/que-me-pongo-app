@@ -53,7 +53,7 @@ def dress_score(dress_level: str, occasion: str) -> int:
 
     return matrix.get(occasion, {}).get(dress_level, 0)
 
-def weather_score(garment: Garment, temp: int, rain: bool, occasion: str = "", mood: str = "") -> int:
+def weather_score(garment: Garment, temp: int, rain: bool, occasion: str = "", mood: str = "", items: List[Garment] = None) -> int:
     score = 0
 
     # Un outerwear impermeable es siempre válido con lluvia; se diferencia por warmth según temp
@@ -70,7 +70,17 @@ def weather_score(garment: Garment, temp: int, rain: bool, occasion: str = "", m
         if garment.warmth == "frio":
             score += 18
         elif garment.warmth == "medio":
-            score += 8
+            base_warmth = 8
+            if garment.category == "outerwear" and items is not None:
+                has_cold_midlayer = any(
+                    g.category == "midlayer" and g.warmth == "frio"
+                    for g in items
+                    if g is not garment
+                )
+                if has_cold_midlayer:
+                    penalty = 18 - base_warmth  # 10 puntos de penalización
+                    base_warmth += penalty * 0.90  # reducir 90% de la penalización
+            score += base_warmth
         else:  # caluroso
             score -= 12
 

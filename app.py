@@ -803,7 +803,7 @@ with tab1:
     surprise_clicked = col_btn2.button("🎲 Outfit sorpresa", use_container_width=True)
 
     show_anyway_clicked = False
-    if selected_garment and not selected_allowed:
+    if selected_garment:
         show_anyway_clicked = col_btn3.button("Mostrar de todos modos", use_container_width=True)
 
     outfits = st.session_state.get("last_outfits", [])

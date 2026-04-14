@@ -72,12 +72,13 @@ def garment_base_score(
     mood: str,
     activity: str,
     user_profile: Optional[Dict[str, Dict[str, int]]] = None,
+    items: Optional[List[Garment]] = None,
 ) -> float:
     score = 0
 
     # Componentes base
     score += dress_score(g.dress_level, occasion)
-    score += weather_score(g, temp, rain, occasion, mood)
+    score += weather_score(g, temp, rain, occasion, mood, items)
     score += activity_bonus(g, activity, occasion)
 
     # Reglas específicas por categoría
@@ -234,7 +235,7 @@ def rank_garments(
     scored = []
 
     for g in filtered:
-        allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
+        allowed, reason = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
         if not allowed:
             continue
 
@@ -318,7 +319,7 @@ def outfit_score(
         if not allowed:
             return -999
 
-        score += garment_base_score(
+        base = garment_base_score(
             g,
             g.category,
             occasion,
@@ -327,7 +328,10 @@ def outfit_score(
             mood,
             activity,
             user_profile,
+            items,
         )
+
+        score += base
 
     has_one_piece = any(g.category == "one_piece" for g in items)
 
@@ -656,7 +660,7 @@ def outfit_score(
 
         if has_short:
             score -= 28
-            
+
     return int(score)
 
 def explain_outfit_score(
