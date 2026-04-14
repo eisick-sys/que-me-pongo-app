@@ -51,7 +51,23 @@ user_id = st.session_state["user"].id
 
 with st.sidebar:
     st.caption(f"👤 {st.session_state['user'].email}")
-    if st.button("Cerrar sesión"):
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stSidebarContent"] .logout-btn button {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.75rem;
+            padding: 0;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("cerrar sesión", key="logout_btn"):
         logout()
 
 from models import Garment, OutfitFeedback, UsedOutfit
