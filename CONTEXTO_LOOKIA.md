@@ -16,14 +16,18 @@ proyecto app/
 ├── app.py                  # UI principal (4 tabs)
 ├── models.py               # Clases: Garment, OutfitFeedback, UsedOutfit
 ├── constants.py            # Listas: categorías, colores, estilos, etc.
-├── storage.py              # Guardar/cargar JSON con backup automático
+├── storage.py              # (legacy) Guardar/cargar JSON local — ya no se usa en producción
+├── storage_cloud.py        # Operaciones CRUD contra Supabase (prendas, feedback, outfits, imágenes)
+├── supabase_client.py      # Cliente Supabase + get_supabase_for_user(access_token)
+├── auth_ui.py              # Pantalla de login/registro con Supabase Auth
 ├── weather.py              # Conexión OpenWeather (actual + pronóstico semanal)
-├── requirements.txt        # streamlit, pillow, pandas, requests, python-dotenv
-├── closet.json             # Clóset de la usuaria (~60 prendas)
-├── feedback.json           # Historial de likes/dislikes
-├── used_outfits.json       # Outfits realmente usados
+├── migrate_local_data.py   # Script one-shot: sube JSON locales a Supabase (no va a producción)
+├── requirements.txt        # streamlit, pillow, pandas, requests, python-dotenv, supabase
+├── closet.json             # (legacy) Clóset local — ya migrado a Supabase
+├── feedback.json           # (legacy) Feedback local — ya migrado a Supabase
+├── used_outfits.json       # (legacy) Outfits usados locales — ya migrados a Supabase
 ├── .env                    # Variables de entorno (NO subir a GitHub)
-├── .gitignore              # Incluye .env
+├── .gitignore              # Incluye .env, __pycache__, wardrobe_images/
 ├── engine/
 │   ├── recommender.py      # Motor principal + explain_outfit_score
 │   ├── outfit_generation.py # generate_outfits + generate_outfits_from_selected_garment + generate_week_plan
@@ -45,6 +49,13 @@ proyecto app/
 ```
 OPENWEATHER_API_KEY=tu_clave_aqui
 LOOKIA_CITY=Punta Arenas
+SUPABASE_URL=https://pkojtqwatctncuerilub.supabase.co
+SUPABASE_KEY=sb_publishable_...          # anon/publishable key
+SUPABASE_SERVICE_KEY=eyJ...              # service_role key (solo para scripts locales)
+```
+En Streamlit Cloud (rama version-sana) agregar también en Secrets:
+```
+LOOKIA_ENV = "production"
 ```
 
 ---
@@ -75,22 +86,34 @@ LOOKIA_CITY=Punta Arenas
 ---
 
 ## Estado del repositorio
-- Rama activa de desarrollo: **main**
-- Rama testers: **version-sana**
-- Ambas ramas deben estar siempre sincronizadas (idénticas)
-- Flujo correcto: desarrollar en main → al terminar sesión, actualizar version-sana igual a main
+- Rama activa de desarrollo: **main** (local, debug visible)
+- Rama testers: **version-sana** (Streamlit Cloud, `LOOKIA_ENV=production`, debug oculto)
+- Ambas ramas deben estar siempre sincronizadas (idénticas en código)
+- Flujo correcto: desarrollar en main → push → mergear a version-sana → push
 - Comando para correr la app: `python -m streamlit run app.py`
 - Retomar Claude Code: `claude --resume [session_id]` o simplemente `claude` en la carpeta
 - **SIEMPRE verificar que .env no esté en el commit antes de hacer push**
 
+## Infraestructura Supabase
+- **Proyecto:** `pkojtqwatctncuerilub` (Supabase)
+- **Auth:** Supabase Auth (email/password). `auth_ui.py` maneja login/registro/logout.
+- **Base de datos:** PostgreSQL en Supabase. Tablas: `garments`, `outfit_feedback`, `used_outfits`. Todas con RLS habilitado por `user_id`.
+- **Storage:** Bucket `garment-images`. Ruta: `{user_id}/{image_name}`. Imágenes públicas, subida autenticada con `access_token`.
+- **Cliente:** `supabase_client.py` — `get_supabase()` para operaciones de DB, `get_supabase_for_user(access_token)` para uploads de Storage.
+- **Migración datos locales:** `migrate_local_data.py` — ejecutar una sola vez con `python migrate_local_data.py USER_ID`. Usa `SUPABASE_SERVICE_KEY` para bypassear RLS.
+
 ---
 
 ## Notas técnicas importantes
-- La app usa archivos JSON locales — funciona para 1 usuaria, no escala sin refactor
-- `wardrobe_images/` contiene fotos de prendas — no va al repositorio (agregar a .gitignore)
-- `__pycache__/` tampoco va al repositorio (agregar a .gitignore)
+- La app ya usa Supabase — JSON locales son legacy, no se leen en producción
+- `wardrobe_images/` y `__pycache__/` no van al repositorio (están en `.gitignore`)
 - Claude Code tiende a incluir .env en commits — siempre verificar antes del push
-- El "Ignorar" de badges de advertencia en clóset solo persiste en session_state (no en JSON) — al recargar vuelven a aparecer. Pendiente persistencia real cuando se migre a Supabase.
+- El "Ignorar" de badges de advertencia en clóset solo persiste en session_state — al recargar vuelven a aparecer. Pendiente persistencia real en Supabase.
+- `supabase-py 2.3.5` instalado localmente (versiones más nuevas fallan en Python 3.14 por dependencia `pyiceberg`)
+- En Streamlit Cloud se instala la versión de `requirements.txt` — verificar compatibilidad si se cambia la versión
+
+## ⚠️ Pendiente urgente
+- **Moderación de fotos en subida:** actualmente no hay filtro de contenido en las imágenes subidas por usuarios. Implementar moderación para bloquear nudes, menores, contenido inapropiado antes de guardar en Supabase Storage. Opciones: API de moderación (AWS Rekognition, Google Vision, Anthropic), o revisión manual inicial.
 
 ---
 
@@ -298,6 +321,33 @@ LOOKIA_CITY=Punta Arenas
 
 ---
 
+### Sesión 10 — abril 2026
+
+**Migración a Supabase**
+- ✅ `supabase_client.py` — cliente Supabase con `get_supabase()` y `get_supabase_for_user(access_token)`
+- ✅ `storage_cloud.py` — CRUD completo: prendas, feedback, outfits usados, imágenes (Storage)
+- ✅ `auth_ui.py` — pantalla de login/registro/logout con Supabase Auth
+- ✅ `app.py` — migrado: imports, auth guard, carga de datos, guardado de prendas/feedback/outfits
+- ✅ `migrate_local_data.py` — script de migración one-shot (JSON local → Supabase, usa service_role key)
+- ✅ Datos migrados: 60 prendas, 65 feedbacks, 21 outfits usados bajo user_id `27f1ddde-...`
+- ✅ `upload_garment_image` recibe `access_token` para pasar RLS de Storage
+- ✅ `render_garment_image` recibe `user_id` como parámetro explícito
+- ✅ Imagen actual en edición migrada de disco local a URL de Supabase Storage
+- ✅ `requirements.txt` agrega `supabase`
+
+**UI**
+- ✅ Botón cerrar sesión discreto en sidebar (`type="tertiary"`)
+- ✅ Feedback 👍/👎 usa `st.toast()` con patrón `pending_toast` en session_state (persiste a través de reruns)
+- ✅ Toggle "Modo debug" oculto cuando `LOOKIA_ENV=production`
+- ✅ Filtro "🆕 Nuevas" en Mi clóset — filtra prendas con `is_new=True`
+- ✅ Límite 5 fotos en subida múltiple — oculta uploader si ya hay 5+ prendas con imagen
+
+**Ramas**
+- ✅ `version-sana` sincronizada con `main` (fast-forward)
+- ✅ `LOOKIA_ENV=production` configurado en Secrets de Streamlit Cloud (rama version-sana)
+
+---
+
 ### Sesión 9 — abril 2026
 
 **Motor — scoring**
@@ -353,9 +403,11 @@ LOOKIA_CITY=Punta Arenas
 - ⬜ Integración IA Anthropic (foto → atributos, explicaciones con personalidad, modelo virtual)
 - ⬜ Login de usuario
 
-### Técnico — próximo gran paso
+### Técnico
 - ✅ `wardrobe_images/` y `__pycache__/` agregados a `.gitignore`
-- ⬜ **Migrar a Supabase** — base de datos real para multi-usuario (retomar cuando llegues a casa)
+- ✅ **Migrado a Supabase** — Auth, PostgreSQL (garments, outfit_feedback, used_outfits), Storage (garment-images)
+- ⬜ **Moderación de fotos** — bloquear nudes/menores/contenido inapropiado en subida (**urgente**)
+- ⬜ **Persistencia del "Ignorar"** en badges de inconsistencias (guardar en Supabase)
 - ⬜ **UI definitiva** (React o similar) — reemplazar Streamlit
 
 
