@@ -473,6 +473,13 @@ def practicality_penalty(
         ):
             penalty += 80
 
+        if (
+            mood == "urbano"
+            and g.category == "one_piece"
+            and g.subcategory in ["vestido_elegante", "vestido_coctel"]
+        ):
+            penalty += 80
+
         # Bonus outerwear abrigado en salida nocturna mood relajado con frío extremo
         if (
             occasion == "salida nocturna"
