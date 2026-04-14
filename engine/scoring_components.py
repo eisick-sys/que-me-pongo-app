@@ -417,7 +417,7 @@ def practicality_penalty(
 
         if occasion == "salida nocturna" and g.category == "shoes" and g.subcategory == "mocasin":
             if mood in ["relajado", "comodo"]:
-                penalty += 25
+                penalty += 45
             elif mood in ["urbano", "elegante", "sexy"]:
                 penalty += 55
 
