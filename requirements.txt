@@ -3,3 +3,4 @@ pillow
 pandas
 requests
 python-dotenv
+supabase

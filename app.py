@@ -9,6 +9,13 @@ from PIL import Image, ImageOps
 import streamlit as st
 
 from utils.garment_utils import is_bottom_skirt
+from auth_ui import render_auth_screen, logout
+from storage_cloud import (
+    load_wardrobe_cloud, save_garment_cloud, update_garment_cloud,
+    delete_garment_cloud, load_feedback_cloud, add_feedback_cloud,
+    load_used_outfits_cloud, add_used_outfit_cloud, get_next_used_outfit_id,
+    upload_garment_image, get_garment_image_url,
+)
 
 st.set_page_config(
     page_title="Lookia",
@@ -36,16 +43,18 @@ st.markdown(
 st.markdown("<div style='margin-top: 0.3rem;'></div>", unsafe_allow_html=True)
 # ========================================================
 
+# Verificar autenticación
+if not render_auth_screen():
+    st.stop()
+
+user_id = st.session_state["user"].id
+
+with st.sidebar:
+    st.caption(f"👤 {st.session_state['user'].email}")
+    if st.button("Cerrar sesión"):
+        logout()
+
 from models import Garment, OutfitFeedback, UsedOutfit
-from storage import (
-    add_feedback,
-    add_used_outfit,
-    get_next_used_outfit_id,
-    load_feedback,
-    load_used_outfits,
-    load_wardrobe,
-    save_wardrobe,
-)
 from weather import format_weather_label, get_current_weather, get_week_forecast
 
 from engine.occasion_rules import garment_allowed_for_occasion, get_weather_tag
@@ -197,17 +206,12 @@ def render_garment_image(garment: Garment, width: int = 120):
         st.caption("Sin foto")
         return
 
-    image_path = os.path.join(IMAGES_DIR, garment.image_name)
-
-    if not os.path.exists(image_path):
+    user_id = st.session_state["user"].id
+    url = get_garment_image_url(user_id, garment.image_name)
+    if url:
+        st.image(url, width=width)
+    else:
         st.caption("Sin imagen")
-        return
-
-    try:
-        img = load_cached_image(image_path)
-        st.image(img, width=width)
-    except Exception:
-        st.caption("No se pudo cargar la imagen")
 
 
 def render_feedback_buttons(combo, outfit_index, ctx, weather_tag, section="tab1"):
@@ -233,8 +237,9 @@ def render_feedback_buttons(combo, outfit_index, ctx, weather_tag, section="tab1
                 activity=ctx["activity"],
                 weather_tag=weather_tag
             )
-            add_feedback(FEEDBACK_FILE, new_feedback)
-            st.session_state.feedback = load_feedback(FEEDBACK_FILE)
+            user_id = st.session_state["user"].id
+            add_feedback_cloud(user_id, new_feedback)
+            st.session_state.feedback = load_feedback_cloud(user_id)
             st.success("Guardado. Tendré en cuenta que este outfit te gustó.")
             st.rerun()
 
@@ -253,8 +258,9 @@ def render_feedback_buttons(combo, outfit_index, ctx, weather_tag, section="tab1
                 activity=ctx["activity"],
                 weather_tag=weather_tag
             )
-            add_feedback(FEEDBACK_FILE, new_feedback)
-            st.session_state.feedback = load_feedback(FEEDBACK_FILE)
+            user_id = st.session_state["user"].id
+            add_feedback_cloud(user_id, new_feedback)
+            st.session_state.feedback = load_feedback_cloud(user_id)
             st.warning("Guardado. Evitaré priorizar este outfit en contextos parecidos.")
             st.rerun()
 
@@ -603,10 +609,13 @@ if "selected_garment_id" not in st.session_state:
     st.session_state.selected_garment_id = None
 
 if "wardrobe" not in st.session_state:
-    st.session_state.wardrobe = load_wardrobe(DATA_FILE, default_wardrobe())
+    st.session_state.wardrobe = load_wardrobe_cloud(user_id)
+
+if "feedback" not in st.session_state:
+    st.session_state.feedback = load_feedback_cloud(user_id)
 
 if "used_outfits" not in st.session_state:
-    st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+    st.session_state.used_outfits = load_used_outfits_cloud(user_id)
 
 if "outfit_history" not in st.session_state:
     st.session_state.outfit_history = [
@@ -630,9 +639,6 @@ if "last_detected" not in st.session_state:
 
 if "garment_just_saved" not in st.session_state:
     st.session_state.garment_just_saved = False
-
-if "feedback" not in st.session_state:
-    st.session_state.feedback = load_feedback(FEEDBACK_FILE)
 
 if "has_generated_outfits" not in st.session_state:
     st.session_state.has_generated_outfits = False
@@ -982,8 +988,8 @@ with tab1:
                     weather_tag=weather_tag,
                 )
 
-                add_used_outfit(USED_OUTFITS_FILE, new_used_outfit)
-                st.session_state.used_outfits = load_used_outfits(USED_OUTFITS_FILE)
+                add_used_outfit_cloud(user_id, new_used_outfit)
+                st.session_state.used_outfits = load_used_outfits_cloud(user_id)
 
                 st.session_state["outfit_used_message_idx"] = idx
                 st.session_state["outfit_used_message_text"] = "Outfit guardado como usado."
@@ -1402,32 +1408,19 @@ with tab2:
                             garment.is_new = False
 
                             if new_uploaded_file:
-                                old_image_name = garment.image_name if garment.image_name else None
-                                new_image_name = f"{garment.id}.jpg"
-                                new_image_path = os.path.join(IMAGES_DIR, new_image_name)
+                                image_name = upload_garment_image(user_id, garment.id, new_uploaded_file)
+                                garment.image_name = image_name
 
-                                save_square_image(new_uploaded_file, new_image_path)
-                                garment.image_name = new_image_name
-
-                                if old_image_name and old_image_name != new_image_name:
-                                    old_image_path = os.path.join(IMAGES_DIR, old_image_name)
-                                    if os.path.exists(old_image_path):
-                                        os.remove(old_image_path)
-
-                            save_wardrobe(DATA_FILE, st.session_state.wardrobe)
+                            update_garment_cloud(user_id, garment)
                             st.session_state["edit_saved_message"] = garment.id
                             st.success("Edición guardada.")
 
                     if delete_garment:
-                        if garment.image_name:
-                            image_path = os.path.join(IMAGES_DIR, garment.image_name)
-                            if os.path.exists(image_path):
-                                os.remove(image_path)
+                        delete_garment_cloud(user_id, garment.id)
 
                         st.session_state.wardrobe = [
                             g for g in st.session_state.wardrobe if g.id != garment.id
                         ]
-                        save_wardrobe(DATA_FILE, st.session_state.wardrobe)
                         st.session_state.next_id = get_next_id(st.session_state.wardrobe)
                         st.session_state.selected_garment_id = None
                         st.rerun()
@@ -1561,9 +1554,7 @@ with tab3:
                 style_val = inferred.get("style") if inferred.get("style") in STYLE_OPTIONS else "casual"
 
                 next_id = max([g.id for g in st.session_state.wardrobe], default=0) + 1
-                image_name = f"garment_{next_id}.jpg"
-                output_path = os.path.join(IMAGES_DIR, image_name)
-                save_square_image(uf, output_path)
+                image_name = upload_garment_image(user_id, next_id, uf)
 
                 garment = Garment(
                     id=next_id,
@@ -1584,6 +1575,7 @@ with tab3:
                     is_new=True,
                 )
                 st.session_state.wardrobe.append(garment)
+                save_garment_cloud(user_id, garment)
 
                 attrs_parts = [CATEGORY_LABELS_ES.get(cat, cat)]
                 if garment.color:
@@ -1594,8 +1586,6 @@ with tab3:
                     attrs_parts.append(style_val)
 
                 added_items.append({"name": suggested, "attrs": " · ".join(attrs_parts)})
-
-            save_wardrobe(DATA_FILE, st.session_state.wardrobe)
             st.session_state.bulk_uploader_key += 1
             st.session_state["bulk_saved_summary"] = {
                 "message": f"Se agregaron {len(added_items)} prenda(s) al clóset.",
@@ -1852,16 +1842,14 @@ with tab3:
         submitted = st.form_submit_button("Guardar prenda")
 
     if submitted:
+        next_id = max([g.id for g in st.session_state.wardrobe], default=0) + 1
         image_name = None
 
         if uploaded_file is not None:
-            next_id = max([g.id for g in st.session_state.wardrobe], default=0) + 1
-            image_name = f"garment_{next_id}.jpg"
-            output_path = os.path.join(IMAGES_DIR, image_name)
-            save_square_image(uploaded_file, output_path)
+            image_name = upload_garment_image(user_id, next_id, uploaded_file)
 
         garment = Garment(
-            id=max([g.id for g in st.session_state.wardrobe], default=0) + 1,
+            id=next_id,
             name=name,
             category=category,
             subcategory=subcategory,
@@ -1880,7 +1868,7 @@ with tab3:
         )
 
         st.session_state.wardrobe.append(garment)
-        save_wardrobe(DATA_FILE, st.session_state.wardrobe)
+        save_garment_cloud(user_id, garment)
         st.session_state["add_saved_message"] = "Tu prenda quedó guardada."
         st.session_state["reset_add_form"] = True
         st.session_state.form_uploader_key += 1
