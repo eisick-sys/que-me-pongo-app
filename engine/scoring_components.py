@@ -427,6 +427,12 @@ def practicality_penalty(
                 if temp >= 24:
                     penalty -= 15
 
+        if occasion == "salida nocturna" and mood == "relajado" and g.category == "shoes":
+            if g.subcategory == "taco_alto":
+                penalty += 35
+            elif g.subcategory == "taco_bajo":
+                penalty += 15
+
         if temp >= 26:
             if g.category == "outerwear":
                 penalty += 40
