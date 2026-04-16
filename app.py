@@ -1454,7 +1454,15 @@ with tab2:
                                 index=WARMTH_OPTIONS.index(current_warmth)
                             )
 
-                        waterproof = st.checkbox("Impermeable", value=garment.waterproof)
+                        show_functional_fields = (
+                            category != "accessory"
+                            or (subcategory in THERMAL_ACCESSORIES)
+                        )
+
+                        if show_functional_fields:
+                            waterproof = st.checkbox("Impermeable", value=garment.waterproof)
+                        else:
+                            waterproof = False
 
                         dress_level = st.selectbox(
                             "Nivel de formalidad",
@@ -1462,15 +1470,18 @@ with tab2:
                             index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
                             if garment.dress_level in DRESS_LEVEL_OPTIONS else 0
                         )
-                        
-                        sexiness = st.slider(
-                            "Nivel sexy",
-                            min_value=0,
-                            max_value=3,
-                            value=getattr(garment, "sexiness", 0),
-                            key=f"edit_sexiness_{garment.id}",
-                            help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
-                        )
+
+                        if show_functional_fields:
+                            sexiness = st.slider(
+                                "Nivel sexy",
+                                min_value=0,
+                                max_value=3,
+                                value=getattr(garment, "sexiness", 0),
+                                key=f"edit_sexiness_{garment.id}",
+                                help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
+                            )
+                        else:
+                            sexiness = 0
 
                         new_uploaded_file = st.file_uploader(
                             "Agregar o reemplazar foto de esta prenda",
@@ -1901,23 +1912,25 @@ with tab3:
     )
 
     with st.form("add_garment_form", clear_on_submit=True):
-        warmth = st.selectbox(
-            "Nivel térmico",
-            WARMTH_OPTIONS,
-            key="form_warmth"
+        show_functional_fields = (
+            category != "accessory"
+            or (subcategory in THERMAL_ACCESSORIES)
         )
 
-        waterproof = st.checkbox(
-            "¿Es impermeable?",
-            key="form_waterproof"
-        )
-        
-        sexiness = st.slider(
-            "Nivel sexy",
-            min_value=0,
-            max_value=3,
-            key="form_sexiness_add"
-        )
+        if show_functional_fields:
+            warmth = st.selectbox("Nivel térmico", WARMTH_OPTIONS, key="form_warmth")
+        else:
+            warmth = "medio"
+
+        if show_functional_fields:
+            waterproof = st.checkbox("¿Es impermeable?", key="form_waterproof")
+        else:
+            waterproof = False
+
+        if show_functional_fields:
+            sexiness = st.slider("Nivel sexy", min_value=0, max_value=3, key="form_sexiness_add")
+        else:
+            sexiness = 0
 
         dress_level = st.selectbox(
             "Nivel de formalidad",

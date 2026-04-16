@@ -418,6 +418,13 @@ def practicality_penalty(
                     penalty += 12
                 elif g.warmth == "frio":
                     penalty -= 15
+            if g.subcategory == "jeans":
+                if temp >= 30:
+                    penalty += 80
+                elif temp >= 28:
+                    penalty += 50
+                elif temp >= 24:
+                    penalty += 20
         if rain:
             if g.category == "shoes":
                 if is_shoe_heel(g):
