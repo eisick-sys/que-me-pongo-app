@@ -461,4 +461,47 @@ LOOKIA_ENV = "production"
 **Pendiente para próximas sesiones**
 - ⬜ Pruebas salida nocturna: elegante, sexy, cómodo
 - ⬜ Pruebas salida nocturna con lluvia todos los moods
+
+---
+
+### Sesión 13 — abril 2026
+
+**Pruebas completadas — Salida nocturna**
+- ✅ Elegante · frío (7°C) sin lluvia
+- ✅ Elegante · frío (7°C) con lluvia
+- ✅ Elegante · calor (28-29°C)
+- ✅ Elegante · umbral (24-25°C)
+- ✅ Sexy · frío (7°C) sin lluvia
+- ✅ Sexy · frío (7°C) con lluvia
+- ✅ Sexy · calor (28-29°C)
+- ✅ Sexy · umbral (24-25°C)
+- ✅ Cómodo · frío (7°C) sin lluvia
+- ✅ Cómodo · frío (7°C) con lluvia
+- ✅ Cómodo · calor (28-29°C)
+- ✅ Cómodo · umbral (24-25°C)
+
+**Motor — scoring_components.py**
+- ✅ Jeans penalizados en mood elegante/sexy: relajado +85, flexible +40 (exento si sexiness > 0)
+- ✅ Boost bottoms arreglados/elegantes en mood elegante/sexy: -50
+- ✅ Boost vestido elegante/cóctel en salida nocturna mood elegante/sexy: -60
+- ✅ Penalizaciones vestido elegante: calzado no formal +80, midlayer no blazer +70, outerwear no abrigo/trench +70, gorro +80
+- ✅ Boost parka warmth frio en frío extremo mood relajado/cómodo: -10
+
+**Motor — occasion_rules.py**
+- ✅ Bloqueo sandalias temp <= 10°C
+- ✅ Bloqueo sport en salida nocturna evalúa solo style principal (garment.style, no all_styles)
+- ✅ Parka permitida en salida nocturna mood relajado y cómodo
+
+**Motor — category_rules.py**
+- ✅ Boost parka warmth frio ocasión salida nocturna mood relajado/cómodo temp <= 8°C: +10
+
+**UI — app.py**
+- ✅ Tip paraguas cuando outerwear no impermeable con lluvia
+- ✅ Fix subcategoría en formulario edición: key dinámica con category para refrescar al cambiar categoría
+- ✅ has_vestido_elegante movido fuera del loop for g in items en practicality_penalty
+
+**Pendiente para próximas sesiones**
+- ⬜ Chaleco cuello V — genera combinaciones incoherentes, revisar tags y penalizaciones
+- ⬜ Continuar pruebas: matrimonio, gala, deporte
+- ⬜ Planificador semanal — polera sin midlayer con frío (bug detectado)
 - ⬜ Matrimonio, gala, deporte

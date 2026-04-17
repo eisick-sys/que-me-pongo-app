@@ -1063,6 +1063,14 @@ with tab1:
             elif has_short and (rain or temp <= 12):
                 st.info("❄️ Tip: si usas short con este clima, considera unas pantys o medias.")
 
+            if rain:
+                has_non_waterproof_outer = any(
+                    g.category == "outerwear" and not g.waterproof
+                    for g in combo
+                )
+                if has_non_waterproof_outer:
+                    st.info("☂️ Si eliges este outfit, no olvides llevar tu paraguas.")
+
             ctx = {
                 "occasion": occasion,
                 "mood": mood,
@@ -1415,90 +1423,101 @@ with tab2:
                             st.session_state[key_sc] = []
                         secondary_colors = []
 
-                    with st.form(f"edit_garment_{garment.id}"):
-                        name = st.text_input("Nombre", value=garment.name)
+                    name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}")
 
-                        category = st.selectbox(
-                            "Categoría",
-                            CATEGORY_OPTIONS,
-                            index=CATEGORY_OPTIONS.index(garment.category) if garment.category in CATEGORY_OPTIONS else 0,
-                            format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
+                    category = st.selectbox(
+                        "Categoría",
+                        CATEGORY_OPTIONS,
+                        index=CATEGORY_OPTIONS.index(garment.category) if garment.category in CATEGORY_OPTIONS else 0,
+                        key=f"edit_category_{garment.id}",
+                        format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
+                    )
+
+                    current_subcategory = getattr(garment, "subcategory", None)
+
+                    edit_cat_key = f"edit_cat_{garment.id}"
+                    if st.session_state.get(edit_cat_key) != category:
+                        st.session_state[edit_cat_key] = category
+
+                    subcategory_options = ["— ninguna —"] + SUBCATEGORY_OPTIONS.get(category, [])
+
+                    safe_index = (
+                        subcategory_options.index(current_subcategory)
+                        if current_subcategory in subcategory_options else 0
+                    )
+
+                    subcategory = st.selectbox(
+                        "Subcategoría",
+                        subcategory_options,
+                        index=safe_index,
+                        key=f"edit_sub_{garment.id}_{category}",
+                        format_func=lambda x: "— ninguna —" if x == "— ninguna —" else SUBCATEGORY_LABELS_ES.get(x, x)
+                    )
+
+                    if subcategory == "— ninguna —":
+                        subcategory = None
+
+                    warmth = "medio"
+                    show_warmth = (
+                        category in ["top", "midlayer", "outerwear", "bottom", "shoes"]
+                        or (category == "accessory" and subcategory in THERMAL_ACCESSORIES)
+                    )
+
+                    if show_warmth:
+                        current_warmth = garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio"
+                        warmth = st.selectbox(
+                            "Tipo térmico",
+                            WARMTH_OPTIONS,
+                            index=WARMTH_OPTIONS.index(current_warmth),
+                            key=f"edit_warmth_{garment.id}"
                         )
 
-                        current_subcategory = getattr(garment, "subcategory", None)
+                    show_functional_fields = (
+                        category != "accessory"
+                        or (subcategory in THERMAL_ACCESSORIES)
+                    )
 
-                        subcategory_options = ["— ninguna —"] + SUBCATEGORY_OPTIONS.get(category, [])
+                    if show_functional_fields:
+                        waterproof = st.checkbox("Impermeable", value=garment.waterproof, key=f"edit_waterproof_{garment.id}")
+                    else:
+                        waterproof = False
 
-                        subcategory = st.selectbox(
-                            "Subcategoría",
-                            subcategory_options,
-                            index=subcategory_options.index(current_subcategory)
-                            if current_subcategory in subcategory_options else 0,
-                            format_func=lambda x: "— ninguna —" if x == "— ninguna —" else SUBCATEGORY_LABELS_ES.get(x, x)
+                    dress_level = st.selectbox(
+                        "Nivel de formalidad",
+                        DRESS_LEVEL_OPTIONS,
+                        index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
+                        if garment.dress_level in DRESS_LEVEL_OPTIONS else 0,
+                        key=f"edit_dress_level_{garment.id}"
+                    )
+
+                    if show_functional_fields:
+                        sexiness = st.slider(
+                            "Nivel sexy",
+                            min_value=0,
+                            max_value=3,
+                            value=getattr(garment, "sexiness", 0),
+                            key=f"edit_sexiness_{garment.id}",
+                            help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
+                    else:
+                        sexiness = 0
 
-                        if subcategory == "— ninguna —":
-                            subcategory = None
+                    new_uploaded_file = st.file_uploader(
+                        "Agregar o reemplazar foto de esta prenda",
+                        type=["jpg", "jpeg", "png", "webp"],
+                        key=f"edit_photo_{garment.id}"
+                    )
 
-                        warmth = "medio"
-                        show_warmth = (
-                            category in ["top", "midlayer", "outerwear", "bottom", "shoes"]
-                            or (category == "accessory" and subcategory in THERMAL_ACCESSORIES)
-                        )
+                    if new_uploaded_file:
+                        st.image(new_uploaded_file, caption="Nueva foto", width=260)
 
-                        if show_warmth:
-                            current_warmth = garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio"
-                            warmth = st.selectbox(
-                                "Tipo térmico",
-                                WARMTH_OPTIONS,
-                                index=WARMTH_OPTIONS.index(current_warmth)
-                            )
+                    col_save, col_delete = st.columns(2)
 
-                        show_functional_fields = (
-                            category != "accessory"
-                            or (subcategory in THERMAL_ACCESSORIES)
-                        )
+                    with col_save:
+                        save_changes = st.button("Guardar cambios", key=f"save_{garment.id}", type="primary")
 
-                        if show_functional_fields:
-                            waterproof = st.checkbox("Impermeable", value=garment.waterproof)
-                        else:
-                            waterproof = False
-
-                        dress_level = st.selectbox(
-                            "Nivel de formalidad",
-                            DRESS_LEVEL_OPTIONS,
-                            index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
-                            if garment.dress_level in DRESS_LEVEL_OPTIONS else 0
-                        )
-
-                        if show_functional_fields:
-                            sexiness = st.slider(
-                                "Nivel sexy",
-                                min_value=0,
-                                max_value=3,
-                                value=getattr(garment, "sexiness", 0),
-                                key=f"edit_sexiness_{garment.id}",
-                                help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
-                            )
-                        else:
-                            sexiness = 0
-
-                        new_uploaded_file = st.file_uploader(
-                            "Agregar o reemplazar foto de esta prenda",
-                            type=["jpg", "jpeg", "png", "webp"],
-                            key=f"edit_photo_{garment.id}"
-                        )
-
-                        if new_uploaded_file:
-                            st.image(new_uploaded_file, caption="Nueva foto", width=260)
-
-                        col_save, col_delete = st.columns(2)
-
-                        with col_save:
-                            save_changes = st.form_submit_button("Guardar cambios")
-
-                        with col_delete:
-                            delete_garment = st.form_submit_button("Eliminar prenda")
+                    with col_delete:
+                        delete_garment = st.button("Eliminar prenda", key=f"delete_btn_{garment.id}")
 
                     col_cancel_left, col_cancel_right = st.columns([1, 3])
                     with col_cancel_left:

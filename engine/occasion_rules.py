@@ -118,6 +118,10 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             if occasion in ["salida nocturna", "cita"] and temp <= 15:
                 return _ret(False, f"{garment.name} no es adecuada para este frío.")
 
+    if garment.category == "shoes":
+        if garment.subcategory == "sandalia" and temp <= 10:
+            return _ret(False, f"{garment.name} no es adecuada para este frío.")
+
     # =========================================================
     # MATRIMONIO Y GALA
     # =========================================================
@@ -202,7 +206,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
 
     if occasion == "salida nocturna":
         if garment.style == "sport" and garment.category != "shoes":
-            if not (mood == "relajado" and garment.category == "outerwear"):
+            if not (mood in ["relajado", "comodo"] and garment.category == "outerwear"):
                 return _ret(False, f"{garment.name} es demasiado sport para salida nocturna.")
 
         if garment.category == "shoes":

@@ -764,7 +764,17 @@ def outerwear_context_bonus(
 
     if rain and garment.waterproof:
         bonus += 12
-        
+
+    # Boost parka abrigada en frío extremo con mood relajado/cómodo
+    if (
+        garment.subcategory == "parka"
+        and garment.warmth == "frio"
+        and temp <= 8
+        and mood in ["relajado", "comodo"]
+        and occasion == "salida nocturna"
+    ):
+        bonus += 10
+
     return bonus
 #---------------------------------------------------------------
 

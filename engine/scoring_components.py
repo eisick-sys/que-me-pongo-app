@@ -425,6 +425,13 @@ def practicality_penalty(
                     penalty += 50
                 elif temp >= 24:
                     penalty += 20
+                if mood == "elegante" and g.dress_level == "relajado":
+                    penalty += 55
+                if mood in ["elegante", "sexy"] and g.subcategory == "jeans" and getattr(g, "sexiness", 0) == 0:
+                    if g.dress_level == "relajado":
+                        penalty += 85
+                    elif g.dress_level == "flexible":
+                        penalty += 40
         if rain:
             if g.category == "shoes":
                 if is_shoe_heel(g):
@@ -514,13 +521,50 @@ def practicality_penalty(
         # Bonus outerwear abrigado en salida nocturna mood relajado con frío extremo
         if (
             occasion == "salida nocturna"
-            and mood == "relajado"
+            and mood in ["relajado", "comodo"]
             and temp <= 8
             and g.category == "outerwear"
             and g.warmth == "frio"
             and g.subcategory in ["parka", "chaqueta"]
         ):
-            penalty -= 20
+            penalty -= 10
+
+        if (
+            mood in ["elegante", "sexy"]
+            and g.category == "bottom"
+            and g.subcategory in ["falda_midi", "falda_larga", "pantalon"]
+            and g.dress_level in ["arreglado", "elegante"]
+        ):
+            penalty -= 50
+
+    # Vestido elegante/cóctel: solo calzado formal y capas elegantes (una vez por outfit)
+    has_vestido_elegante = any(
+        g.category == "one_piece"
+        and g.subcategory in ["vestido_elegante", "vestido_coctel"]
+        for g in items
+    )
+    if has_vestido_elegante:
+        for g in items:
+            if g.category == "shoes":
+                if g.subcategory not in ["taco_alto", "taco_bajo", "sandalia"]:
+                    penalty += 80
+            if g.category == "midlayer":
+                if g.subcategory not in ["blazer"]:
+                    penalty += 70
+            if g.category == "outerwear":
+                if g.subcategory not in ["abrigo", "trench"]:
+                    penalty += 70
+            if g.category == "accessory":
+                if g.subcategory in ["gorro", "gorra"] or g.accessory_type in ["gorro", "gorra"]:
+                    penalty += 80
+
+    # Boost vestido elegante/cóctel en salida nocturna mood elegante o sexy (una vez por outfit)
+    if (
+        has_vestido_elegante
+        and occasion == "salida nocturna"
+        and mood in ["elegante", "sexy"]
+    ):
+        penalty -= 60
 
     layer_count = sum(1 for g in items if g.category in ["midlayer", "outerwear"])
 
