@@ -156,271 +156,80 @@ LOOKIA_ENV = "production"
 
 ---
 
-### Sesión 3 — abril 2026
-**Subcategorías**
-- ✅ bottom: `falda_corta`, `falda_midi`, `falda_larga`, `short_casual`, `short_elegante`
-- ✅ one_piece: `vestido_casual`, `vestido_elegante`, `vestido_coctel`
-- ✅ shoes: `zapatilla_urbana`, `zapatilla_deporte`, `taco_bajo`, `taco_alto`
-- ✅ `SUBCATEGORY_LABELS_ES` con nombres en español
-- ✅ `garment_utils.py` — detectores usan subcategory primero, nombre como fallback
-- ✅ Nuevas funciones: `is_shoe_high_heel`, `is_shoe_low_heel`, `is_shoe_sport_sneaker`, `is_bottom_short`
-- ✅ `attribute_inference.py` — inferencia específica antes que genérica, "stiletto" agregado
-- ✅ 46+ prendas migradas con subcategoría correcta en `closet.json`
-
-**Motor — variedad outerwear**
-- ✅ Penalización de outerwear entre tandas aumentada de 10 a 24
-- ✅ Control dinámico `max_same_outerwear` según cantidad de impermeables
-- ✅ `weather_score` — outerwear impermeable retorna 15 con lluvia
+### Sesiones 3–13 — abril 2026
+*(ver historial completo en versiones anteriores del archivo)*
 
 ---
 
-### Sesión 4 — abril 2026
-**UI — Subida múltiple de fotos**
-- ✅ Nueva sección "📸 Agregar fotos" en tab ➕ Agregar prenda
-- ✅ Subida de hasta 5 fotos a la vez (jpg, jpeg, png, webp)
-- ✅ Atributos inferidos automáticamente desde nombre del archivo
-- ✅ Resumen de prendas agregadas al terminar
-- ✅ Formulario individual conservado como "➕ Agregar prenda manualmente"
-- ✅ Formulario individual actualizado para aceptar webp también
+### Sesión 14 — abril 2026
 
-**UI — Badge "Nueva"**
-- ✅ `models.py` — campo `is_new: bool = False` agregado a Garment
-- ✅ `storage.py` — carga `is_new` desde JSON (default False para prendas existentes)
-- ✅ Prendas nuevas se guardan con `is_new=True`
-- ✅ Badge "🆕 Nueva" visible en galería cuando `is_new=True`
-- ✅ Al editar y guardar una prenda, `is_new` cambia a `False`
-
----
-
-### Sesión 5 — abril 2026
-**Motor — rotación de impermeables y garantía de 3 outfits**
-- ✅ Bug resuelto: impermeables ya rotan con lluvia
-- ✅ `scoring_components.py` — `weather_score` diferencia impermeables por warmth según temperatura
-- ✅ `outfit_generation.py` — shuffle aleatorio de impermeables antes del slice [:4]
-- ✅ `outfit_generation.py` — segunda pasada que relaja `is_too_similar` para garantizar 3 outfits
-- ✅ Prints de debug eliminados
-
-**Fixes varios**
-- ✅ Color "verde oliva" eliminado — queda solo "verde olivo"
-- ✅ COLOR_ALIASES corregido
-- ✅ Formulario de accesorios: subcategoría oculta cuando categoría es "accessory"
-- ✅ Subcategorías buzo/jogger agregadas a bottom
-- ✅ 2 prendas migradas en closet.json con subcategoría buzo/jogger correcta
-
----
-
-### Sesión 6 — abril 2026
-
-**Bugs resueltos**
-- ✅ **Tab 2 edición** — `st.selectbox` de patrón sin key y slider sexiness con key fija impedían editar prendas. Fix: `key=f"edit_pattern_{garment.id}"` y `key=f"edit_sexiness_{garment.id}"`
-- ✅ **Tab 3 agregar** — atributos inferidos se sobreescribían en cada re-render. Fix: bandera `form_inferred_done` en session_state, se resetea al guardar
-- ✅ **2 outfits con lluvia** — fallback de segunda pasada no respetaba `max_same_outerwear`. Fix: eliminar esa restricción en el fallback
-- ✅ **Repetición de outerwear en tanda** — fallback tampoco respetaba `max_same_outerwear` en loop principal. Fix: agregar check faltante
-- ✅ **Git** — merge de commit perdido `6f72a0f` (mejoras motor sesión anterior) incorporado a main. main y version-sana sincronizadas.
-
-**Motor — mejoras**
-- ✅ `max_accessory_outfits` aleatorio por tanda: `random.choice([1, 1, 2])` — accesorios en 1 o 2 outfits por tanda, nunca en los 3 (salvo matrimonio/gala)
-- ✅ Boost colores vivos y prints en mood urbano (+4 animal_print/estampado/grafico, +3 colores vivos) en `mood_bonus`
-- ✅ Bonus vestido_elegante/vestido_coctel en cita y salida nocturna (+25/+20) en `category_rules.py`
-- ✅ Penalización calzado informal con vestido elegante (-30 mocasín/zapatilla/botín) en `compatibility.py`
-- ✅ Boost calzado elegante en cita/salida nocturna (+35 taco_alto/taco_bajo/sandalia, -20 mocasín) en `category_rules.py`
-- ✅ `max_same_shoes = 1` en cita/salida nocturna cuando hay 2+ zapatos elegantes — mejor rotación de tacos
-- ✅ Penalización 4+ colores distintos en outfit (+35 en ocasiones elegantes, +20 resto) en `coherence_penalty`
-- ✅ Bloqueo impermeables sport (dress_level relajado/flexible + style sport) en cita/salida nocturna/trabajo elegante y matrimonio/gala
-- ✅ `generate_outfits_from_selected_garment` — propagación correcta de `mood` y `temp` al check de prendas del combo
-
-**UI — mejoras**
-- ✅ Mensaje informativo cuando se generan menos de 3 outfits
-- ✅ Función `detect_garment_issues()` — detecta inconsistencias en atributos de prendas
-- ✅ Badge ⚠️ en tarjetas de galería para prendas con posibles inconsistencias
-- ✅ Botones "Ignorar" y "✏️ Revisar" en cada badge (ignorar persiste solo en session_state)
-- ✅ Inconsistencias detectadas: taco con dress_level relajado, zapatilla deporte formal, mocasín sport, impermeable sport en ocasiones elegantes, buzo/jogger formal, short/mini warmth frío, top liviano warmth frío, prenda abrigada warmth caluroso, "impermeable" en nombre sin waterproof activado
-
----
-
-### Sesión 7 — abril 2026
-
-**Motor — ajustes de scoring con frío**
-- ✅ Boost a jeans con temp <= 10°C según ocasión/mood (casual/salida nocturna: +10, cita/trabajo mood relajado/urbano/cómodo: +8)
-- ✅ Boost adicional a jeans +15 cuando temp <= 8°C
-- ✅ Penalización faldas midi/larga con temp <= 8°C: +35
-- ✅ Penalización pantalón por warmth con temp <= 8°C: caluroso +25, medio +12, frío -15
-- ✅ Penalización mocasín con lluvia: +60
-- ✅ Boost outerwear abrigado (parka/chaqueta warmth frío) en salida nocturna mood relajado temp <= 8°C: -20
-
-**Motor — reglas de ocasión**
-- ✅ Outerwear sport permitido en salida nocturna con mood relajado
-- ✅ Outerwear sport permitido en cita con mood relajado
-- ✅ Bloqueo sport en salida nocturna y cita evalúa solo style principal (no secondary_styles)
-- ✅ Vestido elegante/cóctel bloqueado con mood relajado (todas las ocasiones excepto deporte)
-- ✅ Outerwear required cuando temp <= 8°C en todas las ocasiones excepto gala/matrimonio/deporte
-
-**Motor — generación de outfits**
-- ✅ Bug resuelto: waterproof-first solo aplica con lluvia, sin lluvia ordena por score puro
-- ✅ outer_limit subido de 2 a 3 para más variedad de outerwear
-- ✅ max_same_outerwear = 1 sin lluvia para forzar rotación de outerwear por score
-- ✅ is_too_similar: outfits con outerwear distinto nunca se consideran demasiado similares
-- ✅ Tercera pasada del fallback con umbral mínimo de score (35% del primer outfit)
-- ✅ Bug resuelto: 3 outfits garantizados con lluvia — tercera pasada relaja max_same_outerwear
-- ✅ Penalización impermeables (subcategory parka/impermeable) sin lluvia independiente del estilo
-- ✅ Boost parkas con frío sin lluvia en salida nocturna mood relajado
-
-**Motor — generación con prenda forzada**
-- ✅ `generate_outfits_from_selected_garment` respeta `required_categories` (outerwear incluido con lluvia y frío extremo)
-- ✅ Penalización +80 vestido elegante/cóctel con mood relajado (en vez de bloqueo duro)
-
-**Motor — calzado y ocasión**
-- ✅ `garment_allowed_for_occasion` recibe `mood` y `temp` en todas las llamadas (`app.py`, `recommender.py`)
-- ✅ Zapatilla urbana permitida en salida nocturna con mood relajado/cómodo
-- ✅ Boost zapatilla urbana salida nocturna mood relajado/cómodo con calor
-- ✅ Penalización taco_alto con temp >= 26°C: +20
-- ✅ Penalización taco_alto/bajo en salida nocturna mood relajado: +35/+15
-- ✅ Penalización mocasín en salida nocturna: relajado/cómodo +45, urbano/elegante/sexy +55
-
-**Fixes de datos**
-- ✅ __pycache__/ y wardrobe_images/ agregados a .gitignore
-
-**Pendiente para próximas sesiones**
-- ⬜ Pruebas: salida nocturna moods urbano, elegante, sexy, cómodo
-- ⬜ Pruebas: salida nocturna con lluvia todos los moods
-- ⬜ Pruebas: salida nocturna calor (24-25°C)
-- ⬜ Pruebas: matrimonio, gala, deporte
-- ⬜ taco_bajo permitido en mood cómodo, penalizado en relajado
-- ⬜ taco_alto penalizado en cómodo, bloqueado en relajado
-- ⬜ Mayor diversidad de tops en mood urbano
-
----
-
-### Sesión 8 — abril 2026
-
-**Motor — reglas de ocasión**
-- ✅ Zapatilla urbana permitida en salida nocturna con mood urbano (agregado a relajado/cómodo)
-- ✅ Buzo/jogger bloqueado en salida nocturna
-- ✅ `garment_allowed_for_occasion` recibe mood y temp en `app.py` línea 875 (fix)
-
-**Motor — scoring**
-- ✅ Vestido elegante/cóctel penalizado en `garment_base_score` con mood relajado/urbano: -150
-- ✅ Boost animal_print/estampado/grafico/floral en mood urbano: +4 → +15
-- ✅ Tacos penalizados en salida nocturna mood urbano: taco_alto +35, taco_bajo +20
-- ✅ Zapatilla urbana boosteada en salida nocturna mood urbano: -50
-
-**Motor — generación de outfits**
-- ✅ Umbral fallback tercera pasada calculado contra mejor score global (no solo tercera pasada)
-- ✅ Umbral solo aplica cuando hay 2+ outfits aceptados — garantiza siempre 3 outfits
-
-**Datos — closet.json**
-- ✅ Abrigo leopardo (83): agregado tag secundario "urbano" en `secondary_styles`
-- ⬜ Top leopardo (63): revisar si necesita tag "urbano" en `secondary_styles`
-
-**Pruebas completadas**
-- ✅ Salida nocturna · relajado · frío (6°C) sin lluvia
-- ✅ Salida nocturna · relajado · frío (6°C) con lluvia
-- ✅ Salida nocturna · relajado · calor (28-29°C)
-- ✅ Salida nocturna · relajado · umbral (24-25°C)
-- ✅ Salida nocturna · urbano · frío (5°C)
-
----
-
-### Sesión 10 — abril 2026
-
-**Migración a Supabase**
-- ✅ `supabase_client.py` — cliente Supabase con `get_supabase()` y `get_supabase_for_user(access_token)`
-- ✅ `storage_cloud.py` — CRUD completo: prendas, feedback, outfits usados, imágenes (Storage)
-- ✅ `auth_ui.py` — pantalla de login/registro/logout con Supabase Auth
-- ✅ `app.py` — migrado: imports, auth guard, carga de datos, guardado de prendas/feedback/outfits
-- ✅ `migrate_local_data.py` — script de migración one-shot (JSON local → Supabase, usa service_role key)
-- ✅ Datos migrados: 60 prendas, 65 feedbacks, 21 outfits usados bajo user_id `27f1ddde-...`
-- ✅ `upload_garment_image` recibe `access_token` para pasar RLS de Storage
-- ✅ `render_garment_image` recibe `user_id` como parámetro explícito
-- ✅ Imagen actual en edición migrada de disco local a URL de Supabase Storage
-- ✅ `requirements.txt` agrega `supabase`
+**Inferencia de atributos**
+- ✅ `infer_attributes_from_subcategory` — nueva función en `utils/attribute_inference.py` que aplica reglas deterministas por subcategoría para warmth, dress_level, sexiness y style
+- ✅ Inferencia cruzada integrada en `infer_attributes_from_name` — complementa atributos None con reglas por subcategoría
+- ✅ Keywords de jockey/gorra/cap/visera agregados a inferencia de categoría accessory y subcategoría gorro
+- ✅ dress_level "relajado" agregado para subcategoría gorro en inferencia cruzada
+- ✅ Re-inferencia de categoría y subcategoría al escribir nombre en formulario (`on_change=_reinfer_category_from_name`)
+- ✅ dress_level, sexiness y waterproof ahora se aplican desde inferred en formulario individual
+- ✅ sexiness se lee de inferred en bulk upload (antes hardcodeado a 0)
+- ✅ warmth visible para one_piece en formulario de edición
+- ✅ `infer_from_filename` eliminada (era código muerto)
+- ✅ `wardrobe_images/` agregado a .gitignore y removido del tracking
 
 **UI**
-- ✅ Botón cerrar sesión discreto en sidebar (`type="tertiary"`)
-- ✅ Feedback 👍/👎 usa `st.toast()` con patrón `pending_toast` en session_state (persiste a través de reruns)
-- ✅ Toggle "Modo debug" oculto cuando `LOOKIA_ENV=production`
-- ✅ Filtro "🆕 Nuevas" en Mi clóset — filtra prendas con `is_new=True`
-- ✅ Límite 5 fotos en subida múltiple — oculta uploader si ya hay 5+ prendas con imagen
-
-**Ramas**
-- ✅ `version-sana` sincronizada con `main` (fast-forward)
-- ✅ `LOOKIA_ENV=production` configurado en Secrets de Streamlit Cloud (rama version-sana)
+- ✅ "sport" → "Deporte" en toda la UI visible (STYLE_LABELS_ES en constants.py, format_func en selectboxes, mensajes de advertencia)
 
 ---
 
-### Sesión 9 — abril 2026
+### Sesión 15 — abril 2026
 
-**Motor — scoring**
-- ✅ Penalización zapatilla urbana con lluvia en salida nocturna mood urbano: +15 color oscuro, +30 color claro (no aplica si waterproof=True)
-- ✅ Reducción 90% de penalización warmth outerwear "medio" cuando hay midlayer warmth "frio" en el outfit
-- ✅ Umbral bloqueo shorts/mini subido de temp <= 10 a temp <= 13 (general) y temp <= 15 para salida nocturna y cita
+**Motor — ocasión matrimonio (mejora mayor)**
 
-**UI**
-- ✅ Botón "Mostrar de todos modos" aparece siempre que hay prenda seleccionada, bypasea todos los bloqueos de garment_allowed_for_occasion sin excepción
+Contexto: para matrimonio "relajado" el motor mostraba poleras y mocasines como primera opción. Se rediseñó la lógica para que los vestidos elegantes/cóctel dominen siempre los primeros 2 slots, con top+bottom arreglado como tercera opción.
 
-**Datos**
-- ✅ Trench (ID 102): dress_level cambiado de "flexible" a "arreglado"
-- ✅ version-sana sincronizada con main
+**`engine/occasion_rules.py`**
+- ✅ Hard block botines y botas para matrimonio/gala (a nivel de prenda individual)
+- ✅ Hard block mocasines para matrimonio/gala
 
-**Pendiente para próximas sesiones**
-- ⬜ Verificar que el trench aparece en salida nocturna elegante con los cambios aplicados
-- ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro (Supabase)
-- ⬜ Continuar pruebas: salida nocturna moods sexy y cómodo
-- ⬜ Matrimonio, gala, deporte
+**`engine/scoring_components.py`**
+- ✅ Penalty 999 para botas con vestido elegante/cóctel (irrompible)
+- ✅ Boost -160 para vestidos elegante/cóctel en matrimonio
+- ✅ Boost -60 para vestido casual en matrimonio
 
----
+**`engine/outfit_generation.py`** (aplicado en `generate_outfits` y `generate_outfits_from_selected_garment`)
+- ✅ one_piece candidatos ordenados por elegancia: vestido_elegante/cóctel primero, casual después
+- ✅ Tops filtrados a `style: elegante/formal` + `dress_level: arreglado/elegante` cuando hay vestidos disponibles
+- ✅ Bottoms filtrados a `style: elegante/formal` + `dress_level: arreglado/elegante`, excluyendo buzo/jogger/legging/short_casual/jeans
+- ✅ Shoes filtrados: excluye mocasín, botín, bota, zapatilla_urbana, zapatilla_deporte
+- ✅ `is_too_similar` relajado para one_piece en matrimonio/gala (permite 2 vestidos distintos)
+- ✅ Reordenamiento `final_outfits`: vestidos al frente, 2 slots reservados para vestidos si hay ≥2 disponibles
+- ✅ Loop de diversidad forzado: primeros 2 slots reservados para vestidos cuando hay ≥2 disponibles
 
-### Sesión 12 — abril 2026
-
-**Perfil de usuario**
-- ✅ Tabla `user_profiles` creada en Supabase (user_id, display_name, closet_type, city, frequent_occasions, dominant_style, created_at, updated_at) con RLS habilitado
-- ✅ `models.py` — dataclass `UserProfile` agregada
-- ✅ `storage_cloud.py` — funciones `load_user_profile_cloud` y `save_user_profile_cloud`
-- ✅ `app.py` — onboarding de primera vez (pantalla bloqueante con formulario)
-- ✅ `app.py` — botón ⚙️ Mi perfil en sidebar, panel con formulario de edición y botón cancelar
-- ✅ Ciudad usa `st.selectbox` con lista `CHILEAN_CITIES` (50 ciudades chilenas) en vez de text_input
-- ✅ `CHILEAN_CITIES` agregada a `constants.py`
-- ✅ Estilo dominante corregido — lista incluye "formal": ["casual", "formal", "elegante", "urbano", "sport", "mixto"]
-- ✅ DEFAULT_CITY reemplazado por `st.session_state.user_profile.city` para clima real
-
-**Fixes**
-- ✅ `is_new` al editar — el update llega correctamente a Supabase (estaba funcionando, datos legacy tenían is_new=true)
-- ✅ SQL de limpieza ejecutado en Supabase para poner is_new=false en prendas existentes
-- ✅ Wardrobe vacío al re-login — fix con flag `just_logged_in` en session_state y auth_ui.py
-
-**Limpieza y reorganización**
-- ✅ Archivos legacy eliminados: `storage.py`, `closet.json`, `closet.json.bak`, `feedback.json`, `feedback.json.bak`, `used_outfits.json`, `used_outfits.json.bak`, `migrate_local_data.py`
-- ✅ Helpers movidos de `engine/` a `utils/`: `history_utils.py`, `user_profile.py`, `selection_utils.py`
-- ✅ Imports actualizados en `recommender.py` y `outfit_generation.py`
-
-**Motor**
-- ✅ Penalización jeans con calor: temp >= 30° → +80, temp >= 28° → +50, temp >= 24° → +20
-- ✅ Campos irrelevantes ocultos en formularios agregar/editar para accesorios no térmicos (warmth, waterproof, sexiness ocultos cuando category=accessory y subcategory no está en THERMAL_ACCESSORIES)
+**Supabase — datos**
+- ✅ `aros` y `collar corazon dorado` actualizados: `dress_level: arreglado`, `style: elegante`
 
 ---
 
 ## Pendiente para próximas sesiones
 
-### Pruebas pendientes
-- ⬜ Matrimonio y gala
-- ⬜ Deporte
-- ⬜ Planificador semanal — polera sin midlayer con frío (bug detectado)
-
 ### Motor
+- ⬜ Accesorios con vestidos en matrimonio — collar/aros no aparecen, investigar `accessory_relevance_penalty` y ranking
+- ⬜ Diversidad de tops en matrimonio outfit 3 — blusa amarilla domina (pocos tops elegantes en clóset)
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
 - ⬜ taco_alto → penalizado en cómodo, bloqueado en relajado
 - ⬜ Calzado plano de trabajo para calor
 - ⬜ Mayor diversidad de tops en mood urbano
 - ⬜ Planificador — polera sin midlayer con frío extremo
 - ⬜ Chaleco cuello V — genera combinaciones incoherentes, revisar tags y penalizaciones
+- ⬜ Pruebas pendientes: gala, deporte
 
 ### Clóset
 - ⬜ Verificar top leopardo (63) — agregar tag urbano en secondary_styles si corresponde
 - ⬜ Agregar sandalias, ballerinas y chalas al clóset
-- ⬜ Más bottoms livianos para calor (pantalones de tela, faldas) — motor limitado por clóset
+- ⬜ Más bottoms livianos para calor (pantalones de tela, faldas)
+- ⬜ Más tops elegantes/formales para matrimonio (blusa amarilla domina por falta de opciones)
 
 ### UI
-- ⬜ Formulario editar prenda — scroll automático o inline en galería (pendiente UI definitiva)
+- ⬜ Formulario editar prenda — scroll automático o inline en galería
 - ⬜ Tip de pantys: mostrar máximo una vez por tanda
 - ⬜ Persistencia del "Ignorar" en badge de inconsistencias (pendiente Supabase)
 - ⬜ Ocasiones frecuentes del perfil ordenadas primero en selectbox del recomendador
@@ -428,97 +237,16 @@ LOOKIA_ENV = "production"
 ### Técnico
 - ⬜ **Moderación de fotos** — bloquear nudes/menores/contenido inapropiado en subida (urgente)
 - ⬜ **UI definitiva** — migrar de Streamlit a React o similar
-- ⬜ Dividir app.py en módulos por tab (pendiente para cuando esté más estable)
+- ⬜ Dividir app.py en módulos por tab
 - ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro
 
 ### Funcionalidades nuevas
 - ⬜ Estadísticas en tab "Mi clóset"
 - ⬜ Perfil de usuario completo (foto, preferencias avanzadas)
 - ⬜ Detección de color automática con Pillow al subir foto
-- ⬛ **INTEGRACIÓN IA ANTHROPIC (PRIORITARIO — implementar al terminar de pulir el motor)**
-  - Moderación de fotos en subida (nudes, menores, contenido inapropiado) — urgente para más testers
+- ⬛ **INTEGRACIÓN IA ANTHROPIC (PRIORITARIO)**
+  - Moderación de fotos en subida (urgente para más testers)
   - Inferencia de atributos desde imagen (categoría, color, subcategoría, patrón, estilo, warmth)
   - Ambas funciones en una sola llamada a Claude Haiku — costo ~$0.002 por foto
   - Reemplaza inferencia actual por nombre que es muy limitada
 - ⬜ Ocasiones frecuentes del perfil usadas para ordenar opciones en recomendador
-
-
-### Sesión 14 — abril 2026
-
-**Motor — diagnóstico de outfits vacíos**
-- ✅ `get_missing_categories(top_candidates, required)` — función helper que retorna lista de categorías requeridas sin candidatos (entiende que `one_piece` satisface el requisito de `top`)
-- ✅ `generate_outfits` retorna tupla `(outfits, missing_categories)` en todos los paths:
-  - Early return `[], missing` si hay categorías requeridas sin prendas (antes del loop)
-  - `[], []` si el loop corrió pero ninguna combinación pasó los filtros de scoring/pattern
-  - `diverse_outfits[:top_n], []` en el caso exitoso
-- ✅ `generate_outfits_from_selected_garment` retorna tupla con misma semántica; el check de missing_categories considera que la prenda seleccionada llena su propia categoría
-- ✅ `generate_week_plan` actualizado para desempacar `outfits, _ = generate_outfits(...)`
-
-**UI — app.py**
-- ✅ Todas las llamadas a `generate_outfits` y `generate_outfits_from_selected_garment` desempacadas como tuplas
-- ✅ `st.session_state.missing_categories` guardado después de cada llamada
-- ✅ `st.session_state.has_generated_outfits = True` ahora se setea correctamente al hacer clic en los botones (antes nunca se seteaba — bug)
-- ✅ Mensaje de outfits vacíos diferenciado: si hay categorías faltantes → `st.warning` con nombres en español de qué agregar; si las prendas existen pero no pasaron filtros → mensaje distinto sobre mood/actividad
-
----
-
-### Sesión 11 — abril 2026
-
-**Infraestructura**
-- ✅ `supabase_client.py` — agregado `load_dotenv()` y eliminada anon key hardcodeada
-- ✅ SUPABASE_KEY actualizada en `.env`, Streamlit Cloud (main y version-sana)
-- ✅ `gotrue` bajado a versión 1.3.0 para compatibilidad con Python 3.14
-- ✅ Contraseña de usuario reseteada via SQL directo en Supabase
-
-**UI — Agregar prenda**
-- ✅ Límite de 5 fotos corregido — aplica a tanda de subida, no al clóset total
-- ✅ Campo "Tipo de accesorio" eliminado de formularios agregar y editar — reemplazado por subcategoría
-- ✅ Subcategoría ahora se muestra también para accesorios
-
-**Pendiente para próximas sesiones**
-- ⬜ Pruebas salida nocturna: elegante, sexy, cómodo
-- ⬜ Pruebas salida nocturna con lluvia todos los moods
-
----
-
-### Sesión 13 — abril 2026
-
-**Pruebas completadas — Salida nocturna**
-- ✅ Elegante · frío (7°C) sin lluvia
-- ✅ Elegante · frío (7°C) con lluvia
-- ✅ Elegante · calor (28-29°C)
-- ✅ Elegante · umbral (24-25°C)
-- ✅ Sexy · frío (7°C) sin lluvia
-- ✅ Sexy · frío (7°C) con lluvia
-- ✅ Sexy · calor (28-29°C)
-- ✅ Sexy · umbral (24-25°C)
-- ✅ Cómodo · frío (7°C) sin lluvia
-- ✅ Cómodo · frío (7°C) con lluvia
-- ✅ Cómodo · calor (28-29°C)
-- ✅ Cómodo · umbral (24-25°C)
-
-**Motor — scoring_components.py**
-- ✅ Jeans penalizados en mood elegante/sexy: relajado +85, flexible +40 (exento si sexiness > 0)
-- ✅ Boost bottoms arreglados/elegantes en mood elegante/sexy: -50
-- ✅ Boost vestido elegante/cóctel en salida nocturna mood elegante/sexy: -60
-- ✅ Penalizaciones vestido elegante: calzado no formal +80, midlayer no blazer +70, outerwear no abrigo/trench +70, gorro +80
-- ✅ Boost parka warmth frio en frío extremo mood relajado/cómodo: -10
-
-**Motor — occasion_rules.py**
-- ✅ Bloqueo sandalias temp <= 10°C
-- ✅ Bloqueo sport en salida nocturna evalúa solo style principal (garment.style, no all_styles)
-- ✅ Parka permitida en salida nocturna mood relajado y cómodo
-
-**Motor — category_rules.py**
-- ✅ Boost parka warmth frio ocasión salida nocturna mood relajado/cómodo temp <= 8°C: +10
-
-**UI — app.py**
-- ✅ Tip paraguas cuando outerwear no impermeable con lluvia
-- ✅ Fix subcategoría en formulario edición: key dinámica con category para refrescar al cambiar categoría
-- ✅ has_vestido_elegante movido fuera del loop for g in items en practicality_penalty
-
-**Pendiente para próximas sesiones**
-- ⬜ Chaleco cuello V — genera combinaciones incoherentes, revisar tags y penalizaciones
-- ⬜ Continuar pruebas: matrimonio, gala, deporte
-- ⬜ Planificador semanal — polera sin midlayer con frío (bug detectado)
-- ⬜ Matrimonio, gala, deporte

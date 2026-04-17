@@ -546,7 +546,9 @@ def practicality_penalty(
     if has_vestido_elegante:
         for g in items:
             if g.category == "shoes":
-                if g.subcategory not in ["taco_alto", "taco_bajo", "sandalia"]:
+                if g.subcategory in ["botin", "bota"]:
+                    penalty += 999  # hard block: botas no van con vestido elegante/cóctel
+                elif g.subcategory not in ["taco_alto", "taco_bajo", "sandalia"]:
                     penalty += 80
             if g.category == "midlayer":
                 if g.subcategory not in ["blazer"]:
@@ -582,6 +584,13 @@ def practicality_penalty(
 
     if has_one_piece_elegante and occasion in ["matrimonio", "gala"]:
         penalty = max(penalty - 40, 0)
-    
-    
+
+    # Boost fuerte a vestidos elegantes/cóctel en matrimonio
+    if occasion == "matrimonio":
+        for g in items:
+            if g.category == "one_piece" and g.subcategory in ["vestido_elegante", "vestido_coctel"]:
+                penalty -= 160
+            elif g.category == "one_piece" and g.subcategory == "vestido_casual":
+                penalty -= 60
+
     return penalty

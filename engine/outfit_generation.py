@@ -109,16 +109,33 @@ def generate_outfits(
     random.shuffle(_accessories)
     top_candidates["accessory"] = _accessories  # pool completo; la rotación se maneja en la selección
 
-    if occasion == "matrimonio" and top_candidates["one_piece"]:
-        top_candidates["top"] = [
-            g for g in top_candidates["top"]
-            if garment_has_style(g, "elegante") or garment_has_style(g, "formal")
-        ][:2]
+    if occasion == "matrimonio":
+        top_candidates["one_piece"] = sorted(
+            top_candidates["one_piece"],
+            key=lambda g: (
+                0 if g.subcategory in ["vestido_elegante", "vestido_coctel"] else
+                1 if g.subcategory == "vestido_casual" else 2
+            )
+        )[:4]
 
-        top_candidates["bottom"] = [
-            g for g in top_candidates["bottom"]
-            if garment_has_style(g, "elegante") or garment_has_style(g, "formal")
-        ][:2]
+        if top_candidates["one_piece"]:
+            top_candidates["top"] = [
+                g for g in top_candidates["top"]
+                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                and g.dress_level in ["arreglado", "elegante"]
+            ][:2]
+
+            top_candidates["bottom"] = [
+                g for g in top_candidates["bottom"]
+                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                and g.dress_level in ["arreglado", "elegante"]
+                and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+            ][:2]
+
+        top_candidates["shoes"] = [
+            g for g in top_candidates["shoes"]
+            if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
+        ]
 
     if occasion == "cita" and mood == "elegante":
         top_candidates["top"] = [
@@ -491,6 +508,22 @@ def generate_outfits(
 
     final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
 
+    if occasion == "matrimonio":
+        _vestido_outfits = sorted(
+            [(s, c) for s, c in final_outfits if any(g.category == "one_piece" for g in c)],
+            key=lambda x: x[0], reverse=True
+        )
+        _resto_outfits = sorted(
+            [(s, c) for s, c in final_outfits if not any(g.category == "one_piece" for g in c)],
+            key=lambda x: x[0], reverse=True
+        )
+        if len(_vestido_outfits) >= 2:
+            final_outfits = _vestido_outfits[:2] + _resto_outfits + _vestido_outfits[2:]
+        elif len(_vestido_outfits) == 1:
+            final_outfits = _vestido_outfits + _resto_outfits
+        else:
+            final_outfits = _resto_outfits
+
     def is_too_similar(c1, c2):
         ow1 = next((g for g in c1 if g.category == "outerwear"), None)
         ow2 = next((g for g in c2 if g.category == "outerwear"), None)
@@ -580,6 +613,32 @@ def generate_outfits(
 
     remaining_outfits = list(final_outfits)
 
+    # Para matrimonio: forzar que los primeros 2 slots sean vestidos
+    if occasion == "matrimonio":
+        _vestidos_remaining = [(s, c) for s, c in remaining_outfits if any(g.category == "one_piece" for g in c)]
+        _resto_remaining = [(s, c) for s, c in remaining_outfits if not any(g.category == "one_piece" for g in c)]
+
+        matrimonio_forced = []
+        for s, c in _vestidos_remaining:
+            if len(matrimonio_forced) >= 2:
+                break
+            matrimonio_forced.append((s, c))
+
+        for s, c in matrimonio_forced:
+            remaining_outfits.remove((s, c))
+            diverse_outfits.append((s, c))
+            ids = {g.category: g.id for g in c}
+            top_id = ids.get("top")
+            shoes_id = ids.get("shoes")
+            outerwear_id = ids.get("outerwear")
+            acc_id = ids.get("accessory")
+            if top_id: top_usage[top_id] = top_usage.get(top_id, 0) + 1
+            if shoes_id: shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            if outerwear_id: outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
+            if acc_id:
+                accessory_outfits_count += 1
+                accessory_usage_in_batch[acc_id] = accessory_usage_in_batch.get(acc_id, 0) + 1
+
     while len(diverse_outfits) < top_n and remaining_outfits:
         best_idx = None
         best_effective = float('-inf')
@@ -610,8 +669,9 @@ def generate_outfits(
                     too_similar = True
                     break
                 if ids.get("one_piece") is not None and ids.get("one_piece") == ids_ex.get("one_piece"):
-                    too_similar = True
-                    break
+                    if occasion not in ["matrimonio", "gala"]:
+                        too_similar = True
+                        break
                 if ids.get("bottom") == ids_ex.get("bottom") and ids.get("shoes") == ids_ex.get("shoes"):
                     too_similar = True
                     break
@@ -828,15 +888,33 @@ def generate_outfits_from_selected_garment(
         top_candidates["outerwear"] = top_candidates["outerwear"][:outer_limit]
 
     # Filtros especiales por ocasión — igual que generate_outfits
-    if occasion == "matrimonio" and top_candidates["one_piece"]:
-        top_candidates["top"] = [
-            g for g in top_candidates["top"]
-            if garment_has_style(g, "elegante") or garment_has_style(g, "formal")
-        ][:2]
-        top_candidates["bottom"] = [
-            g for g in top_candidates["bottom"]
-            if garment_has_style(g, "elegante") or garment_has_style(g, "formal")
-        ][:2]
+    if occasion == "matrimonio":
+        top_candidates["one_piece"] = sorted(
+            top_candidates["one_piece"],
+            key=lambda g: (
+                0 if g.subcategory in ["vestido_elegante", "vestido_coctel"] else
+                1 if g.subcategory == "vestido_casual" else 2
+            )
+        )[:4]
+
+        if top_candidates["one_piece"]:
+            top_candidates["top"] = [
+                g for g in top_candidates["top"]
+                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                and g.dress_level in ["arreglado", "elegante"]
+            ][:2]
+
+            top_candidates["bottom"] = [
+                g for g in top_candidates["bottom"]
+                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                and g.dress_level in ["arreglado", "elegante"]
+                and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+            ][:2]
+
+        top_candidates["shoes"] = [
+            g for g in top_candidates["shoes"]
+            if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
+        ]
 
     if occasion == "cita" and mood == "elegante":
         top_candidates["top"] = [
