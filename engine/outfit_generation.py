@@ -119,23 +119,42 @@ def generate_outfits(
         )[:4]
 
         if top_candidates["one_piece"]:
-            top_candidates["top"] = [
-                g for g in top_candidates["top"]
-                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante", "flexible"]
-            ][:3]
+            if mood == "urbano":
+                top_candidates["top"] = [
+                    g for g in top_candidates["top"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal") or garment_has_style(g, "urbano"))
+                    and g.dress_level in ["arreglado", "elegante"]
+                ][:3]
+                top_candidates["bottom"] = [
+                    g for g in top_candidates["bottom"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal") or garment_has_style(g, "urbano"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                    and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+                ][:3]
+            else:
+                top_candidates["top"] = [
+                    g for g in top_candidates["top"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                ][:3]
+                top_candidates["bottom"] = [
+                    g for g in top_candidates["bottom"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                    and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+                ][:3]
 
-            top_candidates["bottom"] = [
-                g for g in top_candidates["bottom"]
-                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante", "flexible"]
-                and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
-            ][:3]
-
-        top_candidates["shoes"] = [
-            g for g in top_candidates["shoes"]
-            if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
-        ]
+        if mood == "urbano":
+            top_candidates["shoes"] = [
+                g for g in top_candidates["shoes"]
+                if g.subcategory not in ["zapatilla_urbana", "zapatilla_deporte"]
+                or (g.subcategory == "zapatilla_urbana" and g.dress_level in ["arreglado", "elegante"])
+            ]
+        else:
+            top_candidates["shoes"] = [
+                g for g in top_candidates["shoes"]
+                if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
+            ]
 
     if occasion == "cita" and mood == "elegante":
         top_candidates["top"] = [
@@ -231,10 +250,17 @@ def generate_outfits(
 
     for top in top_candidates["top"]:
         if occasion in ["matrimonio", "gala"]:
-            if not (
-                garment_has_style(top, "elegante") or garment_has_style(top, "formal")
-            ):
-                continue
+            if not (occasion == "matrimonio" and mood == "urbano"):
+                if not (
+                    garment_has_style(top, "elegante") or garment_has_style(top, "formal")
+                ):
+                    continue
+            else:
+                if not (
+                    (garment_has_style(top, "elegante") or garment_has_style(top, "formal") or garment_has_style(top, "urbano"))
+                    and top.dress_level in ["arreglado", "elegante"]
+                ):
+                    continue
 
         top_name = top.name.lower()
         top_is_outer_like = any(
@@ -244,10 +270,16 @@ def generate_outfits(
 
         for bottom in top_candidates["bottom"]:
             if occasion in ["matrimonio", "gala"]:
-                if not (
-                    garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")
-                ):
-                    continue
+                if not (occasion == "matrimonio" and mood == "urbano"):
+                    if not (
+                        garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")
+                    ):
+                        continue
+                else:
+                    if not (
+                        garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal") or garment_has_style(bottom, "urbano")
+                    ):
+                        continue
 
             for shoes in top_candidates["shoes"]:
                 base = [top, bottom, shoes]
@@ -508,7 +540,7 @@ def generate_outfits(
 
     final_outfits = sorted(unique.values(), key=lambda x: x[0], reverse=True)
 
-    if occasion == "matrimonio":
+    if occasion == "matrimonio" and mood != "urbano":
         _vestido_outfits = sorted(
             [(s, c) for s, c in final_outfits if any(g.category == "one_piece" for g in c)],
             key=lambda x: x[0], reverse=True
@@ -614,7 +646,7 @@ def generate_outfits(
     remaining_outfits = list(final_outfits)
 
     # Para matrimonio: forzar que los primeros 2 slots sean vestidos
-    if occasion == "matrimonio":
+    if occasion == "matrimonio" and mood != "urbano":
         _vestidos_remaining = [(s, c) for s, c in remaining_outfits if any(g.category == "one_piece" for g in c)]
         _resto_remaining = [(s, c) for s, c in remaining_outfits if not any(g.category == "one_piece" for g in c)]
 
@@ -898,23 +930,42 @@ def generate_outfits_from_selected_garment(
         )[:4]
 
         if top_candidates["one_piece"]:
-            top_candidates["top"] = [
-                g for g in top_candidates["top"]
-                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante", "flexible"]
-            ][:3]
+            if mood == "urbano":
+                top_candidates["top"] = [
+                    g for g in top_candidates["top"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal") or garment_has_style(g, "urbano"))
+                    and g.dress_level in ["arreglado", "elegante"]
+                ][:3]
+                top_candidates["bottom"] = [
+                    g for g in top_candidates["bottom"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal") or garment_has_style(g, "urbano"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                    and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+                ][:3]
+            else:
+                top_candidates["top"] = [
+                    g for g in top_candidates["top"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                ][:3]
+                top_candidates["bottom"] = [
+                    g for g in top_candidates["bottom"]
+                    if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+                    and g.dress_level in ["arreglado", "elegante", "flexible"]
+                    and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
+                ][:3]
 
-            top_candidates["bottom"] = [
-                g for g in top_candidates["bottom"]
-                if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante", "flexible"]
-                and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
-            ][:3]
-
-        top_candidates["shoes"] = [
-            g for g in top_candidates["shoes"]
-            if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
-        ]
+        if mood == "urbano":
+            top_candidates["shoes"] = [
+                g for g in top_candidates["shoes"]
+                if g.subcategory not in ["zapatilla_urbana", "zapatilla_deporte"]
+                or (g.subcategory == "zapatilla_urbana" and g.dress_level in ["arreglado", "elegante"])
+            ]
+        else:
+            top_candidates["shoes"] = [
+                g for g in top_candidates["shoes"]
+                if g.subcategory not in ["mocasin", "botin", "bota", "zapatilla_urbana", "zapatilla_deporte"]
+            ]
 
     if occasion == "cita" and mood == "elegante":
         top_candidates["top"] = [
@@ -1084,12 +1135,23 @@ def generate_outfits_from_selected_garment(
     elif selected_category == "shoes":
         for top in top_candidates["top"]:
             if occasion in ["matrimonio", "gala"] or (occasion == "cita" and mood == "elegante"):
-                if not (garment_has_style(top, "elegante") or garment_has_style(top, "formal")):
-                    continue
+                if not (occasion == "matrimonio" and mood == "urbano"):
+                    if not (garment_has_style(top, "elegante") or garment_has_style(top, "formal")):
+                        continue
+                else:
+                    if not (
+                        (garment_has_style(top, "elegante") or garment_has_style(top, "formal") or garment_has_style(top, "urbano"))
+                        and top.dress_level in ["arreglado", "elegante"]
+                    ):
+                        continue
             for bottom in top_candidates["bottom"]:
                 if occasion in ["matrimonio", "gala"] or (occasion == "cita" and mood == "elegante"):
-                    if not (garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")):
-                        continue
+                    if not (occasion == "matrimonio" and mood == "urbano"):
+                        if not (garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")):
+                            continue
+                    else:
+                        if not (garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal") or garment_has_style(bottom, "urbano")):
+                            continue
                 base = [top, bottom, selected_garment]
                 maybe_add_extras(base, top_item=top)
 

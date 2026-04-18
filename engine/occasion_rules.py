@@ -142,11 +142,19 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
 
         if garment.category == "shoes":
             if is_shoe_sneaker_like(garment):
-                return _ret(False, f"{garment.name} no va con un {occasion}.")
+                if not (
+                    occasion == "matrimonio"
+                    and mood == "urbano"
+                    and garment.subcategory == "zapatilla_urbana"
+                    and garment.dress_level in ["arreglado", "elegante"]
+                ):
+                    return _ret(False, f"{garment.name} no va con un {occasion}.")
             if garment.subcategory in ["botin", "bota"]:
-                return _ret(False, f"{garment.name} no va con un {occasion}.")
+                if not (occasion == "matrimonio" and mood == "urbano" and garment.dress_level in ["flexible", "arreglado", "elegante"]):
+                    return _ret(False, f"{garment.name} no va con un {occasion}.")
             if garment.subcategory == "mocasin":
-                return _ret(False, f"{garment.name} no va con un {occasion}.")
+                if not (occasion == "matrimonio" and mood == "urbano"):
+                    return _ret(False, f"{garment.name} no va con un {occasion}.")
 
         if garment.category == "accessory":
             if any(x in lower_name for x in ["gorro", "beanie", "lana", "gorra", "jockey"]):

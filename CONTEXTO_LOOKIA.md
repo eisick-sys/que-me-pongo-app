@@ -209,9 +209,35 @@ Contexto: para matrimonio "relajado" el motor mostraba poleras y mocasines como 
 
 ---
 
+### Sesión 16 — abril 2026
+
+**Motor — matrimonio mood urbano**
+
+- ✅ Excepciones de calzado para matrimonio mood urbano en occasion_rules.py: botines y botas permitidos si dress_level in ["flexible", "arreglado", "elegante"]; mocasines permitidos sin restricción de dress_level; zapatilla_urbana permitida si dress_level in ["arreglado", "elegante"]
+- ✅ Filtros de candidatos en outfit_generation.py (generate_outfits y generate_outfits_from_selected_garment): tops y bottoms aceptan estilo urbano además de elegante/formal en matrimonio mood urbano
+- ✅ Filtros de candidatos: shoes en matrimonio mood urbano excluye solo zapatilla_deporte y zapatilla_urbana sin dress_level alto; permite zapatilla_urbana con dress_level arreglado/elegante
+- ✅ Reordenamiento final desactivado para matrimonio mood urbano — outfits ordenados por score natural sin forzar vestidos al frente
+- ✅ scoring_components.py: taco_alto penalizado +50 en matrimonio mood urbano; botin/zapato/mocasin bonificados -40; zapatilla_urbana arreglada/elegante bonificada -40
+- ✅ Filtros de tops en matrimonio mood urbano exigen dress_level in ["arreglado", "elegante"] — tops flexible excluidos aunque tengan estilo urbano
+- ✅ Loop inline de tops también actualizado con dress_level
+
+**Prendas agregadas al clóset para pruebas**
+- Camisa formal oscura (navy/negro) con secondary_styles urbano
+- Pantalón vestir negro con secondary_styles urbano y elegante
+- Zapato derby negro con secondary_styles urbano y elegante
+- Zapatilla elegante crema con dress_level arreglado y style urbano
+- Pantalón crema urbano con secondary_styles elegante y urbano
+
+**Pendiente matrimonio urbano**
+- ⬜ Pruebas con lluvia
+- ⬜ Pruebas con calor (24-25°C)
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor
+- ⬜ Matrimonio urbano — pruebas pendientes: lluvia y calor (24-25°C)
 - ⬜ Accesorios con vestidos en matrimonio — collar/aros no aparecen, investigar `accessory_relevance_penalty` y ranking
 - ⬜ Diversidad de tops en matrimonio outfit 3 — blusa amarilla domina (pocos tops elegantes en clóset)
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
