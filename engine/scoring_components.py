@@ -559,6 +559,9 @@ def practicality_penalty(
             if g.category == "accessory":
                 if g.subcategory in ["gorro", "gorra"] or g.accessory_type in ["gorro", "gorra"]:
                     penalty += 80
+                if g.subcategory in ["bufanda", "pañuelo", "cartera", "bolso"]:
+                    if g.style not in ["elegante", "formal"]:
+                        penalty += 80
 
     # Boost vestido elegante/cóctel en salida nocturna mood elegante o sexy (una vez por outfit)
     if (

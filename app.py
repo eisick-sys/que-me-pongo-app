@@ -589,6 +589,9 @@ if "week_plan" not in st.session_state:
 if "week_weather" not in st.session_state:
     st.session_state.week_weather = {}
 
+if "session_shown_outfits" not in st.session_state:
+    st.session_state.session_shown_outfits = []  # lista de listas de garment IDs
+
 
 def is_recent_outfit(combo):
     outfit_ids = sorted([g.id for g in combo])
@@ -857,6 +860,9 @@ with tab1:
 
     outfits = st.session_state.get("last_outfits", [])
     recent_memory = get_recent_outfit_memory()
+    _recent = list(recent_memory or [])
+    _session = list(st.session_state.get("session_shown_outfits", []) or [])
+    combined_recent = (_recent + _session)[-10:]
 
     if generate_clicked or show_anyway_clicked:
         if selected_garment:
@@ -870,7 +876,7 @@ with tab1:
                 activity=activity,
                 top_n=3,
                 feedback_list=st.session_state.feedback,
-                recent_outfits=recent_memory,
+                recent_outfits=combined_recent,
                 ignore_occasion_for_selected=show_anyway_clicked,
             )
             st.session_state.missing_categories = _missing
@@ -884,7 +890,7 @@ with tab1:
                 activity=activity,
                 top_n=3,
                 feedback_list=st.session_state.feedback,
-                recent_outfits=recent_memory,
+                recent_outfits=combined_recent,
             )
             st.session_state.missing_categories = _missing
 
@@ -905,7 +911,7 @@ with tab1:
                         activity=activity,
                         top_n=3,
                         feedback_list=st.session_state.feedback,
-                        recent_outfits=recent_memory,
+                        recent_outfits=combined_recent,
                     )
 
                     sin_abrigo = [
@@ -920,6 +926,11 @@ with tab1:
         remember_shown_outfits(outfits)
         st.session_state.last_outfits = outfits
         st.session_state.has_generated_outfits = True
+        for _, combo in outfits:
+            combo_ids = [g.id for g in combo]
+            if combo_ids not in st.session_state.session_shown_outfits:
+                st.session_state.session_shown_outfits.append(combo_ids)
+        st.session_state.session_shown_outfits = st.session_state.session_shown_outfits[-6:]
 
     elif surprise_clicked:
         surprise_candidates = [
@@ -940,7 +951,7 @@ with tab1:
                 activity=activity,
                 top_n=3,
                 feedback_list=st.session_state.feedback,
-                recent_outfits=recent_memory,
+                recent_outfits=combined_recent,
             )
             st.session_state.missing_categories = _missing
         else:
@@ -950,6 +961,11 @@ with tab1:
         remember_shown_outfits(outfits)
         st.session_state.last_outfits = outfits
         st.session_state.has_generated_outfits = True
+        for _, combo in outfits:
+            combo_ids = [g.id for g in combo]
+            if combo_ids not in st.session_state.session_shown_outfits:
+                st.session_state.session_shown_outfits.append(combo_ids)
+        st.session_state.session_shown_outfits = st.session_state.session_shown_outfits[-6:]
 
     st.markdown("## Resultados")
 

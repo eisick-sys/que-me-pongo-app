@@ -122,15 +122,15 @@ def generate_outfits(
             top_candidates["top"] = [
                 g for g in top_candidates["top"]
                 if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante"]
-            ][:2]
+                and g.dress_level in ["arreglado", "elegante", "flexible"]
+            ][:3]
 
             top_candidates["bottom"] = [
                 g for g in top_candidates["bottom"]
                 if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante"]
+                and g.dress_level in ["arreglado", "elegante", "flexible"]
                 and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
-            ][:2]
+            ][:3]
 
         top_candidates["shoes"] = [
             g for g in top_candidates["shoes"]
@@ -592,7 +592,7 @@ def generate_outfits(
     accessory_usage_in_batch = {}
     accessory_outfits_count = 0
     max_accessory_outfits = top_n if occasion in ["matrimonio", "gala"] else random.choice([1, 1, 2])
-    max_same_top = 2 if top_n >= 3 else 1
+    max_same_top = 1 if occasion in ["matrimonio", "gala"] else (2 if top_n >= 3 else 1)
     max_same_shoes = 2 if top_n >= 3 else 1
     if occasion in ["cita", "salida nocturna"]:
         elegant_shoes = [g for g in top_candidates["shoes"]
@@ -901,15 +901,15 @@ def generate_outfits_from_selected_garment(
             top_candidates["top"] = [
                 g for g in top_candidates["top"]
                 if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante"]
-            ][:2]
+                and g.dress_level in ["arreglado", "elegante", "flexible"]
+            ][:3]
 
             top_candidates["bottom"] = [
                 g for g in top_candidates["bottom"]
                 if (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
-                and g.dress_level in ["arreglado", "elegante"]
+                and g.dress_level in ["arreglado", "elegante", "flexible"]
                 and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
-            ][:2]
+            ][:3]
 
         top_candidates["shoes"] = [
             g for g in top_candidates["shoes"]
