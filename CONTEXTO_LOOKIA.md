@@ -228,10 +228,6 @@ Contexto: para matrimonio "relajado" el motor mostraba poleras y mocasines como 
 - Zapatilla elegante crema con dress_level arreglado y style urbano
 - Pantalón crema urbano con secondary_styles elegante y urbano
 
-**Pendiente matrimonio urbano**
-- ⬜ Pruebas con lluvia
-- ⬜ Pruebas con calor (24-25°C)
-
 ---
 
 ### Sesión 17 — abril 2026
@@ -246,18 +242,36 @@ Contexto: para matrimonio "relajado" el motor mostraba poleras y mocasines como 
 - ✅ URBANO 8°C sin lluvia — OK
 - ✅ URBANO 8°C con lluvia — OK
 - ✅ URBANO 33°C calor — OK
-- ⬜ URBANO 24-25° — midlayer (blazer) no aparece porque bloque temp >= 24 filtra solo warmth == "caluroso" y ningún blazer del clóset tiene ese valor; pendiente resolver sin tocar norma general preexistente
 
-**Pendiente**
-- ⬜ Matrimonio urbano 24-25° — fix midlayer
-- ⬜ Continuar matriz de pruebas: matrimonio elegante, sexy, cómodo (todas las temperaturas)
+---
+
+### Sesión 18 — abril 2026
+
+**Motor — matrimonio mood urbano 24-25°C (fix midlayer)**
+
+Problema: a 24-25°C el bloque `if temp >= 24` filtraba midlayer a `warmth == "caluroso"` únicamente, y todos los blazers del clóset tienen `warmth: medio`. Además, el branch `outerwear_required` consume el flujo con un `continue` sin iterar midlayer cuando el pool de outerwear está vacío (como ocurre a esa temperatura).
+
+**`engine/outfit_generation.py`** (aplicado en `generate_outfits` y `generate_outfits_from_selected_garment`)
+- ✅ Bloque `if temp >= 24`: para `matrimonio+urbano` filtra midlayer a `subcategory == "blazer"` con `[:1]`; resto de ocasiones mantiene `warmth == "caluroso"` con `[:2]`
+- ✅ Dentro del branch `if outerwear_required:`, antes del `continue`: agrega iteración de midlayer (blazer) sin outerwear cuando `occasion == "matrimonio" and mood == "urbano" and temp >= 24` — necesario porque outerwear está en `optional` (no `required`) pero el pool queda vacío a esa temperatura, y el `continue` cortaba el flujo antes de llegar al bloque normal de midlayer
+
+**`engine/scoring_components.py`**
+- ✅ En `practicality_penalty`: blazer como midlayer en `matrimonio` a 24°+ recibe penalty 999 si hay `one_piece` con `warmth != "caluroso"` — bloquea vestido+blazer salvo que el vestido sea ligero
+
+**Prendas agregadas al clóset**
+- ✅ `blazer manga corta morado urbano` — subcategory: blazer, warmth: caluroso, style: urbano, dress_level: arreglado, secondary_styles: [elegante, formal]
+
+**Pruebas completadas**
+- ✅ URBANO 24-25°C — blazer aparece en outfit 1 con top+bottom, bloqueado con one_piece de warmth medio
+
+**Deuda técnica registrada**
+- ⬜ `generate_outfits_from_selected_garment` — equiparar TODAS las reglas de `generate_outfits` en una pasada dedicada (incluye fix matrimonio+urbano+calor y cualquier otra divergencia acumulada)
 
 ---
 
 ## Pendiente para próximas sesiones
 
 ### Motor
-- ⬜ Matrimonio urbano 24-25° — fix midlayer (blazer no aparece; bloque temp >= 24 filtra solo warmth == "caluroso")
 - ⬜ Continuar matriz de pruebas matrimonio: elegante, sexy, cómodo (todas las temperaturas)
 - ⬜ Accesorios con vestidos en matrimonio — collar/aros no aparecen, investigar `accessory_relevance_penalty` y ranking
 - ⬜ Diversidad de tops en matrimonio outfit 3 — blusa amarilla domina (pocos tops elegantes en clóset)
@@ -283,6 +297,7 @@ Contexto: para matrimonio "relajado" el motor mostraba poleras y mocasines como 
 
 ### Técnico
 - ⬜ **Moderación de fotos** — bloquear nudes/menores/contenido inapropiado en subida (urgente)
+- ⬜ **`generate_outfits_from_selected_garment`** — equiparar todas las reglas de `generate_outfits`
 - ⬜ **UI definitiva** — migrar de Streamlit a React o similar
 - ⬜ Dividir app.py en módulos por tab
 - ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro
