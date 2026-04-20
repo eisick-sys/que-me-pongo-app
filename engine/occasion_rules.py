@@ -44,7 +44,7 @@ def build_required_categories(occasion: str, rain: bool = False, temp: int = 15)
         },
         "matrimonio": {
             "required": ["top", "bottom", "shoes"],
-            "optional": ["accessory", "outerwear"],
+            "optional": ["accessory", "outerwear", "midlayer"],
         },
         "gala": {
             "required": ["top", "bottom", "shoes"],

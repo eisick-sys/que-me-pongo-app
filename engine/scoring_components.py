@@ -490,6 +490,14 @@ def practicality_penalty(
             if g.category == "shoes" and g.subcategory == "taco_alto":
                 penalty += 20
 
+            if (
+                g.category == "one_piece"
+                and g.subcategory in ["vestido_elegante", "vestido_coctel"]
+                and g.warmth == "frio"
+                and occasion == "matrimonio"
+            ):
+                penalty += 60
+
         elif temp >= 22:
             if g.category == "outerwear":
                 if g.warmth == "frio":
@@ -504,6 +512,14 @@ def practicality_penalty(
                     penalty += 18
                 elif g.warmth == "medio":
                     penalty += 10
+
+        if (
+            occasion == "matrimonio"
+            and mood != "urbano"
+            and g.category == "shoes"
+            and g.subcategory == "zapato"
+        ):
+            penalty += 80
 
         if not rain:
             if g.category == "outerwear" and g.waterproof:
@@ -555,7 +571,7 @@ def practicality_penalty(
             has_one_piece = any(x.category == "one_piece" for x in items)
             if has_one_piece:
                 one_piece = next(x for x in items if x.category == "one_piece")
-                if one_piece.warmth != "caluroso":
+                if one_piece.warmth != "caluroso" and g.warmth != "caluroso":
                     penalty += 999
 
     # Vestido elegante/cóctel: solo calzado formal y capas elegantes (una vez por outfit)

@@ -188,11 +188,14 @@ def generate_outfits(
 
     if temp >= 24:
         top_candidates["outerwear"] = []
-        if occasion == "matrimonio" and mood == "urbano":
-            top_candidates["midlayer"] = [
-                g for g in top_candidates["midlayer"]
-                if g.subcategory == "blazer"
-            ][:1]
+        if occasion == "matrimonio" and mood in ["urbano", "elegante"]:
+            if temp > 25:
+                top_candidates["midlayer"] = []
+            else:
+                top_candidates["midlayer"] = [
+                    g for g in top_candidates["midlayer"]
+                    if g.subcategory == "blazer" and g.warmth != "frio"
+                ][:2]
         else:
             top_candidates["midlayer"] = [
                 g for g in top_candidates["midlayer"] if g.warmth == "caluroso"
@@ -223,6 +226,10 @@ def generate_outfits(
     missing = get_missing_categories(top_candidates, required)
     if missing:
         return [], missing
+
+    import os
+    if os.getenv("LOOKIA_ENV") != "production":
+        print(f"[DEBUG] midlayer candidates: {[(g.name, g.subcategory, g.warmth) for g in top_candidates['midlayer']]}")
 
     unique = {}
 
@@ -260,6 +267,12 @@ def generate_outfits(
         core_ids = tuple(sorted(
             g.id for g in combo if g.category in ["top", "bottom", "one_piece", "shoes", "midlayer", "accessory"]
         ))
+
+        import os
+        if os.getenv("LOOKIA_ENV") != "production":
+            for g in combo:
+                if g.subcategory == "blazer":
+                    print(f"[DEBUG BLAZER] score={score} combo={[x.name for x in combo]}")
 
         if core_ids not in unique or score > unique[core_ids][0]:
             unique[core_ids] = (score, combo)
@@ -492,11 +505,29 @@ def generate_outfits(
                                 ):
                                     register_combo(combo_outer_acc)
 
+                if (
+                    occasion == "matrimonio"
+                    and mood in ["urbano", "elegante"]
+                    and temp >= 24
+                    and top_candidates["midlayer"]
+                ):
+                    for mid in top_candidates["midlayer"]:
+                        combo_mid = base + [mid]
+                        register_combo(combo_mid)
+                        if "accessory" in optional and include_accessory:
+                            for acc in top_candidates["accessory"]:
+                                combo_mid_acc = base + [mid, acc]
+                                if should_include_accessory(acc, occasion, mood, activity, temp, rain, base + [mid]):
+                                    register_combo(combo_mid_acc)
+
                 continue
 
             register_combo(base)
 
-            if "midlayer" in optional and occasion not in ["matrimonio", "gala", "salida nocturna", "cita"]:
+            if "midlayer" in optional and (
+                occasion not in ["matrimonio", "gala", "salida nocturna", "cita"]
+                or (occasion == "matrimonio" and mood in ["urbano", "elegante"] and top_candidates["midlayer"])
+            ):
                 for mid in top_candidates["midlayer"]:
                     combo = base + [mid]
                     register_combo(combo)
@@ -648,15 +679,20 @@ def generate_outfits(
 
     diverse_outfits = []
     midlayer_outfits_count = 0
-    max_midlayer_outfits = 1 if 24 <= temp < 26 else top_n
+    if occasion == "matrimonio":
+        max_midlayer_outfits = 1 if temp >= 24 else top_n
+    else:
+        max_midlayer_outfits = 1 if 24 <= temp < 26 else top_n
     top_usage = {}
     shoes_usage = {}
+    midlayer_usage = {}
     outerwear_usage = {}
     accessory_usage_in_batch = {}
     accessory_outfits_count = 0
     max_accessory_outfits = top_n if occasion in ["matrimonio", "gala"] else random.choice([1, 1, 2])
     max_same_top = 1 if occasion in ["matrimonio", "gala"] else (2 if top_n >= 3 else 1)
     max_same_shoes = 2 if top_n >= 3 else 1
+    max_same_midlayer = 1 if (occasion == "matrimonio" and 24 <= temp <= 25) else top_n
     if occasion in ["cita", "salida nocturna"]:
         elegant_shoes = [g for g in top_candidates["shoes"]
                          if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
@@ -682,9 +718,20 @@ def generate_outfits(
         _resto_remaining = [(s, c) for s, c in remaining_outfits if not any(g.category == "one_piece" for g in c)]
 
         matrimonio_forced = []
+        _used_one_piece_ids = set()
         for s, c in _vestidos_remaining:
             if len(matrimonio_forced) >= 2:
                 break
+            one_piece = next((g for g in c if g.category == "one_piece"), None)
+            if one_piece and one_piece.id in _used_one_piece_ids:
+                continue
+            mid = next((g for g in c if g.category == "midlayer"), None)
+            if mid and 24 <= temp <= 25 and midlayer_usage.get(mid.id, 0) >= max_same_midlayer:
+                continue
+            if one_piece:
+                _used_one_piece_ids.add(one_piece.id)
+            if mid:
+                midlayer_usage[mid.id] = midlayer_usage.get(mid.id, 0) + 1
             matrimonio_forced.append((s, c))
 
         for s, c in matrimonio_forced:
@@ -695,12 +742,16 @@ def generate_outfits(
             shoes_id = ids.get("shoes")
             outerwear_id = ids.get("outerwear")
             acc_id = ids.get("accessory")
+            midlayer_id = ids.get("midlayer")
             if top_id: top_usage[top_id] = top_usage.get(top_id, 0) + 1
             if shoes_id: shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            if midlayer_id: midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
             if outerwear_id: outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
             if acc_id:
                 accessory_outfits_count += 1
                 accessory_usage_in_batch[acc_id] = accessory_usage_in_batch.get(acc_id, 0) + 1
+            if any(g.category == "midlayer" for g in c):
+                midlayer_outfits_count += 1
 
     while len(diverse_outfits) < top_n and remaining_outfits:
         best_idx = None
@@ -711,10 +762,13 @@ def generate_outfits(
             has_midlayer = any(g.category == "midlayer" for g in combo)
             top_id = ids.get("top")
             shoes_id = ids.get("shoes")
+            midlayer_id = ids.get("midlayer")
             outerwear_id = ids.get("outerwear")
             acc_id = ids.get("accessory")
 
             if has_midlayer and midlayer_outfits_count >= max_midlayer_outfits:
+                continue
+            if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
                 continue
@@ -756,6 +810,7 @@ def generate_outfits(
         has_midlayer = any(g.category == "midlayer" for g in combo)
         top_id = ids.get("top")
         shoes_id = ids.get("shoes")
+        midlayer_id = ids.get("midlayer")
         outerwear_id = ids.get("outerwear")
         acc_id = ids.get("accessory")
 
@@ -767,6 +822,8 @@ def generate_outfits(
             top_usage[top_id] = top_usage.get(top_id, 0) + 1
         if shoes_id is not None:
             shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+        if midlayer_id is not None:
+            midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
         if outerwear_id is not None:
             outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
         if acc_id is not None:
@@ -786,9 +843,12 @@ def generate_outfits(
             outerwear_id = ids.get("outerwear")
             top_id = ids.get("top")
             shoes_id = ids.get("shoes")
+            midlayer_id = ids.get("midlayer")
             if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+                continue
+            if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
                 continue
@@ -798,6 +858,8 @@ def generate_outfits(
                 top_usage[top_id] = top_usage.get(top_id, 0) + 1
             if shoes_id is not None:
                 shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            if midlayer_id is not None:
+                midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
             if outerwear_id is not None:
                 outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
 
@@ -818,9 +880,12 @@ def generate_outfits(
             ids = {g.category: g.id for g in combo}
             top_id = ids.get("top")
             shoes_id = ids.get("shoes")
+            midlayer_id = ids.get("midlayer")
             if top_id is not None and top_usage.get(top_id, 0) >= max_same_top:
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
+                continue
+            if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             # max_same_outerwear relajado: permitir repetir outerwear cuando es el único disponible
             # Umbral mínimo: solo aplicar cuando ya hay 2+ outfits aceptados
@@ -834,6 +899,8 @@ def generate_outfits(
                 top_usage[top_id] = top_usage.get(top_id, 0) + 1
             if shoes_id is not None:
                 shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            if midlayer_id is not None:
+                midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
 
     return diverse_outfits[:top_n], []
 
@@ -924,11 +991,14 @@ def generate_outfits_from_selected_garment(
     # =========================================================
     if temp >= 24:
         top_candidates["outerwear"] = []
-        if occasion == "matrimonio" and mood == "urbano":
-            top_candidates["midlayer"] = [
-                g for g in top_candidates["midlayer"]
-                if g.subcategory == "blazer"
-            ][:1]
+        if occasion == "matrimonio" and mood in ["urbano", "elegante"]:
+            if temp > 25:
+                top_candidates["midlayer"] = []
+            else:
+                top_candidates["midlayer"] = [
+                    g for g in top_candidates["midlayer"]
+                    if g.subcategory == "blazer" and g.warmth != "frio"
+                ][:2]
         else:
             top_candidates["midlayer"] = [
                 g for g in top_candidates["midlayer"] if g.warmth == "caluroso"
@@ -1001,6 +1071,13 @@ def generate_outfits_from_selected_garment(
                     and g.dress_level in ["arreglado", "elegante", "flexible"]
                     and g.subcategory not in ["buzo", "jogger", "legging", "short_casual", "jeans"]
                 ][:3]
+
+        top_candidates["midlayer"] = [
+            g for g in top_candidates["midlayer"]
+            if g.subcategory == "blazer"
+            and (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+            and g.dress_level in ["arreglado", "elegante"]
+        ][:3]
 
         if mood == "urbano":
             top_candidates["shoes"] = [
@@ -1118,10 +1195,15 @@ def generate_outfits_from_selected_garment(
 
         has_one_piece = any(g.category == "one_piece" for g in base)
 
+        matrimonio_midlayer_allowed = (
+            occasion == "matrimonio"
+            and mood in ["urbano", "elegante"]
+            and temp >= 24
+        )
         if (
             "midlayer" in optional
             and not has_midlayer
-            and not (has_one_piece and occasion in ["matrimonio", "gala", "salida nocturna", "cita"])
+            and not (has_one_piece and occasion in ["matrimonio", "gala", "salida nocturna", "cita"] and not matrimonio_midlayer_allowed)
         ):
             for mid in top_candidates["midlayer"][:3]:
                 combo_mid = base + [mid]
