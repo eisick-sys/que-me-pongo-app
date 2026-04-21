@@ -845,6 +845,20 @@ with tab1:
         if not selected_allowed:
             st.warning(reason)
 
+        if selected_garment is not None and occasion == "matrimonio" and mood == "elegante":
+            cat = selected_garment.category
+            sub = getattr(selected_garment, "subcategory", None)
+            es_compatible = (
+                (cat == "one_piece" and sub in ["vestido_elegante", "vestido_coctel"]) or
+                (cat == "shoes" and sub in ["taco_alto", "taco_bajo", "sandalia"]) or
+                (cat == "midlayer" and sub == "blazer") or
+                (cat == "outerwear" and sub in ["abrigo", "trench"]) or
+                cat == "accessory"
+            )
+            if not es_compatible:
+                st.warning(f"{selected_garment.name} no es la elección típica para un matrimonio elegante — pero tú decides.")
+                selected_allowed = False
+
         # Advertencia de clima para prenda forzada
         if selected_garment.category == "outerwear" and temp >= 24:
             st.warning(f"{selected_garment.name} puede ser demasiado abrigada para {temp}°C — pero tú decides.")

@@ -37,7 +37,7 @@ def get_missing_categories(top_candidates, required):
 def _generate_matrimonio_elegante(
     garments, temp, rain, mood, activity,
     top_n, feedback_list, recent_outfits, user_profile,
-    selected_garment=None
+    selected_garment=None, ignore_selected=False
 ):
     from engine.category_rules import should_include_accessory
 
@@ -89,11 +89,25 @@ def _generate_matrimonio_elegante(
             abrigos = [selected_garment] + [g for g in abrigos if g.id != selected_garment.id]
         elif cat == "accessory":
             accesorios = [selected_garment] + [g for g in accesorios if g.id != selected_garment.id]
-        else:
+        elif not ignore_selected:
             return [], []
 
-    if not vestidos or not calzado:
+    if not calzado:
         return [], []
+
+    if not vestidos:
+        from engine.recommender import generate_outfits
+        return generate_outfits(
+            garments=garments,
+            occasion="matrimonio",
+            temp=temp,
+            rain=rain,
+            mood=mood,
+            activity=activity,
+            top_n=top_n,
+            feedback_list=feedback_list,
+            recent_outfits=recent_outfits,
+        )
 
     # --- TEMPERATURA: decidir capas ---
     usar_blazer = temp <= 25
@@ -110,6 +124,8 @@ def _generate_matrimonio_elegante(
         return weather_score(g, temp, rain) + dress_score(g.dress_level, "matrimonio")
 
     vestidos = sorted(vestidos, key=score_garment, reverse=True)
+    if len(vestidos) > 1:
+        random.shuffle(vestidos)
     calzado = sorted(calzado, key=score_garment, reverse=True)
     blazers = sorted(blazers, key=score_garment, reverse=True)
     abrigos = sorted(abrigos, key=score_garment, reverse=True)
@@ -1067,7 +1083,18 @@ def generate_outfits_from_selected_garment(
     if feedback_list is None:
         feedback_list = []
 
-    if occasion == "matrimonio" and mood == "elegante":
+    user_profile = build_user_style_profile(feedback_list, garments)
+
+    rules = build_required_categories(occasion, rain, temp)
+    required = rules["required"]
+    optional = rules["optional"]
+
+    if not ignore_occasion_for_selected:
+        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain, mood, temp)
+        if not selected_allowed:
+            return [], []
+
+    if occasion == "matrimonio" and mood == "elegante" and not ignore_occasion_for_selected:
         return _generate_matrimonio_elegante(
             garments=garments,
             temp=temp,
@@ -1080,17 +1107,6 @@ def generate_outfits_from_selected_garment(
             user_profile=build_user_style_profile(feedback_list, garments),
             selected_garment=selected_garment,
         )
-
-    user_profile = build_user_style_profile(feedback_list, garments)
-
-    rules = build_required_categories(occasion, rain, temp)
-    required = rules["required"]
-    optional = rules["optional"]
-
-    if not ignore_occasion_for_selected:
-        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain, mood, temp)
-        if not selected_allowed:
-            return [], []
 
     garments_by_category = {
         "top": [g for g in garments if g.category == "top" and g.id != selected_garment.id],

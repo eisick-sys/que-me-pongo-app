@@ -303,26 +303,111 @@ Problema: a 24-25°C el bloque `if temp >= 24` filtraba midlayer a `warmth == "c
 - ✅ 24-25° — OK (1 blazer caluroso aparece en 1 slot)
 - ⬜ 16° — PENDIENTE: blazer negro y blazer gris tienen dress_level: flexible, no pasan filtro → corregir a arreglado en Supabase, luego verificar que los 3 outfits tengan blazer
 
+### Sesión 20 — abril 2026
+
+**Motor — matrimonio mood elegante**
+
+- ✅ Blazers elegantes/formales filtrados en pool de midlayer para todos los rangos de temperatura (16°, 13°, <13°)
+- ✅ max_same_shoes = 1 para matrimonio elegante
+- ✅ max_same_midlayer = 1 cuando hay más de 1 blazer disponible en matrimonio elegante
+- ✅ Boost -350 a vestidos elegantes/cóctel en matrimonio mood elegante (scoring_components.py)
+- ✅ matrimonio_forced desactivado para mood elegante — vestidos dominan por scoring
+- ✅ _max_forced_vestidos = 2 solo para moods que no sean urbano ni elegante
+- ✅ Rotación de blazers y tacos funcionando a 16°C
+
+**Pendiente matrimonio elegante (retomar desde cero próxima sesión)**
+- ⬜ 3 vestidos en los 3 slots — el forzado rompe la rotación, el boost solo no es suficiente en todos los escenarios. Buscar enfoque distinto.
+- ⬜ 1 abrigo elegante rotando en umbral 15-18°C — el trench domina scoring y aparece en todos los combos. Requiere penalización específica en scoring_components.py + lógica de pool.
+- ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro (ej. vestido azul + tacos rojos + blazer blanco + abrigo café + pañuelo negro)
+- ⬜ Continuar matriz de pruebas: 22-23°C, mood sexy, mood cómodo
+
+---
+
+### Sesión 21 — abril 2026
+
+**Motor — matrimonio elegante (refactor completo)**
+
+Problema raíz identificado: el motor genérico no podía garantizar vestidos en todos los slots 
+para matrimonio elegante porque blusa+falda con buenos scores individuales superaban el boost 
+de vestidos a temperaturas templadas. Después de múltiples intentos de parches, se decidió 
+crear una función dedicada y separada.
+
+**`engine/outfit_generation.py`**
+- ✅ Nueva función `_generate_matrimonio_elegante` — maneja exclusivamente 
+  `occasion == "matrimonio" and mood == "elegante"` con lógica propia y simple
+- ✅ Base fija: vestido elegante/cóctel + taco alto/bajo o sandalia elegante. Siempre.
+- ✅ Capas según temperatura:
+  - `> 25°C` → vestido + tacos, sin capas
+  - `24-25°C` → 1 blazer caluroso/medio en slot 0, resto sin blazer
+  - `20-23°C` → 2 outfits con blazer, 1 sin blazer (slot 2 omite)
+  - `13-19°C` → blazer elegante en todos los slots, sin abrigo
+  - `< 13°C` → blazer elegante + abrigo elegante/formal en todos los slots
+- ✅ Pool de abrigos filtrado: solo subcategory abrigo/trench con style no sport/urbano/casual
+- ✅ Sin impermeable casual en matrimonio elegante (lluvia → mismo abrigo elegante + tip paraguas)
+- ✅ Rotación por índice `i % len(pool)` — vestido distinto, taco distinto, blazer distinto por slot
+- ✅ `random.shuffle(vestidos)` para variar orden entre tandas
+- ✅ Llama a `outfit_score` real para scoring final
+- ✅ Integrada en `generate_outfits` y `generate_outfits_from_selected_garment`
+- ✅ `selected_garment` compatible (vestido/tacos/blazer/abrigo/accesorio) → úsarlo como base
+- ✅ `selected_garment` incompatible (pantalón, etc.) → retorna `[], []` → UI muestra warning
+- ✅ Limpieza de toda la lógica matrimonio elegante del motor genérico (bloques continue 
+  en fallbacks, bloque vestido+blazer 13-23°C, ramas de temperatura específicas, 
+  matrimonio_forced restaurado a `mood not in ["urbano", "elegante"]`)
+- ✅ Sin vestidos elegantes en clóset → fallback automático al motor genérico en lugar de 
+  retornar vacío (filosofía: nunca dejar a la usuaria sin opciones)
+- ✅ Sin calzado elegante → retorna [], [] con mensaje de categoría faltante
+
+**`engine/scoring_components.py`**
+- ✅ Boost vestidos elegantes/cóctel en matrimonio restaurado a -160 (era -350 para elegante)
+- ✅ Penalización zapato derby en matrimonio no urbano subida a 999 (hard block)
+
+**`app.py`**
+- ✅ Verificación de compatibilidad para matrimonio elegante con selected_garment:
+  si la prenda no es vestido/tacos/blazer/abrigo/accesorio → warning "no es la elección 
+  típica" + activa botón "Mostrar de todos modos"
+- ✅ Al presionar "Mostrar de todos modos" con prenda incompatible → bypasea 
+  `_generate_matrimonio_elegante` y usa motor genérico completo
+
+**Matriz de pruebas completada y aprobada**
+- ✅ 5°C sin lluvia
+- ✅ 8°C sin lluvia  
+- ✅ 10°C sin lluvia
+- ✅ 9°C con lluvia
+- ✅ 12°C sin lluvia
+- ✅ 14°C sin lluvia
+- ✅ 16°C sin lluvia
+- ✅ 14°C con lluvia
+- ✅ 17°C sin lluvia
+- ✅ 18°C sin lluvia
+- ✅ 20°C sin lluvia
+- ✅ 22°C sin lluvia
+- ✅ 23°C sin lluvia
+- ✅ 24°C sin lluvia
+- ✅ 25°C sin lluvia
+- ✅ 28°C sin lluvia
+- ✅ 31°C sin lluvia
+
 ---
 
 ## Pendiente para próximas sesiones
 
-### Motor — matrimonio (continuar)
-- ⬜ Corregir dress_level de blazer negro (id:132) y blazer gris (id:130) a "arreglado" en Supabase
-- ⬜ Verificar 16° matrimonio elegante con 3 blazers disponibles — los 3 outfits deben tener blazer
-- ⬜ Continuar matriz de pruebas: mood sexy, mood cómodo (todas las temperaturas)
-- ⬜ Actividad "formal" en matrimonio — reservar los 3 slots exclusivamente para vestidos elegantes/cóctel
-- ⬜ Boost mayor a vestidos vs faldas en mood elegante
-- ⬜ Accesorios con vestidos en matrimonio — collar/aros no aparecen consistentemente
+### Motor — matrimonio elegante (pendiente menor)
+- ⬜ mood sexy y mood cómodo — probar matriz completa de temperaturas
+- ⬜ Actividad "formal" — reservar los 3 slots exclusivamente para vestidos elegantes/cóctel
+- ⬜ generate_outfits_from_selected_garment con ignore_occasion_for_selected=True en 
+  matrimonio elegante — el motor genérico no aplica filtros mínimos (no derby, midlayer 
+  según temp, no sport). Aceptable por ahora ya que es flujo "Mostrar de todos modos"
 
 ### Motor (general)
+- ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 
+  Revisar compatibility.py
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
 - ⬜ taco_alto → penalizado en cómodo, bloqueado en relajado
 - ⬜ Calzado plano de trabajo para calor
 - ⬜ Mayor diversidad de tops en mood urbano
 - ⬜ Planificador — polera sin midlayer con frío extremo
 - ⬜ Chaleco cuello V — genera combinaciones incoherentes
-- ⬜ Pruebas pendientes: gala, deporte
+- ⬜ Pruebas pendientes: gala, deporte, matrimonio mood sexy/cómodo
 
 ### Clóset
 - ⬜ Verificar top leopardo (63) — agregar tag urbano en secondary_styles si corresponde
