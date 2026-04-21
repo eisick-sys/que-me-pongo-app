@@ -841,9 +841,7 @@ def generate_outfits(
     max_same_top = 1 if occasion in ["matrimonio", "gala"] else (2 if top_n >= 3 else 1)
     max_same_shoes = 2 if top_n >= 3 else 1
     _n_blazers = sum(1 for g in top_candidates["midlayer"] if g.subcategory == "blazer")
-    max_same_midlayer = 1 if (occasion == "matrimonio" and 24 <= temp <= 25) else (
-        1 if (occasion == "matrimonio" and mood == "elegante" and _n_blazers > 1) else top_n
-    )
+    max_same_midlayer = 1 if (occasion == "matrimonio" and 24 <= temp <= 25) else top_n
     if occasion in ["cita", "salida nocturna"]:
         elegant_shoes = [g for g in top_candidates["shoes"]
                          if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
@@ -863,7 +861,7 @@ def generate_outfits(
     remaining_outfits = list(final_outfits)
 
     # Para matrimonio: forzar vestidos — solo para moods que no sean urbano
-    if occasion == "matrimonio" and mood not in ["urbano", "elegante"]:
+    if occasion == "matrimonio" and mood != "urbano":
         _max_forced_vestidos = 2
         _all_vestido_outfits = [(s, c) for s, c in remaining_outfits if any(g.category == "one_piece" for g in c)]
         # Intercalar: tomar el mejor combo de cada vestido distinto en orden round-robin
