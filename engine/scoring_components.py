@@ -640,7 +640,7 @@ def practicality_penalty(
     if occasion == "matrimonio":
         for g in items:
             if g.category == "one_piece" and g.subcategory in ["vestido_elegante", "vestido_coctel"]:
-                penalty -= 160 if mood != "elegante" else 350
+                penalty -= 160
             elif g.category == "one_piece" and g.subcategory == "vestido_casual":
                 penalty -= 60
 
