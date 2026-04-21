@@ -389,6 +389,37 @@ crear una función dedicada y separada.
 
 ---
 
+### Sesión 22 — abril 2026
+
+**UI — app.py**
+- ✅ Emoji 💪 agregado al botón "Mostrar de todos modos"
+- ✅ Emoji 📅 y `type="primary"` agregado al botón "Generar semana"
+- ✅ Label `"Nombre de la prenda"` en `st.text_input` que tenía string vacío (eliminaba warning de accesibilidad)
+
+**Motor — diagnóstico y refactor engine/outfit_generation.py**
+
+Diagnóstico completo realizado sobre `generate_outfits` y `generate_outfits_from_selected_garment`: código muerto por dispatch matrimonio+elegante, ramas elif duplicadas, edge case lluvia+calor sin manejar, `is_too_similar` divergente entre funciones, y varias inconsistencias de mood.
+
+- ✅ `mood in ["urbano", "elegante"]` reemplazado por `mood in ["urbano", "sexy"]` en 5 ocurrencias (L341, L650, L669, L1170, L1376) — matrimonio+sexy ahora tiene acceso a midlayer con lógica equivalente a urbano
+- ✅ Rama `elif temp >= 22 and not rain` duplicada eliminada en ambas funciones — rango 16–23°C sin lluvia unificado en una sola rama
+- ✅ Rama `elif rain and temp >= 16` agregada antes del `else` final en ambas funciones — corrige edge case donde lluvia con calor caía al pool de frío extremo (midlayer[:1] no frío + outerwear[:2])
+- ✅ `is_too_similar` en `generate_outfits_from_selected_garment` sincronizada con versión de `generate_outfits`: agregadas regla fuerte `same_bottom_type + same_shoes_type`, regla suave `same_top + same_shoes`, y declaración de `same_one_piece`
+- ✅ En **ambas** versiones de `is_too_similar`: agregadas reglas `same_top and same_one_piece` y `same_one_piece and same_shoes` (antes `same_one_piece` estaba declarado pero nunca usado)
+- ✅ Rama muerta `mood == "elegante"` eliminada de `max_same_midlayer` — colapsado a expresión simple
+- ✅ `mood not in ["urbano", "elegante"]` corregido a `mood != "urbano"` (L864)
+
+**Pendientes anotados (no tocar aún)**
+- ⚠️ Sort+shuffle inconsistente en `_generate_matrimonio_elegante` (sort de vestidos destruido por shuffle inmediato)
+- ⚠️ Riesgo de recursión infinita si no hay vestidos en `_generate_matrimonio_elegante` (fallback llama a `generate_outfits` con mood="elegante" que volvería a llamar a `_generate_matrimonio_elegante`)
+- ⚠️ Cardigan/midlayer repetido en múltiples outfits — problema de rotación
+
+**Próxima sesión**
+- Rondas de pruebas: matrimonio+sexy, matrimonio+cómodo, gala y deporte (todos los moods, todas las temperaturas)
+- Post-pruebas: merge main → version-sana
+- Post-merge: refactor `generate_outfits_from_selected_garment` (lógica duplicada con `generate_outfits`)
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor — matrimonio elegante (pendiente menor)
@@ -399,6 +430,7 @@ crear una función dedicada y separada.
   según temp, no sport). Aceptable por ahora ya que es flujo "Mostrar de todos modos"
 
 ### Motor (general)
+- ⬜ Pruebas pendientes: matrimonio+sexy, matrimonio+cómodo, gala, deporte — todos los moods y temperaturas
 - ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 
   Revisar compatibility.py
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
@@ -407,7 +439,7 @@ crear una función dedicada y separada.
 - ⬜ Mayor diversidad de tops en mood urbano
 - ⬜ Planificador — polera sin midlayer con frío extremo
 - ⬜ Chaleco cuello V — genera combinaciones incoherentes
-- ⬜ Pruebas pendientes: gala, deporte, matrimonio mood sexy/cómodo
+- ⚠️ Cardigan/midlayer repetido en múltiples outfits — problema de rotación pendiente
 
 ### Clóset
 - ⬜ Verificar top leopardo (63) — agregar tag urbano en secondary_styles si corresponde
@@ -423,7 +455,9 @@ crear una función dedicada y separada.
 
 ### Técnico
 - ⬜ Moderación de fotos — bloquear nudes/menores/contenido inapropiado en subida (urgente)
-- ⬜ generate_outfits_from_selected_garment — equiparar todas las reglas de generate_outfits
+- ⬜ Refactor `generate_outfits_from_selected_garment` — lógica duplicada con `generate_outfits` (límites, filtros temp, filtros matrimonio, `register_combo`/`add_combo`, penalización recent_outfits)
+- ⚠️ Import `outfit_score` dentro de loop en `_generate_matrimonio_elegante` (L162) — ya importado en top del archivo
+- ⚠️ Riesgo de recursión infinita en `_generate_matrimonio_elegante` cuando no hay vestidos — revisar si `engine.recommender.generate_outfits` tiene el dispatch matrimonio+elegante
 - ⬜ UI definitiva — migrar de Streamlit a React o similar
 - ⬜ Dividir app.py en módulos por tab
 - ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro
