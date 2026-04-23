@@ -260,13 +260,23 @@ def generate_outfits(
     top_candidates["accessory"] = _accessories  # pool completo; la rotación se maneja en la selección
 
     if occasion == "matrimonio":
+        if mood == "sexy":
+            _all_op = [g for _, g in ranked["one_piece"]]
+            _enteritos = [g for g in _all_op if g.subcategory == "enterito"]
+            _existing_ids = {g.id for g in top_candidates["one_piece"]}
+            for g in _enteritos:
+                if g.id not in _existing_ids:
+                    top_candidates["one_piece"].append(g)
+
+        _corte = 5 if mood == "sexy" else 4
         _sorted_one_piece = sorted(
             top_candidates["one_piece"],
             key=lambda g: (
+                -1 if (g.subcategory == "enterito" and mood == "sexy") else
                 0 if g.subcategory in ["vestido_elegante", "vestido_coctel"] else
                 1 if g.subcategory == "vestido_casual" else 2
             )
-        )[:4]
+        )[:_corte]
 
         if mood == "urbano":
             _existing_ids = {g.id for g in _sorted_one_piece}
@@ -823,6 +833,9 @@ def generate_outfits(
         if same_one_piece and same_shoes:
             return True
 
+        if same_one_piece and ids1.get("one_piece") is not None:
+            return True
+
         return False
 
     diverse_outfits = []
@@ -862,7 +875,7 @@ def generate_outfits(
 
     # Para matrimonio: forzar vestidos — solo para moods que no sean urbano
     if occasion == "matrimonio" and mood != "urbano":
-        _max_forced_vestidos = 2
+        _max_forced_vestidos = 3 if mood == "sexy" else 2
         _all_vestido_outfits = [(s, c) for s, c in remaining_outfits if any(g.category == "one_piece" for g in c)]
         # Intercalar: tomar el mejor combo de cada vestido distinto en orden round-robin
         _vestido_by_id = {}
@@ -896,10 +909,17 @@ def generate_outfits(
             shoes = next((g for g in c if g.category == "shoes"), None)
             if shoes and shoes_usage.get(shoes.id, 0) >= max_same_shoes:
                 continue
+            outer = next((g for g in c if g.category == "outerwear"), None)
+            if outer and outerwear_usage.get(outer.id, 0) >= max_same_outerwear:
+                continue
+            if s < 0:
+                continue
             if mid:
                 midlayer_usage[mid.id] = midlayer_usage.get(mid.id, 0) + 1
             if shoes:
                 shoes_usage[shoes.id] = shoes_usage.get(shoes.id, 0) + 1
+            if outer:
+                outerwear_usage[outer.id] = outerwear_usage.get(outer.id, 0) + 1
             matrimonio_forced.append((s, c))
 
         for s, c in matrimonio_forced:
@@ -926,6 +946,11 @@ def generate_outfits(
         best_effective = float('-inf')
 
         for i, (score, combo) in enumerate(remaining_outfits):
+            if occasion == "matrimonio" and mood == "sexy":
+                if not any(g.category == "one_piece" for g in combo):
+                    continue
+            if score < 0:
+                continue
             ids = {g.category: g.id for g in combo}
             has_midlayer = any(g.category == "midlayer" for g in combo)
             top_id = ids.get("top")
@@ -1007,6 +1032,9 @@ def generate_outfits(
                 break
             if id(combo) in existing_ids:
                 continue
+            if occasion == "matrimonio" and mood == "sexy":
+                if not any(g.category == "one_piece" for g in combo):
+                    continue
             ids = {g.category: g.id for g in combo}
             outerwear_id = ids.get("outerwear")
             top_id = ids.get("top")
@@ -1019,6 +1047,8 @@ def generate_outfits(
             if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
+                continue
+            if score < 0:
                 continue
             diverse_outfits.append((score, combo))
             existing_ids.add(id(combo))
@@ -1045,6 +1075,9 @@ def generate_outfits(
                 break
             if id(combo) in existing_ids:
                 continue
+            if occasion == "matrimonio" and mood == "sexy":
+                if not any(g.category == "one_piece" for g in combo):
+                    continue
             ids = {g.category: g.id for g in combo}
             top_id = ids.get("top")
             shoes_id = ids.get("shoes")
@@ -1061,6 +1094,8 @@ def generate_outfits(
                 threshold = best_score * 0.35
                 if score < threshold:
                     continue
+            if score < 0:
+                continue
             diverse_outfits.append((score, combo))
             existing_ids.add(id(combo))
             if top_id is not None:
@@ -1216,6 +1251,7 @@ def generate_outfits_from_selected_garment(
             top_candidates["one_piece"],
             key=lambda g: (
                 0 if g.subcategory in ["vestido_elegante", "vestido_coctel"] else
+                0 if (g.subcategory == "enterito" and mood == "sexy") else
                 1 if g.subcategory == "vestido_casual" else 2
             )
         )[:4]
@@ -1611,6 +1647,9 @@ def generate_outfits_from_selected_garment(
             return True
 
         if same_one_piece and same_shoes:
+            return True
+
+        if same_one_piece and ids1.get("one_piece") is not None:
             return True
 
         return False

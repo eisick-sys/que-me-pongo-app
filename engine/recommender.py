@@ -197,6 +197,9 @@ def garment_base_score(
                 score += 20
             elif g.dress_level == "arreglado":
                 score += 10
+                # Enterito sexy recibe boost adicional equivalente a dress_level elegante
+                if g.subcategory == "enterito" and mood == "sexy":
+                    score += 10
 
         elif occasion == "gala":
             score += 30
