@@ -455,6 +455,36 @@ Contexto: el motor no tenía lógica propia para matrimonio+cómodo. Las prendas
 
 ---
 
+### Sesión 24 — abril 2026
+
+**Motor — matrimonio mood cómodo (fixes y validación completa)**
+
+- ✅ occasion_rules.py: matrimonio ya no está exento de outerwear obligatorio con lluvia (solo gala queda exento)
+- ✅ outfit_generation.py: filtro de impermeables para matrimonio+lluvia — excluye style sport y dress_level relajado
+- ✅ outfit_generation.py: midlayer permitido en loop one_piece para matrimonio+cómodo (agregado "comodo" a la excepción)
+- ✅ outfit_generation.py: bloque else de temperatura no corta midlayer pool cuando occasion == "matrimonio"
+- ✅ outfit_generation.py: _force_mid_outer generalizado a todos los moods de matrimonio a temp ≤ 12° (antes solo cómodo)
+- ✅ outfit_generation.py: _force_mid_outer aplicado también en bloques outer+acc y mid+acc para evitar escapes
+- ✅ scoring_components.py: impermeables no penalizados en matrimonio cuando llueve
+- ✅ category_rules.py: boost +35 a blazer en matrimonio+cómodo con temp ≤ 15°
+- ✅ _generate_matrimonio_elegante: filtra outfits con score <= -999 antes de retornar
+- ✅ max_same_midlayer = 1 para matrimonio+cómodo cuando hay 2+ blazers disponibles
+
+**Diagnóstico completo ejecutado post-fixes**
+- ✅ Blazer consistente en todos los moods a temp ≤ 15° (relajado sin forzado — esperado)
+- ✅ Blazer+abrigo en todos los moods a temp ≤ 12°
+- ✅ Outerwear consistente en todos a temp ≤ 10°
+- ✅ Variedad de calzado y outerwear en los 3 slots
+- ✅ Impermeable elegante con lluvia (no sport/relajado)
+- ✅ Cómodo 3°/7° produce 2 outfits con armario sintético — esperado, en producción hay más prendas
+
+**Pendiente**
+- ⬜ Pruebas reales en app con clóset de Punta Arenas — matrimonio+cómodo varias temperaturas
+- ⬜ Gala — sin validar en ningún mood
+- ⬜ Merge main → version-sana cuando matrimonio esté confirmado estable
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor — matrimonio elegante (pendiente menor)

@@ -167,6 +167,7 @@ def _generate_matrimonio_elegante(
         )
         result.append((score, combo))
 
+    result = [(s, c) for s, c in result if s > -999]
     result.sort(key=lambda x: x[0], reverse=True)
     return result[:top_n], []
 
@@ -250,6 +251,12 @@ def generate_outfits(
     if rain:
         _waterproof_outer = [g for _, g in ranked["outerwear"] if g.waterproof]
         _non_waterproof_outer = [g for _, g in ranked["outerwear"] if not g.waterproof]
+        if occasion == "matrimonio":
+            _waterproof_outer = [
+                g for g in _waterproof_outer
+                if g.style not in ["sport"]
+                and g.dress_level not in ["relajado"]
+            ]
         random.shuffle(_waterproof_outer)
         top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
     else:
@@ -540,7 +547,20 @@ def generate_outfits(
 
                     continue
 
-                register_combo(base)
+                _force_mid = (
+                    occasion == "matrimonio" and mood == "comodo"
+                    and temp <= 15 and top_candidates["midlayer"]
+                )
+                _force_mid_outer = (
+                    occasion == "matrimonio"
+                    and temp <= 12 and top_candidates["midlayer"] and top_candidates["outerwear"]
+                )
+                _force_outer_only = (
+                    occasion == "matrimonio"
+                    and temp <= 12 and not top_candidates["midlayer"] and top_candidates["outerwear"]
+                )
+                if not _force_mid and not _force_outer_only and not _force_mid_outer:
+                    register_combo(base)
 
                 # Midlayer sin outerwear: permitido en matrimonio+urbano con calor
                 if (
@@ -567,9 +587,10 @@ def generate_outfits(
                     
                     for mid in midlayer_candidates:
                         combo = base + [mid]
-                        register_combo(combo)
+                        if not _force_mid_outer:
+                            register_combo(combo)
 
-                        if "accessory" in optional and include_accessory:
+                        if "accessory" in optional and include_accessory and not _force_mid_outer:
                             for acc in top_candidates["accessory"]:
                                 combo_mid_acc = base + [mid, acc]
                                 if should_include_accessory(
@@ -602,12 +623,12 @@ def generate_outfits(
                                         ):
                                             register_combo(combo3)
 
-                if "outerwear" in optional and not top_is_outer_like:
+                if "outerwear" in optional and not top_is_outer_like and not _force_mid_outer:
                     for outer in top_candidates["outerwear"]:
                         combo = base + [outer]
                         register_combo(combo)
 
-                if "accessory" in optional and include_accessory:
+                if "accessory" in optional and include_accessory and not _force_mid_outer:
                     for acc in top_candidates["accessory"]:
                         combo = base + [acc]
                         if should_include_accessory(
@@ -619,6 +640,7 @@ def generate_outfits(
                     "outerwear" in optional
                     and "accessory" in optional and include_accessory
                     and not top_is_outer_like
+                    and not _force_mid_outer
                 ):
                     for outer in top_candidates["outerwear"]:
                         for acc in top_candidates["accessory"]:
@@ -705,17 +727,31 @@ def generate_outfits(
 
                 continue
 
-            register_combo(base)
+            _force_mid = (
+                occasion == "matrimonio" and mood == "comodo"
+                and temp <= 15 and top_candidates["midlayer"]
+            )
+            _force_mid_outer = (
+                occasion == "matrimonio"
+                and temp <= 12 and top_candidates["midlayer"] and top_candidates["outerwear"]
+            )
+            _force_outer_only = (
+                occasion == "matrimonio"
+                and temp <= 12 and not top_candidates["midlayer"] and top_candidates["outerwear"]
+            )
+            if not _force_mid and not _force_outer_only and not _force_mid_outer:
+                register_combo(base)
 
             if "midlayer" in optional and (
                 occasion not in ["matrimonio", "gala", "salida nocturna", "cita"]
-                or (occasion == "matrimonio" and mood in ["urbano", "sexy"] and top_candidates["midlayer"])
+                or (occasion == "matrimonio" and mood in ["urbano", "sexy", "comodo"] and top_candidates["midlayer"])
             ):
                 for mid in top_candidates["midlayer"]:
                     combo = base + [mid]
-                    register_combo(combo)
+                    if not _force_mid_outer:
+                        register_combo(combo)
 
-                    if "accessory" in optional and include_accessory:
+                    if "accessory" in optional and include_accessory and not _force_mid_outer:
                         for acc in top_candidates["accessory"]:
                             combo_mid_acc = base + [mid, acc]
                             if should_include_accessory(
@@ -748,12 +784,12 @@ def generate_outfits(
                                     ):
                                         register_combo(combo3)
 
-            if "outerwear" in optional and not one_piece_is_outer_like:
+            if "outerwear" in optional and not one_piece_is_outer_like and not _force_mid_outer:
                 for outer in top_candidates["outerwear"]:
                     combo = base + [outer]
                     register_combo(combo)
 
-            if "accessory" in optional and include_accessory:
+            if "accessory" in optional and include_accessory and not _force_mid_outer:
                 for acc in top_candidates["accessory"]:
                     combo = base + [acc]
                     if should_include_accessory(
@@ -765,6 +801,7 @@ def generate_outfits(
                 "outerwear" in optional
                 and "accessory" in optional and include_accessory
                 and not one_piece_is_outer_like
+                and not _force_mid_outer
             ):
                 for outer in top_candidates["outerwear"]:
                     for acc in top_candidates["accessory"]:
@@ -889,6 +926,9 @@ def generate_outfits(
         max_same_shoes = 2 if top_n >= 3 else 1
     _n_blazers = sum(1 for g in top_candidates["midlayer"] if g.subcategory == "blazer")
     max_same_midlayer = 1 if (occasion == "matrimonio" and 24 <= temp <= 25) else top_n
+    if occasion == "matrimonio" and mood == "comodo":
+        _n_blazers = sum(1 for g in top_candidates["midlayer"] if g.subcategory == "blazer")
+        max_same_midlayer = 1 if _n_blazers >= 2 else top_n
     if occasion in ["cita", "salida nocturna"]:
         elegant_shoes = [g for g in top_candidates["shoes"]
                          if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
@@ -1232,10 +1272,22 @@ def generate_outfits_from_selected_garment(
         "bottom": [g for _, g in ranked["bottom"][:base_bottom_limit]],
         "shoes": [g for _, g in ranked["shoes"][:base_shoes_limit]],
         "midlayer": [g for _, g in ranked["midlayer"][:4]],
-        "outerwear": [g for _, g in ranked["outerwear"][:4]],
         "accessory": [g for _, g in ranked["accessory"][:accessory_limit]],
         "one_piece": [g for _, g in ranked["one_piece"][:base_top_limit]],
     }
+    if rain:
+        _waterproof_outer = [g for _, g in ranked["outerwear"] if g.waterproof]
+        _non_waterproof_outer = [g for _, g in ranked["outerwear"] if not g.waterproof]
+        if occasion == "matrimonio":
+            _waterproof_outer = [
+                g for g in _waterproof_outer
+                if g.style not in ["sport"]
+                and g.dress_level not in ["relajado"]
+            ]
+        random.shuffle(_waterproof_outer)
+        top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
+    else:
+        top_candidates["outerwear"] = [g for _, g in ranked["outerwear"]][:4]
 
     # =========================================================
     # FILTROS DE CLIMA — ordenados correctamente
@@ -1475,30 +1527,47 @@ def generate_outfits_from_selected_garment(
                             add_combo(base + [outer, acc])
             return
 
-        add_combo(base)
+        _force_mid = (
+            occasion == "matrimonio" and mood == "comodo"
+            and temp <= 15 and top_candidates["midlayer"]
+        )
+        _force_mid_outer = (
+            occasion == "matrimonio"
+            and temp <= 12 and top_candidates["midlayer"] and top_candidates["outerwear"]
+        )
+        _force_outer_only = (
+            occasion == "matrimonio"
+            and temp <= 12 and not top_candidates["midlayer"] and top_candidates["outerwear"]
+        )
+        if not _force_mid and not _force_outer_only and not _force_mid_outer:
+            add_combo(base)
 
         has_one_piece = any(g.category == "one_piece" for g in base)
 
         matrimonio_midlayer_allowed = (
             occasion == "matrimonio"
-            and mood in ["urbano", "sexy"]
+            and mood in ["urbano", "sexy", "comodo"]
             and temp >= 24
         )
         if (
             "midlayer" in optional
             and not has_midlayer
-            and not (has_one_piece and occasion in ["matrimonio", "gala", "salida nocturna", "cita"] and not matrimonio_midlayer_allowed)
+            and (
+                _force_mid
+                or not (has_one_piece and occasion in ["matrimonio", "gala", "salida nocturna", "cita"] and not matrimonio_midlayer_allowed)
+            )
         ):
             for mid in top_candidates["midlayer"][:3]:
                 combo_mid = base + [mid]
-                add_combo(combo_mid)
+                if not _force_mid_outer:
+                    add_combo(combo_mid)
 
                 if "outerwear" in optional and not has_outerwear and not top_is_outer_like:
                     for outer in top_candidates["outerwear"][:4]:
                         combo_mid_outer = combo_mid + [outer]
                         add_combo(combo_mid_outer)
 
-                if "accessory" in optional and include_accessory and not has_accessory:
+                if "accessory" in optional and include_accessory and not has_accessory and not _force_mid_outer:
                     for acc in top_candidates["accessory"][:4]:
                         combo_mid_acc = combo_mid + [acc]
                         if should_include_accessory(
@@ -1506,7 +1575,7 @@ def generate_outfits_from_selected_garment(
                         ):
                             add_combo(combo_mid_acc)
 
-        if "outerwear" in optional and not has_outerwear and not top_is_outer_like:
+        if "outerwear" in optional and not has_outerwear and not top_is_outer_like and not _force_mid_outer:
             for outer in top_candidates["outerwear"][:3]:
                 combo_outer = base + [outer]
                 add_combo(combo_outer)
@@ -1519,7 +1588,7 @@ def generate_outfits_from_selected_garment(
                         ):
                             add_combo(combo_outer_acc)
 
-        if "accessory" in optional and include_accessory and not has_accessory:
+        if "accessory" in optional and include_accessory and not has_accessory and not _force_mid_outer:
             for acc in top_candidates["accessory"][:2]:
                 combo_acc = base + [acc]
                 if should_include_accessory(
