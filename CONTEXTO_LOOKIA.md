@@ -485,19 +485,48 @@ Contexto: el motor no tenía lógica propia para matrimonio+cómodo. Las prendas
 
 ---
 
+### Sesión actual (abril 2026) — Fixes matrimonio + preparación gala
+
+**Fixes aplicados y mergeados a main:**
+- Fix B1: shuffle antes de sort en `_generate_matrimonio_elegante` para variar vestidos entre tandas
+- Fix B2: fallback cuando `result` queda vacío (no solo cuando no hay vestidos) → usa `mood="sexy"` como fallback
+- Fix C1: `max_same_midlayer` escalonado para matrimonio (1 con 3+ blazers, 2 con 2 blazers, top_n con 1)
+- Fix C2: pool de midlayer ampliado a `[:4]` para matrimonio a 16°+ (antes `[:1]` bloqueaba variedad)
+- Fix C3: `max_same_one_piece=1` para evitar repetir vestidos entre outfits
+- Fix C4: threshold permisivo 0.20 para matrimonio (vs 0.35 general)
+- Fix C5: hard block zapato derby y mocasín en matrimonio+sexy (`occasion_rules.py` y `scoring_components.py`)
+- Fix C6: corregir doble conteo de shoes/midlayer/outerwear_usage en bloque matrimonio_forced
+- Fix C7: relajar `_outerwear_limit` en tercera pasada para matrimonio
+- Fix C8: `_outerwear_limit` relajado permite enterito aparecer con tacos en sexy+5°
+
+**Estado matrimonio:** todos los moods generan 3 outfits en temperaturas normales. Limitación aceptada: urbano+5° repite vestido casual (solo hay uno en el clóset para ese mood/temp).
+
+**Próxima ocasión: GALA**
+
+Diseño acordado:
+- Moods permitidos: elegante, sexy, cómodo (con restricciones), urbano (excepción especial)
+- Moods bloqueados: relajado
+- Solo one_piece: vestido_elegante y vestido_coctel (sin enterito, sin vestido_casual)
+- Excepción urbano: permite vestido_coctel + zapatilla_urbana con dress_level arreglado/elegante + blazer elegante obligatorio. Sin top+bottom.
+- Calzado: solo tacos y sandalias elegantes (sin derby, sin mocasín, sin zapatilla_deporte)
+- Abrigo: solo elegante (abrigo de gala, trench) — sin parka, sin impermeable
+- Sin fallback a top+bottom — si no hay vestido elegante/cóctel, mostrar mensaje directo
+
+---
+
 ## Pendiente para próximas sesiones
 
-### Motor — matrimonio elegante (pendiente menor)
-- ⬜ mood sexy — probar matriz completa de temperaturas
-- ⬜ mood cómodo — ajuste fino de scores (WIP, base implementada en sesión 23)
-- ⬜ Actividad "formal" — reservar los 3 slots exclusivamente para vestidos elegantes/cóctel
-- ⬜ generate_outfits_from_selected_garment con ignore_occasion_for_selected=True en 
-  matrimonio elegante — el motor genérico no aplica filtros mínimos (no derby, midlayer 
-  según temp, no sport). Aceptable por ahora ya que es flujo "Mostrar de todos modos"
+### Motor — matrimonio ✅ completado
+- ✅ mood sexy — validado en todas las temperaturas (sesión actual)
+- ✅ mood cómodo — lógica implementada, ajuste fino aceptado como suficiente
+- ✅ Actividad "formal" — pospuesto, no prioritario
+- ✅ generate_outfits_from_selected_garment matrimonio elegante — aceptable en flujo "Mostrar de todos modos"
 
 ### Motor (general)
-- ⬜ Pruebas pendientes: matrimonio+sexy, gala, deporte — todos los moods y temperaturas
-- ⬜ matrimonio+cómodo — ajuste fino de resultados (lógica base en sesión 23, pendiente validación)
+- ✅ matrimonio — todos los moods completados
+- 🎯 **PRÓXIMO: Gala** — diseño acordado (ver sesión actual), implementación pendiente
+- ⬜ Deporte — todos los moods y temperaturas
+- ⬜ matrimonio+cómodo — ajuste fino de scores (queda como deuda menor, no bloquea gala)
 - ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 
   Revisar compatibility.py
 - ⬜ taco_bajo → permitido en mood cómodo, penalizado en relajado
