@@ -936,21 +936,24 @@ def generate_outfits(
     max_same_top = 1 if occasion in ["matrimonio", "gala"] else (2 if top_n >= 3 else 1)
     if occasion == "matrimonio" and mood == "comodo":
         max_same_shoes = 1
+    elif occasion == "matrimonio":
+        max_same_shoes = 2
     else:
         max_same_shoes = 2 if top_n >= 3 else 1
     _n_blazers = sum(1 for g in top_candidates["midlayer"] if g.subcategory == "blazer")
     if occasion == "matrimonio":
-        max_same_midlayer = 1 if _n_blazers >= 2 else top_n
+        if _n_blazers >= 3:
+            max_same_midlayer = 1
+        elif _n_blazers >= 2:
+            max_same_midlayer = 2
+        else:
+            max_same_midlayer = top_n
     elif 24 <= temp <= 25:
         max_same_midlayer = 1
     else:
         max_same_midlayer = min(2, top_n)
     _n_one_pieces = len(top_candidates.get("one_piece", []))
     max_same_one_piece = 1 if _n_one_pieces >= 2 else top_n
-    import sys
-    if occasion == "matrimonio":
-        print(f"[DEBUG midlayer] temp={temp} mood={mood} _n_blazers={_n_blazers} max_same_midlayer={max_same_midlayer}", file=sys.stderr)
-        print(f"[DEBUG midlayer] pool={[(g.name, g.subcategory) for g in top_candidates['midlayer']]}", file=sys.stderr)
     if occasion in ["cita", "salida nocturna"]:
         elegant_shoes = [g for g in top_candidates["shoes"]
                          if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
@@ -1028,14 +1031,8 @@ def generate_outfits(
             diverse_outfits.append((s, c))
             ids = {g.category: g.id for g in c}
             top_id = ids.get("top")
-            shoes_id = ids.get("shoes")
-            outerwear_id = ids.get("outerwear")
             acc_id = ids.get("accessory")
-            midlayer_id = ids.get("midlayer")
             if top_id: top_usage[top_id] = top_usage.get(top_id, 0) + 1
-            if shoes_id: shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
-            if midlayer_id: midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
-            if outerwear_id: outerwear_usage[outerwear_id] = outerwear_usage.get(outerwear_id, 0) + 1
             if acc_id:
                 accessory_outfits_count += 1
                 accessory_usage_in_batch[acc_id] = accessory_usage_in_batch.get(acc_id, 0) + 1
@@ -1202,10 +1199,18 @@ def generate_outfits(
                 continue
             if one_piece_id is not None and one_piece_usage.get(one_piece_id, 0) >= max_same_one_piece:
                 continue
+            outerwear_id = ids.get("outerwear")
+            _outerwear_limit = (
+                max_same_outerwear + 1
+                if occasion == "matrimonio" and len(diverse_outfits) < min_outfits
+                else max_same_outerwear
+            )
+            if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= _outerwear_limit:
+                continue
             # max_same_outerwear relajado: permitir repetir outerwear cuando es el único disponible
             # Umbral mínimo: solo aplicar cuando ya hay 2+ outfits aceptados
             if len(diverse_outfits) >= 2 and best_score > 0:
-                threshold = best_score * 0.35
+                threshold = best_score * (0.20 if occasion == "matrimonio" else 0.35)
                 if score < threshold:
                     continue
             if score < 0:

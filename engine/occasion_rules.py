@@ -158,6 +158,9 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             if garment.subcategory == "mocasin":
                 if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
                     return _ret(False, f"{garment.name} no va con un {occasion}.")
+            if garment.subcategory == "zapato":
+                if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
+                    return _ret(False, f"{garment.name} no va con un {occasion}.")
 
         if garment.category == "accessory":
             if any(x in lower_name for x in ["gorro", "beanie", "lana", "gorra", "jockey"]):

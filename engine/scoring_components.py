@@ -524,11 +524,19 @@ def practicality_penalty(
 
         if (
             occasion == "matrimonio"
-            and mood not in ["urbano", "comodo"]
+            and mood not in ["urbano", "comodo", "sexy"]
             and g.category == "shoes"
             and g.subcategory == "zapato"
         ):
-            penalty += 999  # hard block — zapato derby nunca en matrimonio elegante
+            penalty += 999
+
+        if (
+            occasion == "matrimonio"
+            and mood == "sexy"
+            and g.category == "shoes"
+            and g.subcategory in ["zapato", "mocasin"]
+        ):
+            penalty += 999
 
         if not rain:
             if g.category == "outerwear" and g.waterproof:
