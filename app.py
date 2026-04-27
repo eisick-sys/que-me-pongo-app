@@ -1489,7 +1489,13 @@ with tab2:
                             st.session_state[key_sc] = []
                         secondary_colors = []
 
-                    name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}")
+                    st.markdown("""
+<div style="background-color: #fff0f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+    <p style="margin: 0 0 4px 0; font-weight: 600; font-size: 0.95rem;">Nombre de la prenda</p>
+    <p style="margin: 0; font-size: 0.8rem; color: #666;">💡 Lookia infiere la categoría, color y otros atributos desde el nombre — mientras más descriptivo, mejor</p>
+</div>
+""", unsafe_allow_html=True)
+                    name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}", label_visibility="collapsed")
 
                     category = st.selectbox(
                         "Categoría",
