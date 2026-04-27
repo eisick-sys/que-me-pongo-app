@@ -55,7 +55,7 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
     pattern_keywords = {
         "animal_print": [
             "animal print", "animal", "leopardo", "leopard", "zebra", "cebra",
-            "snake", "serpiente", "piton"
+            "snake", "serpiente", "piton", "vaca"
         ],
         "floral": [
             "floral", "floreada", "flores", "flower"
@@ -67,7 +67,7 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
             "cuadros", "cuadrille", "cuadriculado", "tartan", "plaid"
         ],
         "grafico": [
-            "grafico", "print", "estampado grafico"
+            "grafico", "formas", "estampado grafico", "dibujos"
         ],
         "estampado": [
             "estampado", "estampada"
@@ -138,7 +138,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
 
     subcategory_keywords = {
         "top": {
-            "polera": ["polera", "camiseta", "remera"],
+            "polera": ["polera", "camiseta", "remera", "t-shirt"],
             "blusa": ["blusa"],
             "camisa": ["camisa"],
             "top": ["top"],
@@ -149,7 +149,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
         "midlayer": {
             "sweater": ["sweater", "sueter"],
             "cardigan": ["cardigan"],
-            "chaleco": ["chaleco"],
+            "chaleco": ["chaleco", "chaleca"],
             "blazer": ["blazer"],
             "hoodie": ["hoodie"],
             "polar": ["polar"],
@@ -161,6 +161,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "trench": ["trench"],
             "impermeable": ["impermeable", "cortaviento"],
             "poncho": ["poncho"],
+            "bolero": ["bolero"],
         },
         "bottom": {
             # más específicas primero para que no caigan en el fallback
@@ -169,10 +170,10 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "falda_midi": ["falda midi", "midi falda", "falda"],  # fallback genérico
             "short_elegante": ["short elegante", "short formal"],
             "short_casual": ["short", "shorts"],  # fallback genérico
-            "jeans": ["jeans", "jean", "denim"],
+            "jeans": ["jeans", "jean", "denim", "bluejeans"],
             "pantalon": ["pantalon"],
             "legging": ["legging", "leggings", "calza", "calzas"],
-            "buzo": ["buzo", "jogging"],
+            "buzo": ["buzo", "jogging", "pantalon de buzo"],
             "jogger": ["jogger", "joggers"],
         },
         "one_piece": {
@@ -199,8 +200,8 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "pulsera": ["pulsera", "brazalete"],
             "anillo": ["anillo"],
             "aros": ["aros", "aretes"],
-            "cinturon": ["cinturon"],
-            "bolso": ["bolso"],
+            "cinturon": ["cinturon", "cinturón"],
+            "bolso": ["bolso", "bolsa"],
             "cartera": ["cartera"],
             "bufanda": ["bufanda"],
             "pañuelo": ["panuelo", "pañuelo"],
@@ -273,7 +274,7 @@ def infer_warmth_from_name(name: str) -> Optional[str]:
 
     cold_keywords = [
         "abrigo", "parka", "polar", "bufanda", "guantes", "gorro",
-        "sweater grueso", "chaleco grueso"
+        "sweater grueso", "chaleco grueso", "lana"
     ]
     hot_keywords = [
         "polera", "top", "crop top", "musculosa", "tank", "short", "shorts"

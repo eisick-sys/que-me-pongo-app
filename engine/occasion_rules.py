@@ -146,7 +146,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
         if garment.category == "shoes":
             if is_shoe_sneaker_like(garment):
                 if not (
-                    occasion == "matrimonio"
+                    occasion in ["matrimonio", "gala"]
                     and mood in ["urbano", "comodo"]
                     and garment.subcategory == "zapatilla_urbana"
                     and garment.dress_level in ["arreglado", "elegante"]

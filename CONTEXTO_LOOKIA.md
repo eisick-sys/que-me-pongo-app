@@ -485,7 +485,7 @@ Contexto: el motor no tenía lógica propia para matrimonio+cómodo. Las prendas
 
 ---
 
-### Sesión actual (abril 2026) — Fixes matrimonio + preparación gala
+### Sesión 25 — abril 2026 — Fixes matrimonio + preparación gala
 
 **Fixes aplicados y mergeados a main:**
 - Fix B1: shuffle antes de sort en `_generate_matrimonio_elegante` para variar vestidos entre tandas
@@ -514,6 +514,53 @@ Diseño acordado:
 
 ---
 
+### Sesión actual (abril 2026) — Gala implementada y validada
+
+**`engine/outfit_generation.py`**
+- ✅ `_generate_gala` — función dedicada para `occasion == "gala"`, análoga a `_generate_matrimonio_elegante`
+- ✅ Pools: `vestido_elegante` / `vestido_coctel` obligatorio. Sin top+bottom, sin enterito, sin midlayer
+- ✅ Calzado por mood: elegante/sexy → taco_alto, taco_bajo, sandalia; cómodo → taco_bajo, sandalia; urbano → tacos + zapatilla_urbana arreglada/elegante
+- ✅ Outerwear por mood: elegante/sexy/cómodo → `abrigo/chaqueta/bolero` con estilo elegante o formal, sin impermeable; urbano → además permite `trench` sin restricción de estilo
+- ✅ Sandalia pre-filtrada del pool cuando `temp <= 10` (evita que consuma un slot con score -999)
+- ✅ Loop `for i in range(top_n)` — siempre intenta 3 outfits ciclando vestidos disponibles (fix: antes usaba `range(min(top_n, len(vestidos)))`)
+- ✅ `abrigos_todos` reinsertado después del sort cuando hay `selected_garment` outerwear — garantiza que aparezca en primer slot (bug pendiente: solo outfit 1, no los 3; ver pendientes)
+- ✅ `selected_garment` trench rechazado si `mood != "urbano"` → retorna `[], []`
+- ✅ mood `relajado` bloqueado al inicio de la función
+- ✅ Dispatched desde `generate_outfits` cuando `occasion == "gala"`
+- ✅ Boost vestido_coctel primero en `sexy` y `urbano` mediante sort estable
+
+**`engine/occasion_rules.py`**
+- ✅ Excepción `zapatilla_urbana` extendida de `occasion == "matrimonio"` a `occasion in ["matrimonio", "gala"]`
+- ✅ Bloque `zapato` (subcategory) agregado: bloqueado en matrimonio/gala salvo `mood in ["urbano", "comodo"]`
+
+**`engine/scoring_components.py`**
+- ✅ Boost gala para vestido_elegante/coctel (`penalty -= 180`)
+- ✅ Boost `sexy` extendido a gala, salida nocturna y cita
+
+**`app.py`**
+- ✅ Bloque compatibilidad `selected_garment` para gala: acepta vestido/calzado/abrigo+chaqueta+bolero/accesorio; trench solo en urbano
+- ✅ Warning específico para trench forzado en mood no-urbano: `"no va con gala {mood}"`
+- ✅ Warning gala sin vestidos distingue mood relajado vs. sin prenda elegante en clóset
+- ✅ "Mostrar de todos modos" visible en gala incluso sin `selected_garment`
+
+**`constants.py`**
+- ✅ `bolero` agregado a `SUBCATEGORY_OPTIONS["outerwear"]` y `SUBCATEGORY_LABELS_ES`
+- ✅ Aliases de color femeninos: blanca, negra, roja, rosada, morada, amarilla
+
+**`utils/attribute_inference.py`**
+- ✅ `"bolero": ["bolero"]` agregado a `subcategory_keywords["outerwear"]`
+
+**Matriz de validación gala completada (37 casos)**
+- ✅ Casos 1–9: relajado bloqueado, elegante/sexy/cómodo/urbano a distintas temperaturas y lluvia
+- ✅ Casos 10–28: temperaturas extremas, lluvia, calzado específico, outerwear bolero/chaqueta, accesorios, prenda forzada
+- ✅ Casos 29–37: trench excluido en elegante/sexy/cómodo, permitido en urbano; prenda forzada trench; bolero; clima extremo
+- ✅ False positive #21 identificado: chaqueta de cuero (style=casual) detectada por check sin filtro de estilo → no hay fix de producción
+
+**⚠️ Bug pendiente — prenda forzada outerwear en gala**
+Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica actual lo reinserta al frente del pool después del sort, pero el loop `abrigos[i % len(abrigos)]` cicla por todo el pool. Resultado: solo aparece en outfit 1. Fix requerido: cuando hay `selected_garment` outerwear, restringir `abrigos = [selected_garment]` o forzar en cada iteración del loop.
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor — matrimonio ✅ completado
@@ -524,7 +571,8 @@ Diseño acordado:
 
 ### Motor (general)
 - ✅ matrimonio — todos los moods completados
-- 🎯 **PRÓXIMO: Gala** — diseño acordado (ver sesión actual), implementación pendiente
+- ✅ Gala — implementada y validada (37 casos)
+- 🎯 **PRÓXIMO: Deporte / ajuste fino gala**
 - ⬜ Deporte — todos los moods y temperaturas
 - ⬜ matrimonio+cómodo — ajuste fino de scores (queda como deuda menor, no bloquea gala)
 - ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 
@@ -549,6 +597,7 @@ Diseño acordado:
 - ⬜ Persistencia del "Ignorar" en badge de inconsistencias (pendiente Supabase)
 - ⬜ Ocasiones frecuentes del perfil ordenadas primero en selectbox del recomendador
 - ⬜ Botón eliminar directo en tarjeta de galería — pendiente migración a React
+- ⬜ Destacar boton de "mi perfil" y "qué es Lookia"
 
 ### Técnico
 - ⬜ Moderación de fotos — bloquear nudes/menores/contenido inapropiado en subida (urgente)
@@ -558,6 +607,7 @@ Diseño acordado:
 - ⬜ UI definitiva — migrar de Streamlit a React o similar
 - ⬜ Dividir app.py en módulos por tab
 - ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro
+- ⬜ Revisar funcion "default wardrobe"
 
 ### Funcionalidades nuevas
 - ⬜ Estadísticas en tab "Mi clóset" — ya implementado básico, expandir

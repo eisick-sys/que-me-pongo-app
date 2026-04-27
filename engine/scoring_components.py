@@ -663,9 +663,15 @@ def practicality_penalty(
             elif g.category == "one_piece" and g.subcategory == "enterito" and mood == "sexy":
                 penalty -= 160
 
+    # Boost a vestidos elegantes/cóctel en gala (sin enterito, sin vestido casual)
+    if occasion == "gala":
+        for g in items:
+            if g.category == "one_piece" and g.subcategory in ["vestido_elegante", "vestido_coctel"]:
+                penalty -= 180
+
     # Boost a outfit con prenda muy sexy cuando mood es sexy
     # Solo en ocasiones donde sexy es apropiado
-    if mood == "sexy" and occasion in ["matrimonio", "salida nocturna", "cita"]:
+    if mood == "sexy" and occasion in ["matrimonio", "gala", "salida nocturna", "cita"]:
         max_sexiness = max((getattr(g, "sexiness", 0) for g in items), default=0)
         if max_sexiness >= 3:
             penalty -= 70

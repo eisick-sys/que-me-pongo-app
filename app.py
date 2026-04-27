@@ -335,9 +335,6 @@ def normalize_existing_images():
             print(f"Error procesando {filename}: {e}")
 
 
-# normalize_existing_images()
-
-
 # =========================================================
 # BASE INICIAL DE PRENDAS
 # =========================================================
@@ -742,11 +739,13 @@ if st.session_state.get("show_about"):
         según la ocasión, tu estado de ánimo, la actividad del día y el clima real de tu ciudad.
 
         **Cómo funciona:**
-        - 👗 **Agrega tus prendas** en *Mi clóset* — solo ponle nombre o sube una foto
-        y Lookia infiere automáticamente el color, categoría y estilo.
-        - ✨ **Pide recomendaciones** eligiendo ocasión, mood y actividad.
-        - 👍 **Dale feedback** a los outfits — Lookia aprende de tus gustos con el tiempo.
-        - 📅 **Planifica tu semana** para no repetir looks.
+        - 👗 **Agrega tus prendas** en *Mi clóset* — solo ponle nombre o sube una foto, puedes subir hasta 5 fotos de una vez (en este modo lo ideal es que las fotos tengan el nombre y algunas características de la prenda), también puedes agregar sólo una prenda y editar tu misma.
+        y Lookia infiere automáticamente el color, categoría y estilo, mientras más descripciones agregues, más características se inferirán. Recuerda que estamos en fase beta, ya vienen los reconocimientos con IA.
+        - Tus prendas quedan guardadas!, en tu próxima sesion puedes revisarlas. Recuerda que no es necesario subir tu closet completo de una vez, puedes ir subiendo de a poco.
+        - Si quieres editar una prenda, solo clickea el boton y dirígete al final de la pantalla, ahí estará tu prenda (no olvides guardar!). En fases siguientes será más fácil -sin scrolear-
+        - ✨ **Pide recomendaciones** eligiendo ocasión, mood y actividad. El motor reconoce el clima real, si deseas cambiarlo para planificar para otro día u otro momento, solo clickea y puedes manejarlo. 
+        - 👍 **Dale feedback** a los outfits — Lookia aprende de tus gustos con el tiempo. Si vas a usar una recomendación... clickea!, Lookia lo recordará para no recomendartelo inmediatamente.
+        - 📅 **Planifica tu semana** para no repetir looks. Puedes dejar ocasion, mood y actividad para toda la semana, si deseas cambiar uno o más días específicos, lo puedes hacer fácilmente.
 
         Tu perfil le ayuda a Lookia a entender mejor tu estilo y darte sugerencias más precisas.
         """
@@ -762,7 +761,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "➕ Agregar prenda",
     "📅 Planificador semanal"
 ])
-
 
 # =========================================================
 # TAB 1: RECOMENDADOR
@@ -887,6 +885,30 @@ with tab1:
                 st.warning(f"{selected_garment.name} no es la elección típica para un matrimonio elegante — pero tú decides.")
                 selected_allowed = False
 
+        if selected_garment is not None and occasion == "gala":
+            cat = selected_garment.category
+            sub = getattr(selected_garment, "subcategory", None)
+            _calzado_ok_gala = (
+                sub in ["taco_alto", "taco_bajo", "sandalia"]
+                if mood != "comodo"
+                else sub in ["taco_bajo", "sandalia"]
+            )
+            if cat == "shoes" and sub == "zapatilla_urbana":
+                _calzado_ok_gala = True  # urbano puede usar zapatilla arreglada
+            es_compatible_gala = (
+                (cat == "one_piece" and sub in ["vestido_elegante", "vestido_coctel"]) or
+                (cat == "shoes" and _calzado_ok_gala) or
+                (cat == "outerwear" and sub in ["abrigo", "chaqueta", "bolero"]) or
+                (cat == "outerwear" and sub == "trench" and mood == "urbano") or
+                cat == "accessory"
+            )
+            if not es_compatible_gala:
+                if cat == "outerwear" and sub == "trench" and mood != "urbano":
+                    st.warning(f"{selected_garment.name} no va con gala {mood} — pero tú decides.")
+                else:
+                    st.warning(f"{selected_garment.name} no es la elección típica para gala — pero tú decides.")
+                selected_allowed = False
+
         # Advertencia de clima para prenda forzada
         if selected_garment.category == "outerwear" and temp >= 24:
             st.warning(f"{selected_garment.name} puede ser demasiado abrigada para {temp}°C — pero tú decides.")
@@ -898,6 +920,8 @@ with tab1:
 
     show_anyway_clicked = False
     if selected_garment:
+        show_anyway_clicked = col_btn3.button("💪 Mostrar de todos modos", use_container_width=True)
+    elif occasion == "gala":
         show_anyway_clicked = col_btn3.button("💪 Mostrar de todos modos", use_container_width=True)
 
     outfits = st.session_state.get("last_outfits", [])
@@ -923,18 +947,35 @@ with tab1:
             )
             st.session_state.missing_categories = _missing
         else:
-            outfits, _missing = generate_outfits(
-                garments=st.session_state.wardrobe,
-                occasion=occasion,
-                temp=temp,
-                rain=rain,
-                mood=mood,
-                activity=activity,
-                top_n=3,
-                feedback_list=st.session_state.feedback,
-                recent_outfits=combined_recent,
-            )
-            st.session_state.missing_categories = _missing
+            # Gala sin vestidos + "Mostrar de todos modos" → derivar a motor matrimonio elegante
+            if occasion == "gala" and show_anyway_clicked:
+                from engine.outfit_generation import _generate_matrimonio_elegante
+                from utils.user_profile import build_user_style_profile
+                outfits, _missing = _generate_matrimonio_elegante(
+                    garments=st.session_state.wardrobe,
+                    temp=temp,
+                    rain=rain,
+                    mood="elegante",
+                    activity=activity,
+                    top_n=3,
+                    feedback_list=st.session_state.feedback,
+                    recent_outfits=combined_recent,
+                    user_profile=build_user_style_profile(st.session_state.feedback, st.session_state.wardrobe),
+                )
+                st.session_state.missing_categories = []
+            else:
+                outfits, _missing = generate_outfits(
+                    garments=st.session_state.wardrobe,
+                    occasion=occasion,
+                    temp=temp,
+                    rain=rain,
+                    mood=mood,
+                    activity=activity,
+                    top_n=3,
+                    feedback_list=st.session_state.feedback,
+                    recent_outfits=combined_recent,
+                )
+                st.session_state.missing_categories = _missing
 
             # Si es interior con frío, forzar al menos 1 outfit sin outerwear
             if indoor_outdoor == "interior" and temp <= 14:
@@ -1020,7 +1061,19 @@ with tab1:
             "outerwear": "un abrigo o chaqueta",
             "midlayer": "una prenda intermedia (blazer, sweater, etc.)",
         }
-        if missing_cats:
+        if occasion == "gala" and not missing_cats:
+            if mood == "relajado":
+                st.warning(
+                    "Una gala, por definición, no es relajada. "
+                    "Si igual quieres ver opciones con lo que tienes, presiona 💪 **Mostrar de todos modos**."
+                )
+            else:
+                st.warning(
+                    "Para una gala necesitas un **vestido elegante o cóctel** en tu clóset. "
+                    "¿Tienes uno? Agrégalo primero. Si igual quieres ver opciones con lo que tienes, "
+                    "presiona 💪 **Mostrar de todos modos**."
+                )
+        elif missing_cats:
             faltantes = ", ".join(cat_labels.get(c, c) for c in missing_cats)
             st.warning(f"No tengo prendas suficientes para armar este outfit. Te falta agregar: **{faltantes}**.")
         else:

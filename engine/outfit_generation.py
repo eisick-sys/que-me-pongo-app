@@ -183,6 +183,177 @@ def _generate_matrimonio_elegante(
     return result[:top_n], []
 
 
+def _generate_gala(
+    garments, temp, rain, mood, activity,
+    top_n, feedback_list, recent_outfits, user_profile,
+    selected_garment=None, ignore_selected=False
+):
+    """
+    Genera outfits para gala. Reglas:
+    - Solo vestido_elegante o vestido_coctel. Sin top+bottom, sin enterito.
+    - Calzado:
+        - elegante/sexy/urbano: taco_alto, taco_bajo, sandalia
+        - comodo: taco_bajo, sandalia (sin taco_alto)
+    - Midlayer: NUNCA (ni blazer ni cardigan).
+    - Abrigo: solo abrigo/trench elegante, preferir warmth medio en temperaturas intermedias.
+      Sin parka, sin impermeable. Lluvia → mismo abrigo + tip paraguas.
+    - Sin fallback a top+bottom. Sin vestidos si no hay → warning + "Mostrar de todos modos"
+      que deriva a _generate_matrimonio_elegante.
+    - Mood urbano: vestido_coctel + zapatilla_urbana arreglada/elegante.
+    - Mood relajado: bloqueado (ya manejado en occasion_rules).
+    """
+    from engine.category_rules import should_include_accessory
+
+    if mood == "relajado":
+        return [], []
+
+    # --- POOLS base ---
+    vestidos = [
+        g for g in garments
+        if g.category == "one_piece"
+        and g.subcategory in ["vestido_elegante", "vestido_coctel"]
+    ]
+
+    # Calzado según mood
+    if mood == "comodo":
+        calzado = [
+            g for g in garments
+            if g.category == "shoes"
+            and g.subcategory in ["taco_bajo", "sandalia"]
+        ]
+    elif mood == "urbano":
+        calzado = [
+            g for g in garments
+            if g.category == "shoes"
+            and (
+                g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]
+                or (g.subcategory == "zapatilla_urbana" and g.dress_level in ["arreglado", "elegante"])
+            )
+        ]
+    else:  # elegante, sexy
+        calzado = [
+            g for g in garments
+            if g.category == "shoes"
+            and g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]
+        ]
+
+    # Excluir sandalia en frío extremo antes de que consuma un slot con score -999
+    calzado = [g for g in calzado if not (g.subcategory == "sandalia" and temp <= 10)]
+
+    # Abrigos: abrigo/chaqueta/bolero elegante o formal, sin impermeable
+    abrigos_todos = [
+        g for g in garments
+        if g.category == "outerwear"
+        and g.subcategory in ["abrigo", "chaqueta", "bolero"]
+        and (garment_has_style(g, "elegante") or garment_has_style(g, "formal"))
+        and not g.waterproof
+    ]
+    if mood == "urbano":
+        abrigos_todos += [
+            g for g in garments
+            if g.category == "outerwear"
+            and g.subcategory == "trench"
+            and not g.waterproof
+        ]
+
+    accesorios = [
+        g for g in garments
+        if g.category == "accessory"
+        and g.dress_level in ["arreglado", "elegante"]
+        and g.subcategory not in ["gorro", "gorra"]
+    ]
+
+    # --- selected_garment ---
+    if selected_garment is not None:
+        cat = selected_garment.category
+        sub = getattr(selected_garment, "subcategory", None)
+        if cat == "one_piece" and sub in ["vestido_elegante", "vestido_coctel"]:
+            vestidos = [selected_garment]
+        elif cat == "shoes":
+            calzado = [selected_garment]
+        elif cat == "outerwear" and sub in ["abrigo", "chaqueta", "bolero"]:
+            abrigos_todos = [selected_garment] + [g for g in abrigos_todos if g.id != selected_garment.id]
+        elif cat == "outerwear" and sub == "trench" and mood == "urbano":
+            abrigos_todos = [selected_garment] + [g for g in abrigos_todos if g.id != selected_garment.id]
+        elif cat == "accessory":
+            accesorios = [selected_garment] + [g for g in accesorios if g.id != selected_garment.id]
+        elif not ignore_selected:
+            return [], []
+
+    if not calzado:
+        return [], []
+
+    # Sin vestidos → retorna vacío; la UI mostrará warning y derivará a _generate_matrimonio_elegante
+    if not vestidos:
+        return [], []
+
+    # --- Selección de abrigos según temperatura ---
+    # Sin abrigo si calor; preferir warmth medio en rango intermedio
+    usar_abrigo = temp <= 18
+    if usar_abrigo:
+        if 13 <= temp <= 18:
+            # Preferir warmth medio; si no hay, aceptar frio
+            abrigos_pref = [g for g in abrigos_todos if g.warmth == "medio"]
+            if not abrigos_pref:
+                abrigos_pref = [g for g in abrigos_todos if g.warmth in ["medio", "frio"]]
+            abrigos = abrigos_pref
+        else:  # temp <= 12: frío real, cualquier abrigo elegante
+            abrigos = abrigos_todos
+    else:
+        abrigos = []
+
+    # --- Scoring para ordenar pools ---
+    def score_g(g):
+        from engine.scoring_components import weather_score, dress_score
+        return weather_score(g, temp, rain) + dress_score(g.dress_level, "gala")
+
+    if len(vestidos) > 1:
+        random.shuffle(vestidos)
+    vestidos = sorted(vestidos, key=score_g, reverse=True)
+    calzado = sorted(calzado, key=score_g, reverse=True)
+    abrigos = sorted(abrigos, key=score_g, reverse=True)
+    if selected_garment is not None and selected_garment.category == "outerwear":
+        abrigos = [selected_garment] + [g for g in abrigos if g.id != selected_garment.id]
+    random.shuffle(accesorios)
+
+    # --- Scoring boost: priorizar vestido_coctel en sexy/urbano ---
+    if mood in ["sexy", "urbano"]:
+        vestidos = sorted(
+            vestidos,
+            key=lambda g: (0 if g.subcategory == "vestido_coctel" else 1, -score_g(g))
+        )
+
+    # --- Generar combos ---
+    outfits = []
+    for i in range(top_n):
+        vestido = vestidos[i % len(vestidos)]
+        zapato = calzado[i % len(calzado)]
+        abrigo = abrigos[i % len(abrigos)] if usar_abrigo and abrigos else None
+        acc = accesorios[i % len(accesorios)] if accesorios else None
+
+        combo = [vestido, zapato]
+        if abrigo:
+            combo.append(abrigo)
+        if acc:
+            combo.append(acc)
+        outfits.append(combo)
+
+    # --- Score real ---
+    result = []
+    for combo in outfits:
+        from engine.recommender import outfit_score
+        score = outfit_score(
+            combo, "gala", temp, rain, mood, activity,
+            feedback_list, user_profile=user_profile,
+            recent_outfits=recent_outfits
+        )
+        result.append((score, combo))
+
+    result = [(s, c) for s, c in result if s > -999]
+    result.sort(key=lambda x: x[0], reverse=True)
+    return result[:top_n], []
+
+
 def generate_outfits(
     garments: List[Garment],
     occasion: str,
@@ -199,6 +370,19 @@ def generate_outfits(
 
     if occasion == "matrimonio" and mood == "elegante":
         return _generate_matrimonio_elegante(
+            garments=garments,
+            temp=temp,
+            rain=rain,
+            mood=mood,
+            activity=activity,
+            top_n=top_n,
+            feedback_list=feedback_list,
+            recent_outfits=recent_outfits,
+            user_profile=build_user_style_profile(feedback_list, garments),
+        )
+
+    if occasion == "gala":
+        return _generate_gala(
             garments=garments,
             temp=temp,
             rain=rain,
@@ -480,8 +664,8 @@ def generate_outfits(
             unique[core_ids] = (score, combo)
 
     for top in top_candidates["top"]:
-        if occasion in ["matrimonio", "gala"]:
-            if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
+        if occasion == "matrimonio":
+            if mood not in ["urbano", "comodo"]:
                 if not (
                     garment_has_style(top, "elegante") or garment_has_style(top, "formal")
                 ):
@@ -499,8 +683,8 @@ def generate_outfits(
         )
 
         for bottom in top_candidates["bottom"]:
-            if occasion in ["matrimonio", "gala"]:
-                if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
+            if occasion == "matrimonio":
+                if mood not in ["urbano", "comodo"]:
                     if not (
                         garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")
                     ):
@@ -1270,6 +1454,20 @@ def generate_outfits_from_selected_garment(
             selected_garment=selected_garment,
         )
 
+    if occasion == "gala" and not ignore_occasion_for_selected:
+        return _generate_gala(
+            garments=garments,
+            temp=temp,
+            rain=rain,
+            mood=mood,
+            activity=activity,
+            top_n=top_n,
+            feedback_list=feedback_list,
+            recent_outfits=recent_outfits,
+            user_profile=build_user_style_profile(feedback_list, garments),
+            selected_garment=selected_garment,
+        )
+
     garments_by_category = {
         "top": [g for g in garments if g.category == "top" and g.id != selected_garment.id],
         "midlayer": [g for g in garments if g.category == "midlayer" and g.id != selected_garment.id],
@@ -1665,7 +1863,7 @@ def generate_outfits_from_selected_garment(
 
     elif selected_category == "shoes":
         for top in top_candidates["top"]:
-            if occasion in ["matrimonio", "gala"] or (occasion == "cita" and mood == "elegante"):
+            if occasion == "matrimonio" or (occasion == "cita" and mood == "elegante"):
                 if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
                     if not (garment_has_style(top, "elegante") or garment_has_style(top, "formal")):
                         continue
@@ -1676,7 +1874,7 @@ def generate_outfits_from_selected_garment(
                     ):
                         continue
             for bottom in top_candidates["bottom"]:
-                if occasion in ["matrimonio", "gala"] or (occasion == "cita" and mood == "elegante"):
+                if occasion == "matrimonio" or (occasion == "cita" and mood == "elegante"):
                     if not (occasion == "matrimonio" and mood in ["urbano", "comodo"]):
                         if not (garment_has_style(bottom, "elegante") or garment_has_style(bottom, "formal")):
                             continue

@@ -38,6 +38,7 @@ SUBCATEGORY_OPTIONS = {
         "trench",
         "impermeable",
         "poncho",
+        "bolero",
     ],
     "bottom": [
         "jeans",
@@ -168,6 +169,13 @@ COLOR_ALIASES = {
 
     "gray": "gris",
     "grey": "gris",
+
+    "blanca": "blanco",
+    "negra": "negro",
+    "roja": "rojo",
+    "rosada": "rosado",
+    "morada": "morado",
+    "amarilla": "amarillo",
 }
 
 # =========================================================
@@ -273,6 +281,7 @@ SUBCATEGORY_LABELS_ES = {
     "trench": "Trench",
     "impermeable": "Impermeable",
     "poncho": "Poncho",
+    "bolero": "Bolero",
     # bottom
     "jeans": "Jeans",
     "pantalon": "Pantalón",
