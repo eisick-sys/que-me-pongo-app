@@ -205,6 +205,7 @@ PATTERN_OPTIONS = [
     "animal_print",
     "floral",
     "grafico",
+    "lunares",
 ]
 
 ACCESSORY_TYPE_OPTIONS = [
@@ -231,9 +232,9 @@ OCCASION_OPTIONS = [
     "deporte",
 ]
 
-MOOD_OPTIONS = ["relajado", "urbano", "elegante", "sexy", "comodo"]
+MOOD_OPTIONS = ["relajado", "urbano", "elegante", "comodo", "sexy", "formal"]
 
-ACTIVITY_OPTIONS = ["normal", "caminar", "formal", "entrenar"]
+ACTIVITY_OPTIONS = ["normal", "caminar", "entrenar"]
 
 THERMAL_ACCESSORIES = ["bufanda", "pañuelo", "gorro", "guantes"]
 

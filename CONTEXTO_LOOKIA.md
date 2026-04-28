@@ -561,6 +561,60 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 
 ---
 
+### Sesión 26 — abril 2026 — mood formal + fixes outerwear trabajo + mejoras inferencia
+
+**`constants.py`**
+- ✅ `"formal"` agregado a `MOOD_OPTIONS`; `"formal"` eliminado de `ACTIVITY_OPTIONS` → ahora `["normal", "caminar", "entrenar"]`
+- ✅ `"lunares"` agregado a `PATTERN_OPTIONS`
+
+**`engine/scoring_components.py`**
+- ✅ `mood_map["formal"]` agregado en `mood_bonus()`: strong → elegante/formal, soft → urbano
+- ✅ Jeans penalty extendido a `mood in ["elegante", "sexy", "formal"]`
+- ✅ Falda boost extendido a `mood in ["elegante", "sexy", "formal"]`
+- ✅ Taco boost `-40` para `mood == "formal"` en `practicality_penalty()`
+- ✅ `activity_bonus()`: bloque `activity == "formal"` eliminado de `activity_bonus()`
+
+**`engine/occasion_rules.py`**
+- ✅ Firma extendida con `activity: str = ""`
+- ✅ Regla global: `mood == "formal"` bloquea prendas con estilo sport (excepto shoes/accessory)
+- ✅ Regla global: `activity == "caminar"` bloquea sandalia
+- ✅ `work+comodo`: `one_piece` con `dress_level in ["elegante", "arreglado"]` bloqueado
+
+**`engine/category_rules.py`**
+- ✅ `shoe_context_penalty()`: condición +14 extendida a `mood in ["elegante", "formal"]` para tacos en trabajo
+
+**`engine/outfit_generation.py`**
+- ✅ Filtro formal shoes: bloquea converse y zapatilla_deporte; bloquea zapatilla_urbana sin estilo elegante/formal salvo `occasion in ["casual", "deporte"]`
+- ✅ `max_same_shoes_heel`: escape condition (opción B) para formal — limita a 1 heel outfit solo si hay ≥2 non-heel
+- ✅ `max_same_outerwear`: escape condition para no-rain — limita a 1 solo si hay ≥2 outerwear candidatas
+- ✅ Filtro outerwear 13–15°: `_allow_cold` extendido a `mood in ["elegante", "formal", "comodo"]`; filtro trabajo abrigos elegantes sin secondary "formal" aplicado antes del `[:4]`
+- ✅ Filtro outerwear frío extremo (else): mismo filtro de trabajo abrigos elegantes sin secondary "formal"
+- ✅ Pool inicial outerwear ampliado a `[:8]` antes del filtro de temperatura
+
+**`engine/recommender.py`**
+- ✅ `explain_outfit_score()`: eliminado texto "Funciona bien para la actividad 'normal'" del random.choice
+
+**`app.py`**
+- ✅ Actividades disponibles condicionales: `caminar` solo en moods relajado/urbano/cómodo o casual/deporte; `entrenar` solo en deporte — aplicado en recomendador principal y planificador
+- ✅ `_reinfer_from_edit_name()`: re-inferencia completa al editar nombre (categoría, subcategoría, color, patrón, warmth, dress_level, sexiness) con on_change
+- ✅ Widgets del formulario de edición leen desde `st.session_state` con fallback a `garment.*`
+
+**`utils/attribute_inference.py`**
+- ✅ Keywords `"lunares"` agregados: ["lunares", "lunar", "puntos", "polka", "polka dot", "dots"]
+- ✅ `"poncho"` confirmado en `subcategory_keywords["outerwear"]`; agregado a `cold_keywords` y `warmth_map["poncho"] = "frio"`
+
+**Bloque 7 completado:**
+- ✅ 7.1 matrimonio + elegante — OK
+- ✅ 7.2 gala + sexy — OK
+- ✅ 7.3 trabajo + cómodo — OK (deuda menor: rotación de bottoms)
+- ✅ 7.4 actividad "formal" nunca aparece en UI — OK
+- ✅ 7.5 sin errores/crashes — OK
+
+**⚠️ Deuda técnica prioritaria próxima sesión**
+- 🎯 Rotación de bottoms — pantalón vestir negro y falda negra larga dominan en moods formales/elegantes, generando 1–2 outfits en lugar de 3
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor — matrimonio ✅ completado
@@ -572,7 +626,7 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 ### Motor (general)
 - ✅ matrimonio — todos los moods completados
 - ✅ Gala — implementada y validada (37 casos)
-- 🎯 **PRÓXIMO: Deporte / ajuste fino gala**
+- 🎯 **PRÓXIMO: Rotación de bottoms (pantalón/falda negra dominan en formal/elegante) + Deporte**
 - ⬜ Deporte — todos los moods y temperaturas
 - ⬜ matrimonio+cómodo — ajuste fino de scores (queda como deuda menor, no bloquea gala)
 - ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 

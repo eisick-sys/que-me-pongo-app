@@ -455,7 +455,7 @@ def generate_outfits(
         random.shuffle(_waterproof_outer)
         top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
     else:
-        top_candidates["outerwear"] = [g for _, g in ranked["outerwear"]][:4]
+        top_candidates["outerwear"] = [g for _, g in ranked["outerwear"]][:8]
     # Shuffle accesorios para rotar cuál aparece en cada tanda y evitar siempre el mismo
     _accessories = [g for _, g in ranked["accessory"][:max(accessory_limit + 3, 5)]]
     random.shuffle(_accessories)
@@ -578,7 +578,26 @@ def generate_outfits(
             if not any(x in g.name.lower() for x in ["zapatilla", "converse"])
         ]
 
+    if mood == "formal":
+        _allow_sneakers = occasion in ["casual", "deporte"]
+        top_candidates["shoes"] = [
+            g for g in top_candidates["shoes"]
+            if not any(x in g.name.lower() for x in ["converse"])
+            and g.subcategory != "zapatilla_deporte"
+            and not (
+                g.subcategory == "zapatilla_urbana"
+                and not _allow_sneakers
+                and not (
+                    garment_has_style(g, "elegante")
+                    or garment_has_style(g, "formal")
+                    or g.dress_level in ["arreglado", "elegante"]
+                )
+            )
+        ]
+
+    print(f"[DEBUG temp_branch] temp={temp} rain={rain}")
     if temp >= 24:
+        print("[DEBUG temp_branch] → temp >= 24")
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -594,6 +613,7 @@ def generate_outfits(
             ][:2]
 
     elif temp >= 16 and not rain:
+        print("[DEBUG temp_branch] → temp >= 16 and not rain")
         top_candidates["outerwear"] = []
         _mid_no_frio = [g for g in top_candidates["midlayer"] if g.warmth != "frio"]
         if occasion == "matrimonio":
@@ -602,10 +622,31 @@ def generate_outfits(
             top_candidates["midlayer"] = _mid_no_frio[:1]
 
     elif temp >= 13 and not rain:
-        top_candidates["outerwear"] = [
+        print("[DEBUG temp_branch] → temp >= 13 and not rain")
+        _allow_cold = occasion in ["trabajo", "cita", "salida nocturna"] and mood in ["elegante", "formal", "comodo"]
+        for _g in top_candidates["outerwear"]:
+            if "lana" in _g.name.lower() or "rojo" in _g.name.lower() or "beige" in _g.name.lower():
+                print(f"[DEBUG raw] {_g.name}: repr(secondary_styles)={repr(_g.secondary_styles)}")
+                print(f"[DEBUG raw] {_g.name}: 'formal' in secondary_styles = {'formal' in (_g.secondary_styles or [])}")
+            if "gala" in _g.name.lower() or "abrigo" in _g.name.lower():
+                _cond1 = _g.warmth != "frio" or _allow_cold
+                _cond2 = not _g.waterproof
+                _sec = _g.secondary_styles or []
+                _formal_in_sec = "formal" in _sec
+                _cond3 = not (occasion == "trabajo" and _g.subcategory == "abrigo" and _g.style == "elegante" and not _formal_in_sec)
+                print(f"[DEBUG outerwear] {_g.name}: style={_g.style!r} sec_styles={_g.secondary_styles!r} type={type(_g.secondary_styles).__name__} subcategory={_g.subcategory!r} warmth={_g.warmth!r} | _allow_cold={_allow_cold} | formal_in_sec={_formal_in_sec} | cond_warmth={_cond1} cond_trabajo={_cond3} | PASS={_cond1 and _cond2 and _cond3}")
+        _outer_pool = [
             g for g in top_candidates["outerwear"]
-            if g.warmth != "frio" and not g.waterproof
-        ][:1]
+            if (g.warmth != "frio" or _allow_cold)
+            and not g.waterproof
+            and not (
+                occasion == "trabajo"
+                and g.subcategory == "abrigo"
+                and g.style == "elegante"
+                and "formal" not in (g.secondary_styles or [])
+            )
+        ]
+        top_candidates["outerwear"] = _outer_pool[:4]
 
     elif rain and temp >= 16:
         top_candidates["midlayer"] = [
@@ -618,6 +659,15 @@ def generate_outfits(
     else:
         top_candidates["midlayer"] = top_candidates["midlayer"][:mid_limit]
         top_candidates["outerwear"] = top_candidates["outerwear"][:outer_limit]
+        if occasion == "trabajo":
+            top_candidates["outerwear"] = [
+                g for g in top_candidates["outerwear"]
+                if not (
+                    g.subcategory == "abrigo"
+                    and g.style == "elegante"
+                    and "formal" not in (g.secondary_styles or [])
+                )
+            ]
 
     missing = get_missing_categories(top_candidates, required)
     if missing:
@@ -1143,9 +1193,18 @@ def generate_outfits(
                          if g.subcategory in ["taco_alto", "taco_bajo", "sandalia"]]
         if len(elegant_shoes) >= 2:
             max_same_shoes = 1
+    heel_outfits_count = 0
+    max_same_shoes_heel = top_n
+    if mood == "formal":
+        _heel_shoes = [g for g in top_candidates["shoes"]
+                       if g.subcategory in ["taco_alto", "taco_bajo"]]
+        _non_heel_shoes = [g for g in top_candidates["shoes"]
+                           if g.subcategory not in ["taco_alto", "taco_bajo"]]
+        if len(_heel_shoes) >= 1 and len(_non_heel_shoes) >= 2:
+            max_same_shoes_heel = 1
     _n_waterproof_outer = sum(1 for g in top_candidates["outerwear"] if g.waterproof)
     if not rain:
-        max_same_outerwear = 1
+        max_same_outerwear = 1 if len(top_candidates["outerwear"]) >= 2 else top_n
     elif _n_waterproof_outer >= 3:
         max_same_outerwear = 1
     elif _n_waterproof_outer == 2:
@@ -1195,6 +1254,8 @@ def generate_outfits(
             shoes = next((g for g in c if g.category == "shoes"), None)
             if shoes and shoes_usage.get(shoes.id, 0) >= max_same_shoes:
                 continue
+            if shoes and shoes.subcategory in ["taco_alto", "taco_bajo"] and heel_outfits_count >= max_same_shoes_heel:
+                continue
             outer = next((g for g in c if g.category == "outerwear"), None)
             if outer and outerwear_usage.get(outer.id, 0) >= max_same_outerwear:
                 continue
@@ -1206,6 +1267,8 @@ def generate_outfits(
                 one_piece_usage[one_piece_id] = one_piece_usage.get(one_piece_id, 0) + 1
             if shoes:
                 shoes_usage[shoes.id] = shoes_usage.get(shoes.id, 0) + 1
+                if shoes.subcategory in ["taco_alto", "taco_bajo"]:
+                    heel_outfits_count += 1
             if outer:
                 outerwear_usage[outer.id] = outerwear_usage.get(outer.id, 0) + 1
             matrimonio_forced.append((s, c))
@@ -1252,6 +1315,10 @@ def generate_outfits(
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
                 continue
+            if shoes_id is not None and heel_outfits_count >= max_same_shoes_heel:
+                shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+                if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                    continue
             if outerwear_id is not None and outerwear_usage.get(outerwear_id, 0) >= max_same_outerwear:
                 continue
             if acc_id is not None and accessory_outfits_count >= max_accessory_outfits:
@@ -1300,6 +1367,9 @@ def generate_outfits(
             top_usage[top_id] = top_usage.get(top_id, 0) + 1
         if shoes_id is not None:
             shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+            shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+            if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                heel_outfits_count += 1
         if midlayer_id is not None:
             midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
         if one_piece_id is not None:
@@ -1332,6 +1402,10 @@ def generate_outfits(
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
                 continue
+            if shoes_id is not None and heel_outfits_count >= max_same_shoes_heel:
+                shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+                if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                    continue
             if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             if one_piece_id is not None and one_piece_usage.get(one_piece_id, 0) >= max_same_one_piece:
@@ -1346,6 +1420,9 @@ def generate_outfits(
                 top_usage[top_id] = top_usage.get(top_id, 0) + 1
             if shoes_id is not None:
                 shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+                shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+                if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                    heel_outfits_count += 1
             if midlayer_id is not None:
                 midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
             if one_piece_id is not None:
@@ -1379,6 +1456,10 @@ def generate_outfits(
                 continue
             if shoes_id is not None and shoes_usage.get(shoes_id, 0) >= max_same_shoes:
                 continue
+            if shoes_id is not None and heel_outfits_count >= max_same_shoes_heel:
+                shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+                if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                    continue
             if midlayer_id is not None and midlayer_usage.get(midlayer_id, 0) >= max_same_midlayer:
                 continue
             if one_piece_id is not None and one_piece_usage.get(one_piece_id, 0) >= max_same_one_piece:
@@ -1405,6 +1486,9 @@ def generate_outfits(
                 top_usage[top_id] = top_usage.get(top_id, 0) + 1
             if shoes_id is not None:
                 shoes_usage[shoes_id] = shoes_usage.get(shoes_id, 0) + 1
+                shoes_obj = next((g for g in combo if g.category == "shoes"), None)
+                if shoes_obj and shoes_obj.subcategory in ["taco_alto", "taco_bajo"]:
+                    heel_outfits_count += 1
             if midlayer_id is not None:
                 midlayer_usage[midlayer_id] = midlayer_usage.get(midlayer_id, 0) + 1
             if one_piece_id is not None:
@@ -1436,7 +1520,7 @@ def generate_outfits_from_selected_garment(
     optional = rules["optional"]
 
     if not ignore_occasion_for_selected:
-        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain, mood, temp)
+        selected_allowed, _ = garment_allowed_for_occasion(selected_garment, occasion, rain, mood, temp, activity)
         if not selected_allowed:
             return [], []
 
@@ -1532,12 +1616,14 @@ def generate_outfits_from_selected_garment(
         random.shuffle(_waterproof_outer)
         top_candidates["outerwear"] = (_waterproof_outer + _non_waterproof_outer)[:4]
     else:
-        top_candidates["outerwear"] = [g for _, g in ranked["outerwear"]][:4]
+        top_candidates["outerwear"] = [g for _, g in ranked["outerwear"]][:8]
 
     # =========================================================
     # FILTROS DE CLIMA — ordenados correctamente
     # =========================================================
+    print(f"[DEBUG temp_branch] temp={temp} rain={rain}")
     if temp >= 24:
+        print("[DEBUG temp_branch] → temp >= 24")
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -1553,6 +1639,7 @@ def generate_outfits_from_selected_garment(
             ][:2]
 
     elif temp >= 16 and not rain:
+        print("[DEBUG temp_branch] → temp >= 16 and not rain")
         top_candidates["outerwear"] = []
         _mid_no_frio = [g for g in top_candidates["midlayer"] if g.warmth != "frio"]
         if occasion == "matrimonio":
@@ -1561,10 +1648,31 @@ def generate_outfits_from_selected_garment(
             top_candidates["midlayer"] = _mid_no_frio[:1]
 
     elif temp >= 13 and not rain:
-        top_candidates["outerwear"] = [
+        print("[DEBUG temp_branch] → temp >= 13 and not rain")
+        _allow_cold = occasion in ["trabajo", "cita", "salida nocturna"] and mood in ["elegante", "formal", "comodo"]
+        for _g in top_candidates["outerwear"]:
+            if "lana" in _g.name.lower() or "rojo" in _g.name.lower() or "beige" in _g.name.lower():
+                print(f"[DEBUG raw] {_g.name}: repr(secondary_styles)={repr(_g.secondary_styles)}")
+                print(f"[DEBUG raw] {_g.name}: 'formal' in secondary_styles = {'formal' in (_g.secondary_styles or [])}")
+            if "gala" in _g.name.lower() or "abrigo" in _g.name.lower():
+                _cond1 = _g.warmth != "frio" or _allow_cold
+                _cond2 = not _g.waterproof
+                _sec = _g.secondary_styles or []
+                _formal_in_sec = "formal" in _sec
+                _cond3 = not (occasion == "trabajo" and _g.subcategory == "abrigo" and _g.style == "elegante" and not _formal_in_sec)
+                print(f"[DEBUG outerwear] {_g.name}: style={_g.style!r} sec_styles={_g.secondary_styles!r} type={type(_g.secondary_styles).__name__} subcategory={_g.subcategory!r} warmth={_g.warmth!r} | _allow_cold={_allow_cold} | formal_in_sec={_formal_in_sec} | cond_warmth={_cond1} cond_trabajo={_cond3} | PASS={_cond1 and _cond2 and _cond3}")
+        _outer_pool = [
             g for g in top_candidates["outerwear"]
-            if g.warmth != "frio" and not g.waterproof
-        ][:1]
+            if (g.warmth != "frio" or _allow_cold)
+            and not g.waterproof
+            and not (
+                occasion == "trabajo"
+                and g.subcategory == "abrigo"
+                and g.style == "elegante"
+                and "formal" not in (g.secondary_styles or [])
+            )
+        ]
+        top_candidates["outerwear"] = _outer_pool[:4]
 
     elif rain and temp >= 16:
         top_candidates["midlayer"] = [
@@ -1577,6 +1685,15 @@ def generate_outfits_from_selected_garment(
     else:
         top_candidates["midlayer"] = top_candidates["midlayer"][:mid_limit]
         top_candidates["outerwear"] = top_candidates["outerwear"][:outer_limit]
+        if occasion == "trabajo":
+            top_candidates["outerwear"] = [
+                g for g in top_candidates["outerwear"]
+                if not (
+                    g.subcategory == "abrigo"
+                    and g.style == "elegante"
+                    and "formal" not in (g.secondary_styles or [])
+                )
+            ]
 
     # Filtros especiales por ocasión — igual que generate_outfits
     if occasion == "matrimonio":
@@ -1689,6 +1806,23 @@ def generate_outfits_from_selected_garment(
             if not any(x in g.name.lower() for x in ["zapatilla", "converse"])
         ]
 
+    if mood == "formal":
+        _allow_sneakers = occasion in ["casual", "deporte"]
+        top_candidates["shoes"] = [
+            g for g in top_candidates["shoes"]
+            if not any(x in g.name.lower() for x in ["converse"])
+            and g.subcategory != "zapatilla_deporte"
+            and not (
+                g.subcategory == "zapatilla_urbana"
+                and not _allow_sneakers
+                and not (
+                    garment_has_style(g, "elegante")
+                    or garment_has_style(g, "formal")
+                    or g.dress_level in ["arreglado", "elegante"]
+                )
+            )
+        ]
+
     tc_for_check = dict(top_candidates)
     sel_cat = selected_garment.category
     if sel_cat == "one_piece":
@@ -1710,7 +1844,7 @@ def generate_outfits_from_selected_garment(
         for g in combo:
             if g.id == selected_garment.id:
                 continue
-            allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
+            allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp, activity)
             if not allowed:
                 return
 

@@ -774,7 +774,12 @@ with tab1:
         mood = st.selectbox("Mood / estilo deseado", MOOD_OPTIONS)
         
     with col2:
-        activity = st.selectbox("Actividad", ACTIVITY_OPTIONS)
+        _actividades_disponibles = ["normal"]
+        if mood in ["relajado", "urbano", "comodo"] or occasion in ["casual", "deporte"]:
+            _actividades_disponibles.append("caminar")
+        if occasion == "deporte":
+            _actividades_disponibles.append("entrenar")
+        activity = st.selectbox("Actividad", _actividades_disponibles)
         use_real_weather = st.toggle("Usar clima real", value=True)
 
         if use_real_weather:
@@ -867,7 +872,7 @@ with tab1:
     selected_allowed = True
 
     if selected_garment is not None:
-        selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion, rain, mood=mood, temp=temp)
+        selected_allowed, reason = garment_allowed_for_occasion(selected_garment, occasion, rain, mood=mood, temp=temp, activity=activity)
         if not selected_allowed:
             st.warning(reason)
 
@@ -1018,7 +1023,7 @@ with tab1:
     elif surprise_clicked:
         surprise_candidates = [
             g for g in st.session_state.wardrobe
-            if garment_allowed_for_occasion(g, occasion, rain, mood=mood, temp=temp)[0]
+            if garment_allowed_for_occasion(g, occasion, rain, mood=mood, temp=temp, activity=activity)[0]
         ]
 
         if surprise_candidates:
@@ -1397,7 +1402,7 @@ with tab2:
                         format_func=lambda s: STYLE_LABELS_ES.get(s, s),
                     )
 
-                    current_pattern = getattr(garment, "pattern", "liso")
+                    current_pattern = st.session_state.get(f"edit_pattern_{garment.id}", getattr(garment, "pattern", "liso"))
                     pattern_options_base = [
                         "liso",
                         "rayas",
@@ -1489,23 +1494,56 @@ with tab2:
                             st.session_state[key_sc] = []
                         secondary_colors = []
 
+                    def _reinfer_from_edit_name():
+                        _name = st.session_state.get(f"edit_name_{garment.id}", "").strip()
+                        if not _name or len(_name) < 3:
+                            return
+                        _inferred = infer_attributes_from_name(_name)
+
+                        _new_cat = None
+                        if _inferred.get("category") in CATEGORY_OPTIONS:
+                            st.session_state[f"edit_category_{garment.id}"] = _inferred["category"]
+                            _new_cat = _inferred["category"]
+
+                        if _new_cat:
+                            _inferred_sub = _inferred.get("subcategory")
+                            _valid_subs = SUBCATEGORY_OPTIONS.get(_new_cat, [])
+                            if _inferred_sub in _valid_subs:
+                                st.session_state[f"edit_sub_{garment.id}_{_new_cat}"] = _inferred_sub
+
+                        if _inferred.get("color") in COLOR_OPTIONS:
+                            st.session_state[f"edit_color_{garment.id}"] = _inferred["color"]
+
+                        if _inferred.get("pattern") in PATTERN_OPTIONS:
+                            st.session_state[f"edit_pattern_{garment.id}"] = _inferred["pattern"]
+
+                        if _inferred.get("warmth") in WARMTH_OPTIONS:
+                            st.session_state[f"edit_warmth_{garment.id}"] = _inferred["warmth"]
+
+                        if _inferred.get("dress_level") in DRESS_LEVEL_OPTIONS:
+                            st.session_state[f"edit_dress_level_{garment.id}"] = _inferred["dress_level"]
+
+                        if _inferred.get("sexiness") is not None:
+                            st.session_state[f"edit_sexiness_{garment.id}"] = _inferred["sexiness"]
+
                     st.markdown("""
 <div style="background-color: #fff0f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
     <p style="margin: 0 0 4px 0; font-weight: 600; font-size: 0.95rem;">Nombre de la prenda</p>
     <p style="margin: 0; font-size: 0.8rem; color: #666;">💡 Lookia infiere la categoría, color y otros atributos desde el nombre — mientras más descriptivo, mejor</p>
 </div>
 """, unsafe_allow_html=True)
-                    name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}", label_visibility="collapsed")
+                    name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}", label_visibility="collapsed", on_change=_reinfer_from_edit_name)
 
+                    _init_cat = st.session_state.get(f"edit_category_{garment.id}", garment.category)
                     category = st.selectbox(
                         "Categoría",
                         CATEGORY_OPTIONS,
-                        index=CATEGORY_OPTIONS.index(garment.category) if garment.category in CATEGORY_OPTIONS else 0,
+                        index=CATEGORY_OPTIONS.index(_init_cat) if _init_cat in CATEGORY_OPTIONS else 0,
                         key=f"edit_category_{garment.id}",
                         format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
                     )
 
-                    current_subcategory = getattr(garment, "subcategory", None)
+                    current_subcategory = st.session_state.get(f"edit_sub_{garment.id}_{category}", getattr(garment, "subcategory", None))
 
                     edit_cat_key = f"edit_cat_{garment.id}"
                     if st.session_state.get(edit_cat_key) != category:
@@ -1536,7 +1574,7 @@ with tab2:
                     )
 
                     if show_warmth:
-                        current_warmth = garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio"
+                        current_warmth = st.session_state.get(f"edit_warmth_{garment.id}", garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio")
                         warmth = st.selectbox(
                             "Tipo térmico",
                             WARMTH_OPTIONS,
@@ -1554,11 +1592,11 @@ with tab2:
                     else:
                         waterproof = False
 
+                    _init_dl = st.session_state.get(f"edit_dress_level_{garment.id}", garment.dress_level)
                     dress_level = st.selectbox(
                         "Nivel de formalidad",
                         DRESS_LEVEL_OPTIONS,
-                        index=DRESS_LEVEL_OPTIONS.index(garment.dress_level)
-                        if garment.dress_level in DRESS_LEVEL_OPTIONS else 0,
+                        index=DRESS_LEVEL_OPTIONS.index(_init_dl) if _init_dl in DRESS_LEVEL_OPTIONS else 0,
                         key=f"edit_dress_level_{garment.id}"
                     )
 
@@ -1567,7 +1605,7 @@ with tab2:
                             "Nivel sexy",
                             min_value=0,
                             max_value=3,
-                            value=getattr(garment, "sexiness", 0),
+                            value=st.session_state.get(f"edit_sexiness_{garment.id}", getattr(garment, "sexiness", 0)),
                             key=f"edit_sexiness_{garment.id}",
                             help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
@@ -2213,10 +2251,15 @@ with tab4:
         )
 
     with base_col3:
+        _actividades_base = ["normal"]
+        if base_mood in ["relajado", "urbano", "comodo"] or base_occasion in ["casual", "deporte"]:
+            _actividades_base.append("caminar")
+        if base_occasion == "deporte":
+            _actividades_base.append("entrenar")
         base_activity = st.selectbox(
             "Actividad base",
-            ACTIVITY_OPTIONS,
-            index=ACTIVITY_OPTIONS.index("normal"),
+            _actividades_base,
+            index=0,
             key="base_week_activity"
         )
 
@@ -2299,10 +2342,15 @@ with tab4:
                 )
 
             with col3:
+                _actividades_dia = ["normal"]
+                if mood in ["relajado", "urbano", "comodo"] or occasion in ["casual", "deporte"]:
+                    _actividades_dia.append("caminar")
+                if occasion == "deporte":
+                    _actividades_dia.append("entrenar")
                 activity = st.selectbox(
                     "Actividad",
-                    ACTIVITY_OPTIONS,
-                    index=ACTIVITY_OPTIONS.index(base_activity),
+                    _actividades_dia,
+                    index=_actividades_dia.index(base_activity) if base_activity in _actividades_dia else 0,
                     key=f"{d}_act"
                 )
 

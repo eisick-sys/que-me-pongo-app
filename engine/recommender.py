@@ -238,7 +238,9 @@ def rank_garments(
     scored = []
 
     for g in filtered:
-        allowed, reason = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
+        allowed, reason = garment_allowed_for_occasion(g, occasion, rain, mood, temp, activity)
+        if category == "outerwear" and occasion == "trabajo" and mood == "comodo":
+            print(f"[DEBUG rank_garments outerwear] {g.name}: style={g.style!r} sec_styles={g.secondary_styles!r} dress_level={g.dress_level!r} warmth={g.warmth!r} | allowed={allowed} reason={reason!r}")
         if not allowed:
             continue
 
@@ -254,6 +256,9 @@ def rank_garments(
         )
 
         scored.append((score, g))
+
+    if category == "outerwear" and occasion == "trabajo" and mood == "comodo":
+        print(f"[DEBUG rank_garments outerwear] total que pasan: {len(scored)} de {len(filtered)}")
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored
@@ -317,7 +322,7 @@ def outfit_score(
         if ignore_occasion_for_forced and forced_garment_id is not None and g.id == forced_garment_id:
             allowed = True
         else:
-            allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp)
+            allowed, _ = garment_allowed_for_occasion(g, occasion, rain, mood, temp, activity)
 
         if not allowed:
             return -999
@@ -720,7 +725,6 @@ def explain_outfit_score(
     activity_points = sum(activity_bonus(g, activity, occasion) for g in items)
     if activity_points >= len(items) * 6:
         reasons.append(random.choice([
-            f"✅ Funciona bien para la actividad '{activity}'",
             f"👟 Pensado para moverte con comodidad",
             f"✅ Práctico y listo para el día",
             f"💪 Ideal para lo que tienes planeado",

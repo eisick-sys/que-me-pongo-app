@@ -195,13 +195,6 @@ def activity_bonus(garment: Garment, activity: str, occasion: str = "") -> int:
 
         return 6
 
-    if activity == "formal":
-        if garment_has_style(garment, "elegante") or garment_has_style(
-            garment, "formal"
-        ):
-            return 10
-        return 3
-
     if activity == "entrenar":
         if garment_has_style(garment, "sport"):
             return 12
@@ -232,6 +225,10 @@ def mood_bonus(garment: Garment, mood: str, occasion: str = "") -> int:
         },
         "comodo": {
             "strong": ["casual", "sport"],
+            "soft": ["urbano"],
+        },
+        "formal": {
+            "strong": ["elegante", "formal"],
             "soft": ["urbano"],
         },
     }
@@ -434,9 +431,9 @@ def practicality_penalty(
                     penalty += 50
                 elif temp >= 24:
                     penalty += 20
-                if mood == "elegante" and g.dress_level == "relajado":
+                if mood in ["elegante", "formal"] and g.dress_level == "relajado":
                     penalty += 55
-                if mood in ["elegante", "sexy"] and g.subcategory == "jeans" and getattr(g, "sexiness", 0) == 0:
+                if mood in ["elegante", "sexy", "formal"] and g.subcategory == "jeans" and getattr(g, "sexiness", 0) == 0:
                     if g.dress_level == "relajado":
                         penalty += 85
                     elif g.dress_level == "flexible":
@@ -583,12 +580,19 @@ def practicality_penalty(
             penalty -= 10
 
         if (
-            mood in ["elegante", "sexy"]
+            mood in ["elegante", "sexy", "formal"]
             and g.category == "bottom"
             and g.subcategory in ["falda_midi", "falda_larga", "pantalon"]
             and g.dress_level in ["arreglado", "elegante"]
         ):
             penalty -= 50
+
+        if (
+            mood == "formal"
+            and g.category == "shoes"
+            and g.subcategory in ["taco_alto", "taco_bajo"]
+        ):
+            penalty -= 40
 
         if (
             temp >= 24

@@ -494,7 +494,7 @@ def shoe_context_penalty(
         if is_heel:
             if occasion in ["matrimonio", "gala"]:
                 penalty += 5
-            elif occasion == "trabajo" and mood == "elegante" and activity == "normal":
+            elif occasion == "trabajo" and mood in ["elegante", "formal"] and activity == "normal":
                 penalty += 14
             else:
                 penalty += 25

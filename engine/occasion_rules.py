@@ -85,7 +85,7 @@ def is_animal_print(garment: Garment) -> bool:
     return any(x in pattern for x in ["animal", "leop", "zebr", "cebr"])
 
 
-def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = False, mood: str = "", temp: int = 15):
+def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = False, mood: str = "", temp: int = 15, activity: str = ""):
     garment_styles = all_styles(garment)
     lower_name = garment.name.lower()
 
@@ -111,6 +111,13 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
                 and garment.category == "shoes"
                 and garment.subcategory in ["botin", "bota", "zapato", "mocasin"]):
             return _ret(False, f"No te recomiendo usar {garment.name} para {occasion}.")
+
+    if mood == "formal":
+        if garment_has_style(garment, "sport") and garment.category not in ["shoes", "accessory"]:
+            return _ret(False, f"{garment.name} es demasiado sport para mood formal.")
+
+    if activity == "caminar" and garment.category == "shoes" and garment.subcategory == "sandalia":
+        return _ret(False, f"{garment.name} no es práctica para caminar.")
 
     if garment.category == "bottom":
         if is_bottom_short_or_light(garment):
@@ -190,7 +197,7 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
                 return _ret(False, f"{garment.name} no es adecuada para trabajo formal.")
 
         if occasion == "trabajo" and mood == "comodo":
-            if garment.dress_level == "elegante" and garment.category == "one_piece":
+            if garment.dress_level in ["elegante", "arreglado"] and garment.category == "one_piece":
                 return _ret(False, f"{garment.name} es demasiado elegante para un día cómodo de trabajo.")
 
     # =========================================================

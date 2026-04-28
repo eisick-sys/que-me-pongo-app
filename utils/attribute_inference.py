@@ -72,6 +72,9 @@ def infer_pattern_from_name(name: str) -> Optional[str]:
         "estampado": [
             "estampado", "estampada"
         ],
+        "lunares": [
+            "lunares", "lunar", "puntos", "polka", "polka dot", "dots"
+        ],
         "liso": [
             "liso", "lisa", "basica", "basico"
         ],
@@ -273,7 +276,7 @@ def infer_warmth_from_name(name: str) -> Optional[str]:
     text = normalize_text(name)
 
     cold_keywords = [
-        "abrigo", "parka", "polar", "bufanda", "guantes", "gorro",
+        "abrigo", "parka", "polar", "poncho", "bufanda", "guantes", "gorro",
         "sweater grueso", "chaleco grueso", "lana"
     ]
     hot_keywords = [
@@ -302,6 +305,7 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "parka": "frio",
         "abrigo": "frio",
         "polar": "frio",
+        "poncho": "frio",
         "sweater": "frio",
         "cardigan": "medio",
         "chaleco": "medio",
