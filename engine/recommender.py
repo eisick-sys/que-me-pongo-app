@@ -3,7 +3,6 @@
 # =========================================================
 
 from typing import Any, Dict, List, Optional
-from unicodedata import category
 
 
 # =========================================================
@@ -239,8 +238,6 @@ def rank_garments(
 
     for g in filtered:
         allowed, reason = garment_allowed_for_occasion(g, occasion, rain, mood, temp, activity)
-        if category == "outerwear" and occasion == "trabajo" and mood == "comodo":
-            print(f"[DEBUG rank_garments outerwear] {g.name}: style={g.style!r} sec_styles={g.secondary_styles!r} dress_level={g.dress_level!r} warmth={g.warmth!r} | allowed={allowed} reason={reason!r}")
         if not allowed:
             continue
 
@@ -256,9 +253,6 @@ def rank_garments(
         )
 
         scored.append((score, g))
-
-    if category == "outerwear" and occasion == "trabajo" and mood == "comodo":
-        print(f"[DEBUG rank_garments outerwear] total que pasan: {len(scored)} de {len(filtered)}")
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored

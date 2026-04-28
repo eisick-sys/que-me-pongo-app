@@ -203,8 +203,7 @@ def bottom_context_penalty(
                 penalty += 6
 
         if occasion == "casual" and mood == "elegante":
-            if is_jogger_like:
-                penalty += 10
+            penalty += 10
 
         if occasion == "casual" and mood == "sexy":
             penalty += 18

@@ -339,166 +339,6 @@ def normalize_existing_images():
 # BASE INICIAL DE PRENDAS
 # =========================================================
 
-def default_wardrobe() -> List[Garment]:
-    return [
-        Garment(
-            id=1,
-            name="Camisa blanca ML con rayas",
-            category="top",
-            color="blanco",
-            style="elegante",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="arreglado",
-            image_name=None
-        ),
-        Garment(
-            id=2,
-            name="Camisa celeste ML lisa",
-            category="top",
-            color="celeste",
-            style="elegante",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="arreglado",
-            image_name=None
-        ),
-        Garment(
-            id=3,
-            name="Polera negra básica",
-            category="top",
-            color="negro",
-            style="casual",
-            secondary_styles=[],
-            warmth="caluroso",
-            waterproof=False,
-            dress_level="relajado",
-            image_name=None
-        ),
-        Garment(
-            id=4,
-            name="Polera blanca básica",
-            category="top",
-            color="blanco",
-            style="casual",
-            secondary_styles=[],
-            warmth="caluroso",
-            waterproof=False,
-            dress_level="relajado",
-            image_name=None
-        ),
-        Garment(
-            id=5,
-            name="Jeans ajustados",
-            category="bottom",
-            color="azul",
-            style="urbano",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="flexible",
-            image_name=None
-        ),
-        Garment(
-            id=6,
-            name="Jeans anchos",
-            category="bottom",
-            color="azul",
-            style="casual",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="relajado",
-            image_name=None
-        ),
-        Garment(
-            id=7,
-            name="Pantalón de tela azul marino",
-            category="bottom",
-            color="azul marino",
-            style="elegante",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="arreglado",
-            image_name=None
-        ),
-        Garment(
-            id=8,
-            name="Zapatillas urbanas negras",
-            category="shoes",
-            color="negro",
-            style="urbano",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="flexible",
-            image_name=None
-        ),
-        Garment(
-            id=9,
-            name="Zapatos de cuero",
-            category="shoes",
-            color="negro",
-            style="elegante",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="elegante",
-            image_name=None
-        ),
-        Garment(
-            id=10,
-            name="Chaqueta liviana café",
-            category="outerwear",
-            color="café",
-            style="casual",
-            secondary_styles=[],
-            warmth="frio",
-            waterproof=False,
-            dress_level="flexible",
-            image_name=None
-        ),
-        Garment(
-            id=11,
-            name="Chaqueta impermeable negra",
-            category="outerwear",
-            color="negro",
-            style="urbano",
-            secondary_styles=[],
-            warmth="frio",
-            waterproof=True,
-            dress_level="flexible",
-            image_name=None
-        ),
-        Garment(
-            id=12,
-            name="Blazer azul marino",
-            category="midlayer",
-            color="azul marino",
-            style="elegante",
-            secondary_styles=["formal"],
-            warmth="medio",
-            waterproof=False,
-            dress_level="elegante",
-            image_name=None
-        ),
-        Garment(
-            id=13,
-            name="Reloj plateado",
-            category="accessory",
-            color="plateado",
-            style="elegante",
-            secondary_styles=[],
-            warmth="medio",
-            waterproof=False,
-            dress_level="arreglado",
-            image_name=None
-        ),
-    ]
-
 
 def get_next_id(wardrobe: List[Garment]) -> int:
     if not wardrobe:
@@ -1375,7 +1215,7 @@ with tab2:
                     style = st.selectbox(
                         "Estilo principal",
                         STYLE_OPTIONS,
-                        index=STYLE_OPTIONS.index(garment.style) if garment.style in STYLE_OPTIONS else 0,
+                        index=STYLE_OPTIONS.index(st.session_state.get(f"edit_style_{garment.id}", garment.style)) if st.session_state.get(f"edit_style_{garment.id}", garment.style) in STYLE_OPTIONS else 0,
                         key=f"edit_style_{garment.id}",
                         format_func=lambda s: STYLE_LABELS_ES.get(s, s),
                     )
@@ -1525,6 +1365,9 @@ with tab2:
 
                         if _inferred.get("sexiness") is not None:
                             st.session_state[f"edit_sexiness_{garment.id}"] = _inferred["sexiness"]
+
+                        if _inferred.get("style") in STYLE_OPTIONS:
+                            st.session_state[f"edit_style_{garment.id}"] = _inferred["style"]
 
                     st.markdown("""
 <div style="background-color: #fff0f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">

@@ -31,22 +31,6 @@ def is_shoe_heel(garment: Garment) -> bool:
     return any(x in name for x in ["taco", "tacón", "heel", "heels", "stiletto"])
 
 
-def is_shoe_high_heel(garment: Garment) -> bool:
-    """Taco alto específicamente (stiletto, 7cm+)."""
-    sub = getattr(garment, "subcategory", None)
-    if sub == "taco_alto":
-        return True
-    if sub == "taco_bajo":
-        return False
-    name = garment.name.lower()
-    return any(x in name for x in ["taco", "tacón", "heel", "heels", "stiletto"])
-
-
-def is_shoe_low_heel(garment: Garment) -> bool:
-    """Taco bajo específicamente (kitten heel, 3-5cm)."""
-    sub = getattr(garment, "subcategory", None)
-    return sub == "taco_bajo"
-
 
 def is_shoe_boot_like(garment: Garment) -> bool:
     sub = getattr(garment, "subcategory", None)

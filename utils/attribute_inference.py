@@ -434,6 +434,16 @@ def infer_attributes_from_name(name: str) -> Dict[str, Optional[object]]:
     if inferred_subcategory:
         result = infer_attributes_from_subcategory(inferred_subcategory, result)
 
+    # Inferencia cruzada: dress_level desde estilo cuando no fue inferido por subcategoría
+    if result.get("dress_level") is None:
+        inferred_style = result.get("style")
+        if inferred_style == "elegante":
+            result["dress_level"] = "arreglado"
+        elif inferred_style == "formal":
+            result["dress_level"] = "arreglado"
+    elif result.get("dress_level") == "flexible" and result.get("style") == "elegante":
+        result["dress_level"] = "arreglado"
+
     return result
 
 

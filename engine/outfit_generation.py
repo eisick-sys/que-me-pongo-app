@@ -595,9 +595,7 @@ def generate_outfits(
             )
         ]
 
-    print(f"[DEBUG temp_branch] temp={temp} rain={rain}")
     if temp >= 24:
-        print("[DEBUG temp_branch] → temp >= 24")
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -613,7 +611,6 @@ def generate_outfits(
             ][:2]
 
     elif temp >= 16 and not rain:
-        print("[DEBUG temp_branch] → temp >= 16 and not rain")
         top_candidates["outerwear"] = []
         _mid_no_frio = [g for g in top_candidates["midlayer"] if g.warmth != "frio"]
         if occasion == "matrimonio":
@@ -622,19 +619,7 @@ def generate_outfits(
             top_candidates["midlayer"] = _mid_no_frio[:1]
 
     elif temp >= 13 and not rain:
-        print("[DEBUG temp_branch] → temp >= 13 and not rain")
         _allow_cold = occasion in ["trabajo", "cita", "salida nocturna"] and mood in ["elegante", "formal", "comodo"]
-        for _g in top_candidates["outerwear"]:
-            if "lana" in _g.name.lower() or "rojo" in _g.name.lower() or "beige" in _g.name.lower():
-                print(f"[DEBUG raw] {_g.name}: repr(secondary_styles)={repr(_g.secondary_styles)}")
-                print(f"[DEBUG raw] {_g.name}: 'formal' in secondary_styles = {'formal' in (_g.secondary_styles or [])}")
-            if "gala" in _g.name.lower() or "abrigo" in _g.name.lower():
-                _cond1 = _g.warmth != "frio" or _allow_cold
-                _cond2 = not _g.waterproof
-                _sec = _g.secondary_styles or []
-                _formal_in_sec = "formal" in _sec
-                _cond3 = not (occasion == "trabajo" and _g.subcategory == "abrigo" and _g.style == "elegante" and not _formal_in_sec)
-                print(f"[DEBUG outerwear] {_g.name}: style={_g.style!r} sec_styles={_g.secondary_styles!r} type={type(_g.secondary_styles).__name__} subcategory={_g.subcategory!r} warmth={_g.warmth!r} | _allow_cold={_allow_cold} | formal_in_sec={_formal_in_sec} | cond_warmth={_cond1} cond_trabajo={_cond3} | PASS={_cond1 and _cond2 and _cond3}")
         _outer_pool = [
             g for g in top_candidates["outerwear"]
             if (g.warmth != "frio" or _allow_cold)
@@ -1621,9 +1606,7 @@ def generate_outfits_from_selected_garment(
     # =========================================================
     # FILTROS DE CLIMA — ordenados correctamente
     # =========================================================
-    print(f"[DEBUG temp_branch] temp={temp} rain={rain}")
     if temp >= 24:
-        print("[DEBUG temp_branch] → temp >= 24")
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -1639,7 +1622,6 @@ def generate_outfits_from_selected_garment(
             ][:2]
 
     elif temp >= 16 and not rain:
-        print("[DEBUG temp_branch] → temp >= 16 and not rain")
         top_candidates["outerwear"] = []
         _mid_no_frio = [g for g in top_candidates["midlayer"] if g.warmth != "frio"]
         if occasion == "matrimonio":
@@ -1648,19 +1630,7 @@ def generate_outfits_from_selected_garment(
             top_candidates["midlayer"] = _mid_no_frio[:1]
 
     elif temp >= 13 and not rain:
-        print("[DEBUG temp_branch] → temp >= 13 and not rain")
         _allow_cold = occasion in ["trabajo", "cita", "salida nocturna"] and mood in ["elegante", "formal", "comodo"]
-        for _g in top_candidates["outerwear"]:
-            if "lana" in _g.name.lower() or "rojo" in _g.name.lower() or "beige" in _g.name.lower():
-                print(f"[DEBUG raw] {_g.name}: repr(secondary_styles)={repr(_g.secondary_styles)}")
-                print(f"[DEBUG raw] {_g.name}: 'formal' in secondary_styles = {'formal' in (_g.secondary_styles or [])}")
-            if "gala" in _g.name.lower() or "abrigo" in _g.name.lower():
-                _cond1 = _g.warmth != "frio" or _allow_cold
-                _cond2 = not _g.waterproof
-                _sec = _g.secondary_styles or []
-                _formal_in_sec = "formal" in _sec
-                _cond3 = not (occasion == "trabajo" and _g.subcategory == "abrigo" and _g.style == "elegante" and not _formal_in_sec)
-                print(f"[DEBUG outerwear] {_g.name}: style={_g.style!r} sec_styles={_g.secondary_styles!r} type={type(_g.secondary_styles).__name__} subcategory={_g.subcategory!r} warmth={_g.warmth!r} | _allow_cold={_allow_cold} | formal_in_sec={_formal_in_sec} | cond_warmth={_cond1} cond_trabajo={_cond3} | PASS={_cond1 and _cond2 and _cond3}")
         _outer_pool = [
             g for g in top_candidates["outerwear"]
             if (g.warmth != "frio" or _allow_cold)
