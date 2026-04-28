@@ -287,20 +287,33 @@ def _generate_gala(
     if not vestidos:
         return [], []
 
-    # --- Selección de abrigos según temperatura ---
-    # Sin abrigo si calor; preferir warmth medio en rango intermedio
-    usar_abrigo = temp <= 18
+    # --- Selección de abrigos/capas según temperatura ---
+    usar_abrigo = temp <= 15
+    usar_capa_ligera = 16 <= temp <= 22
+
     if usar_abrigo:
-        if 13 <= temp <= 18:
-            # Preferir warmth medio; si no hay, aceptar frio
+        if 13 <= temp <= 15:
             abrigos_pref = [g for g in abrigos_todos if g.warmth == "medio"]
             if not abrigos_pref:
                 abrigos_pref = [g for g in abrigos_todos if g.warmth in ["medio", "frio"]]
             abrigos = abrigos_pref
-        else:  # temp <= 12: frío real, cualquier abrigo elegante
+        else:
             abrigos = abrigos_todos
+        capas_ligeras = []
+    elif usar_capa_ligera:
+        abrigos = []
+        capas_ligeras = [
+            g for g in garments
+            if (
+                (g.category == "outerwear" and g.subcategory == "chaqueta")
+                or (g.category == "midlayer" and g.subcategory == "bolero")
+            )
+            and g.style == "elegante"
+            and not any(s in (g.secondary_styles or []) for s in ["casual", "sport", "urbano"])
+        ]
     else:
         abrigos = []
+        capas_ligeras = []
 
     # --- Scoring para ordenar pools ---
     def score_g(g):
@@ -312,8 +325,12 @@ def _generate_gala(
     vestidos = sorted(vestidos, key=score_g, reverse=True)
     calzado = sorted(calzado, key=score_g, reverse=True)
     abrigos = sorted(abrigos, key=score_g, reverse=True)
+    capas_ligeras = sorted(capas_ligeras, key=score_g, reverse=True)
     if selected_garment is not None and selected_garment.category == "outerwear":
-        abrigos = [selected_garment] + [g for g in abrigos if g.id != selected_garment.id]
+        if usar_abrigo:
+            abrigos = [selected_garment] + [g for g in abrigos if g.id != selected_garment.id]
+        elif usar_capa_ligera:
+            capas_ligeras = [selected_garment] + [g for g in capas_ligeras if g.id != selected_garment.id]
     random.shuffle(accesorios)
 
     # --- Scoring boost: priorizar vestido_coctel en sexy/urbano ---
@@ -329,11 +346,14 @@ def _generate_gala(
         vestido = vestidos[i % len(vestidos)]
         zapato = calzado[i % len(calzado)]
         abrigo = abrigos[i % len(abrigos)] if usar_abrigo and abrigos else None
+        capa = capas_ligeras[i % len(capas_ligeras)] if usar_capa_ligera and capas_ligeras else None
         acc = accesorios[i % len(accesorios)] if accesorios else None
 
         combo = [vestido, zapato]
         if abrigo:
             combo.append(abrigo)
+        if capa:
+            combo.append(capa)
         if acc:
             combo.append(acc)
         outfits.append(combo)
@@ -442,6 +462,7 @@ def generate_outfits(
         "midlayer": [g for _, g in ranked["midlayer"][:4]],
         "one_piece": [g for _, g in ranked["one_piece"][:base_top_limit]],
     }
+
     # Shuffle impermeables para rotar cuál aparece primero y evitar siempre el mismo
     if rain:
         _waterproof_outer = [g for _, g in ranked["outerwear"] if g.waterproof]

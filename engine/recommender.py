@@ -232,7 +232,18 @@ def rank_garments(
     filtered = [g for g in garments if g.category == category]
 
     if occasion == "deporte":
-        filtered = [g for g in filtered if garment_has_style(g, "sport")]
+        filtered = [
+            g for g in filtered
+            if garment_has_style(g, "sport")
+            or (
+                g.category == "shoes"
+                and g.subcategory == "zapatilla_urbana"
+                and activity == "normal"
+                and g.dress_level not in ["arreglado", "elegante"]
+                and not garment_has_style(g, "elegante")
+                and not any(x in g.name.lower() for x in ["converse", "elegante"])
+            )
+        ]
 
     scored = []
 

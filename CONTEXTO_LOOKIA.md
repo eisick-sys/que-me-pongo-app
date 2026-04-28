@@ -610,8 +610,53 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 - ✅ 7.4 actividad "formal" nunca aparece en UI — OK
 - ✅ 7.5 sin errores/crashes — OK
 
-**⚠️ Deuda técnica prioritaria próxima sesión**
+**⚠️ Deuda técnica prioritaria próxima sesión (primera parte)**
 - 🎯 Rotación de bottoms — pantalón vestir negro y falda negra larga dominan en moods formales/elegantes, generando 1–2 outfits en lugar de 3
+
+**Fixes adicionales sesión 26 (continuación)**
+
+**`app.py`**
+- ✅ `default_wardrobe()` eliminada — era código muerto legacy de antes de Supabase (160 líneas)
+- ✅ Nombre de prenda capitalizado al guardar (`.strip().capitalize()`) en formulario agregar y editar
+- ✅ `_reinfer_from_edit_name` actualiza también `edit_style_{garment.id}` — gap corregido
+- ✅ Selectbox de estilo en edición lee desde `st.session_state` con fallback a `garment.style`
+
+**`utils/attribute_inference.py`**
+- ✅ Inferencia cruzada `dress_level` ← estilo — cuando `dress_level` queda `None` o `flexible` con estilo elegante/formal, se sube a `arreglado`
+- ✅ Aliases de color ampliados — femeninos (dorada, plateada), chilenismos (naranjo, camel, arena, tostado, nude, palo de rosa, terracota→café, salmón→naranja, coral→rosado, turquesa→celeste, granate→burdeo, etc.)
+- ✅ `"poncho"` agregado a `cold_keywords` y `warmth_map`
+
+**`engine/occasion_rules.py`**
+- ✅ Bloqueo prendas sport en mood formal implementado
+
+**Supabase**
+- ✅ Script `capitalize_garment_names.py` ejecutado — 156 nombres de prendas existentes capitalizados
+
+**Limpieza de código muerto**
+- ✅ `from unicodedata import category` eliminado de `recommender.py`
+- ✅ `is_shoe_high_heel()` e `is_shoe_low_heel()` eliminadas de `garment_utils.py`
+- ✅ Condiciones redundantes simplificadas en `occasion_rules.py` y `category_rules.py`
+- ✅ Prints de debug eliminados de `outfit_generation.py` y `recommender.py`
+
+---
+
+## Sesión 27 — abril 2026
+
+### Ocasión deporte — mejoras de calzado
+- ✅ `occasion_rules.py`: bloqueo de calzado por actividad en deporte — entrenar solo `zapatilla_deporte`, caminar `zapatilla_deporte` + `zapatilla_urbana`, normal `zapatilla_deporte` + `zapatilla_urbana` básica (sin converse, sin elegante, sin `dress_level` arreglado/elegante)
+- ✅ `recommender.py` (`rank_garments`): excepción en filtro sport para zapatilla urbana básica en deporte+normal — permite entrada al ranking sin style sport
+
+### Gala — capa ligera 16–22°
+- ✅ `outfit_generation.py` (`_generate_gala`): nuevo pool `capas_ligeras` para rango 16–22° — bolero (`midlayer`) o chaqueta (`outerwear`) con `style elegante` sin secondary casual/sport/urbano; `usar_abrigo` ajustado a `temp ≤ 15°`
+- ✅ `constants.py`: `"bolero"` movido de `SUBCATEGORY_OPTIONS["outerwear"]` a `SUBCATEGORY_OPTIONS["midlayer"]`; label agregado en `SUBCATEGORY_LABELS_ES`
+
+**⚠️ Deuda técnica prioritaria próxima sesión**
+- 🎯 Rotación de categorías — implementar `bottom_usage` y mecanismo de diversidad forzada genérica para todas las categorías (bottom, midlayer, outerwear). Causa raíz de outfits con 1–2 resultados y prendas que nunca aparecen
+- ⬜ Refactor `generate_outfits_from_selected_garment` — ~430 líneas duplicadas con `generate_outfits`. Sesión dedicada con batería de pruebas completa
+- ⬜ Extraer `is_too_similar` a función standalone (cambio seguro, pendiente)
+- ⬜ Extraer filtro accesorios duplicado en `_generate_matrimonio_elegante` y `_generate_gala` (cambio seguro, pendiente)
+- ⬜ Rotación de bottoms — pantalón vestir negro y falda negra larga dominan en moods formales/elegantes
+- ⬜ Outerwear faltante a temperaturas bajas con actividad caminar
 
 ---
 
@@ -626,7 +671,7 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 ### Motor (general)
 - ✅ matrimonio — todos los moods completados
 - ✅ Gala — implementada y validada (37 casos)
-- 🎯 **PRÓXIMO: Rotación de bottoms (pantalón/falda negra dominan en formal/elegante) + Deporte**
+- 🎯 **PRÓXIMO: Rotación de categorías (bottom_usage + diversidad forzada genérica)**
 - ⬜ Deporte — todos los moods y temperaturas
 - ⬜ matrimonio+cómodo — ajuste fino de scores (queda como deuda menor, no bloquea gala)
 - ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro. 

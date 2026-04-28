@@ -220,9 +220,37 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
     # =========================================================
 
     if occasion == "deporte":
+        if garment.category == "shoes":
+            if activity == "entrenar":
+                if garment.subcategory != "zapatilla_deporte":
+                    return _ret(False, f"{garment.name} no es adecuada para entrenar.")
+            elif activity == "caminar":
+                if garment.subcategory not in ["zapatilla_deporte", "zapatilla_urbana"]:
+                    return _ret(False, f"{garment.name} no es adecuada para caminar.")
+            else:  # normal
+                if garment.subcategory == "zapatilla_deporte":
+                    pass
+                elif garment.subcategory == "zapatilla_urbana":
+                    if (
+                        garment.dress_level in ["arreglado", "elegante"]
+                        or garment_has_style(garment, "elegante")
+                        or any(x in garment.name.lower() for x in ["converse", "elegante"])
+                    ):
+                        return _ret(False, f"{garment.name} no es adecuada para deporte.")
+                else:
+                    return _ret(False, f"{garment.name} no es adecuada para deporte.")
+
         if garment.category in ["top", "bottom", "shoes", "one_piece"]:
             if "sport" not in garment_styles:
-                return _ret(False, f"{garment.name} no es adecuada para deporte.")
+                if not (
+                    garment.category == "shoes"
+                    and garment.subcategory == "zapatilla_urbana"
+                    and activity == "normal"
+                    and garment.dress_level not in ["arreglado", "elegante"]
+                    and not garment_has_style(garment, "elegante")
+                    and not any(x in garment.name.lower() for x in ["converse", "elegante"])
+                ):
+                    return _ret(False, f"{garment.name} no es adecuada para deporte.")
 
     # =========================================================
     # SALIDA NOCTURNA

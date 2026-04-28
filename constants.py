@@ -30,6 +30,7 @@ SUBCATEGORY_OPTIONS = {
         "blazer",
         "hoodie",
         "polar",
+        "bolero",
     ],
     "outerwear": [
         "chaqueta",
@@ -38,7 +39,6 @@ SUBCATEGORY_OPTIONS = {
         "trench",
         "impermeable",
         "poncho",
-        "bolero",
     ],
     "bottom": [
         "jeans",
@@ -176,8 +176,6 @@ COLOR_ALIASES = {
     "rosada": "rosado",
     "morada": "morado",
     "amarilla": "amarillo",
-
-    # Femeninos faltantes
     "dorada": "dorado",
     "plateada": "plateado",
 
@@ -326,6 +324,7 @@ SUBCATEGORY_LABELS_ES = {
     "blazer": "Blazer",
     "hoodie": "Hoodie",
     "polar": "Polar",
+    "bolero": "Bolero",
     # outerwear
     "chaqueta": "Chaqueta",
     "abrigo": "Abrigo",
@@ -333,7 +332,6 @@ SUBCATEGORY_LABELS_ES = {
     "trench": "Trench",
     "impermeable": "Impermeable",
     "poncho": "Poncho",
-    "bolero": "Bolero",
     # bottom
     "jeans": "Jeans",
     "pantalon": "Pantalón",
