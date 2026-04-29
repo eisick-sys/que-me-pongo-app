@@ -377,6 +377,17 @@ def style_compatibility(garment1: Garment, garment2: Garment) -> int:
                 if penalty < 0:
                     return penalty
 
+        one_piece_is_elegant = (
+            one_piece.style == "elegante"
+            or one_piece_subcat in {"vestido_elegante", "vestido_coctel"}
+        )
+
+        if one_piece_is_elegant:
+            if shoes_subcat in {"zapato", "botin"} and shoes.style not in {"elegante", "formal"}:
+                return -22
+            if shoes_subcat == "bota" and shoes.style not in {"elegante", "formal"}:
+                return -28
+
     # =========================================================
     # RECOMPENSAS NORMALES
     # =========================================================

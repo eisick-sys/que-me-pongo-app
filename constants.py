@@ -16,6 +16,7 @@ CATEGORY_LABELS_ES = {
 SUBCATEGORY_OPTIONS = {
     "top": [
         "polera",
+        "polera_deporte",
         "blusa",
         "camisa",
         "top",
@@ -31,6 +32,7 @@ SUBCATEGORY_OPTIONS = {
         "hoodie",
         "polar",
         "bolero",
+        "camisón",
     ],
     "outerwear": [
         "chaqueta",
@@ -38,6 +40,7 @@ SUBCATEGORY_OPTIONS = {
         "parka",
         "trench",
         "impermeable",
+        "impermeable_deporte",
         "poncho",
     ],
     "bottom": [
@@ -51,6 +54,7 @@ SUBCATEGORY_OPTIONS = {
         "legging",
         "buzo",
         "jogger",
+        "jardinera",
     ],
     "one_piece": [
         "vestido_casual",
@@ -68,6 +72,7 @@ SUBCATEGORY_OPTIONS = {
         "taco_bajo",
         "taco_alto",
         "mocasin",
+        "ballarina",
     ],
     "accessory": [
         "reloj",
@@ -311,6 +316,7 @@ CHILEAN_CITIES = [
 SUBCATEGORY_LABELS_ES = {
     # top
     "polera": "Polera",
+    "polera_deporte": "Polera deportiva",
     "blusa": "Blusa",
     "camisa": "Camisa",
     "top": "Top",
@@ -325,12 +331,14 @@ SUBCATEGORY_LABELS_ES = {
     "hoodie": "Hoodie",
     "polar": "Polar",
     "bolero": "Bolero",
+    "camisón": "Camisón",
     # outerwear
     "chaqueta": "Chaqueta",
     "abrigo": "Abrigo",
     "parka": "Parka",
     "trench": "Trench",
     "impermeable": "Impermeable",
+    "impermeable_deporte": "Impermeable deportivo",
     "poncho": "Poncho",
     # bottom
     "jeans": "Jeans",
@@ -343,6 +351,7 @@ SUBCATEGORY_LABELS_ES = {
     "legging": "Legging",
     "buzo": "Buzo/Jogging",
     "jogger": "Jogger",
+    "jardinera": "Jardinera",
     # one_piece
     "vestido_casual": "Vestido casual",
     "vestido_elegante": "Vestido elegante",
@@ -358,6 +367,7 @@ SUBCATEGORY_LABELS_ES = {
     "taco_bajo": "Taco bajo",
     "taco_alto": "Taco alto",
     "mocasin": "Mocasín",
+    "ballarina": "Bailarina / Zapato ballet",
     # accessory
     "reloj": "Reloj",
     "collar": "Collar",

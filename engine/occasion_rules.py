@@ -7,6 +7,7 @@ from utils.garment_utils import (
     is_shoe_sport_sneaker,
     is_bottom_short_or_light,
     is_bottom_short,
+    is_shoe_ballet_flat,
 )
 
 
@@ -199,6 +200,15 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             if garment.dress_level in ["elegante", "arreglado"] and garment.category == "one_piece":
                 return _ret(False, f"{garment.name} es demasiado elegante para un día cómodo de trabajo.")
 
+        if getattr(garment, "subcategory", None) == "enterito":
+            if mood != "sexy":
+                return _ret(False, f"{garment.name} no es ideal para trabajo — pero puedes forzarlo.")
+
+        if is_bottom_short(garment):
+            umbral = 24 if mood in ["relajado", "comodo"] else 27
+            if temp < umbral:
+                return _ret(False, f"{garment.name} no es adecuada para trabajo con esta temperatura.")
+
     # =========================================================
     # CITA
     # =========================================================
@@ -257,6 +267,9 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
     # =========================================================
 
     if occasion == "salida nocturna":
+        if garment.subcategory == "polar" and mood == "elegante":
+            return _ret(False, f"{garment.name} no va con una salida nocturna elegante.")
+
         if garment.style == "sport" and garment.category != "shoes":
             if not (mood in ["relajado", "comodo"] and garment.category == "outerwear"):
                 return _ret(False, f"{garment.name} es demasiado sport para salida nocturna.")
@@ -284,5 +297,40 @@ def garment_allowed_for_occasion(garment: Garment, occasion: str, rain: bool = F
             return _ret(False, f"{garment.name} es demasiado sport para {occasion}.")
         if occasion in ["cita", "salida nocturna", "trabajo"] and mood == "elegante":
             return _ret(False, f"{garment.name} es demasiado sport para {occasion}.")
+
+    # Impermeable deportivo: bloqueado en ocasiones elegantes/formales
+    if garment.subcategory == "impermeable_deporte":
+        if occasion in ["matrimonio", "gala"]:
+            return _ret(False, f"{garment.name} no va con {occasion}.")
+        if occasion in ["cita", "salida nocturna", "trabajo"] and mood in ["elegante", "formal", "sexy"]:
+            return _ret(False, f"{garment.name} no es adecuada para {occasion} con este estilo.")
+
+    # Polera deportiva: solo en deporte o casual
+    if occasion not in ["deporte", "casual"] and garment.subcategory == "polera_deporte":
+        return _ret(False, f"{garment.name} no es adecuada para {occasion}.")
+
+    # Jardinera: tratar como falda corta en frío/lluvia
+    if garment.subcategory == "jardinera":
+        if rain:
+            return _ret(False, f"{garment.name} no es adecuada para lluvia.")
+        if temp <= 13:
+            return _ret(False, f"{garment.name} no es adecuada para este frío.")
+        if occasion in ["matrimonio", "gala"] and garment.dress_level in ["relajado", "flexible"]:
+            return _ret(False, f"{garment.name} no va con {occasion}.")
+
+    # Ballarina: bloquear en deporte
+    if is_shoe_ballet_flat(garment):
+        if occasion == "deporte":
+            return _ret(False, f"{garment.name} no es adecuada para deporte.")
+        if activity == "entrenar":
+            return _ret(False, f"{garment.name} no es adecuada para entrenar.")
+
+    if garment.subcategory == "zapatilla_deporte" and mood == "elegante":
+        if occasion != "deporte":
+            return _ret(False, f"{garment.name} no va con un look elegante.")
+
+    if is_shoe_ballet_flat(garment):
+        if temp <= 8:
+            return _ret(False, f"{garment.name} no es la mejor opción para este frío — pero tú decides.")
 
     return _ret(True, "")

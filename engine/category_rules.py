@@ -19,6 +19,7 @@ from utils.garment_utils import (
     is_outerwear_formal_friendly,
     is_top_too_sporty,
     is_midlayer_formal_friendly,
+    is_shoe_ballet_flat,
 )
 
 # =========================================================
@@ -58,6 +59,10 @@ def top_context_penalty(
 
     if temp >= 26 and garment.warmth == "frio":
         penalty += 10
+
+    if garment.subcategory == "polera_deporte":
+        if occasion not in ["deporte", "casual"]:
+            penalty += 20
 
     return penalty
 #---------------------------------------------------------------
@@ -106,6 +111,12 @@ def top_context_bonus(
 
     if any(x in name for x in ["camisa", "blusa"]) and occasion in ["trabajo", "cita"]:
         bonus += 3
+
+    if garment.subcategory == "polera_deporte":
+        if occasion == "deporte":
+            bonus += 12
+        if activity in ["entrenar", "caminar"]:
+            bonus += 8
 
     return bonus
 
@@ -414,8 +425,10 @@ def one_piece_context_bonus(
     if subcategory in ["vestido_elegante", "vestido_coctel"]:
         occasion_match = occasion in ["cita", "salida nocturna"]
         mood_match = mood in ["elegante", "sexy"]
-        if occasion_match:
+        if occasion_match and mood_match:
             bonus += 25
+        elif occasion_match and mood not in ["comodo", "relajado"]:
+            bonus += 12
         if mood_match:
             bonus += 20
 
@@ -664,6 +677,14 @@ def shoe_context_bonus(
         elif subcategory == "mocasin":
             bonus -= 20
 
+    if is_shoe_ballet_flat(garment):
+        if occasion in ["cita", "salida nocturna"]:
+            bonus += 6
+        if occasion == "trabajo" and mood in ["elegante", "formal"]:
+            bonus += 5
+        if mood == "comodo":
+            bonus += 8
+
     return bonus
 
 # =========================================================
@@ -764,6 +785,12 @@ def outerwear_context_bonus(
     if rain and garment.waterproof:
         bonus += 12
 
+    if garment.subcategory == "impermeable_deporte":
+        if occasion == "deporte":
+            bonus += 10
+        if activity in ["entrenar", "caminar"] and rain:
+            bonus += 8
+
     # Boost parka abrigada en frío extremo con mood relajado/cómodo
     if (
         garment.subcategory == "parka"
@@ -815,6 +842,26 @@ def outerwear_context_penalty(
 
         if temp >= 16:
             penalty += 12
+
+    is_formal_coat = (
+        garment.subcategory in ["abrigo", "trench"]
+        and (garment_has_style(garment, "elegante") or garment_has_style(garment, "formal"))
+        and garment.dress_level in ["arreglado", "elegante"]
+    )
+
+    if is_formal_coat:
+        if occasion == "casual" and mood in ["relajado", "comodo", "urbano"]:
+            penalty += 28
+        if occasion == "trabajo" and mood in ["relajado", "comodo", "urbano"]:
+            penalty += 22
+        if occasion == "deporte":
+            penalty += 40
+
+    if garment.subcategory == "impermeable_deporte":
+        if occasion not in ["deporte", "casual"]:
+            penalty += 18
+        if mood in ["elegante", "formal"]:
+            penalty += 15
 
     return penalty
 
@@ -932,6 +979,8 @@ def should_include_accessory(
         return False
 
     if is_scarf:
+        if temp >= 18:
+            return False
         if temp >= 16 and not rain:
             return False
         return temp <= 13 or rain
@@ -943,6 +992,8 @@ def should_include_accessory(
         if mood not in ["relajado", "urbano", "comodo"]:
             return False
 
+        if temp >= 22:
+            return False
         if activity != "caminar" and not rain:
             return False
 
@@ -989,7 +1040,9 @@ def should_include_accessory(
         return True
 
     if is_winter_hat:
-        if temp >= 18 and not rain:
+        if temp >= 18:
+            return False
+        if temp >= 16 and not rain:
             return False
         return temp <= 12 or rain
 
@@ -1040,7 +1093,7 @@ def accessory_relevance_penalty(
             penalty += 10
 
     if is_cap:
-        if temp >= 20 and not rain:
+        if temp >= 22:
             penalty += 40
         elif temp >= 16 and not rain:
             penalty += 18
@@ -1089,7 +1142,7 @@ def accessory_relevance_penalty(
             penalty += 10
 
     if is_winter_hat:
-        if temp >= 18 and not rain:
+        if temp >= 18:
             penalty += 40
 
     if not is_scarf and not is_cap and not is_winter_hat:

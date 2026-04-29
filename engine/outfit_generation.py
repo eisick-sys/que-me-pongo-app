@@ -616,7 +616,15 @@ def generate_outfits(
             )
         ]
 
-    if temp >= 24:
+    if temp >= 24 and rain:
+        # Lluvia con calor: solo impermeables livianos, sin midlayer
+        top_candidates["midlayer"] = []
+        top_candidates["outerwear"] = [
+            g for g in top_candidates["outerwear"]
+            if g.waterproof and g.warmth in ["caluroso", "medio"]
+        ][:2]
+
+    elif temp >= 24:
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -655,6 +663,7 @@ def generate_outfits(
         top_candidates["outerwear"] = _outer_pool[:4]
 
     elif rain and temp >= 16:
+        # Lluvia templada (16–23°): midlayer liviano opcional, outerwear con impermeables
         top_candidates["midlayer"] = [
             g for g in top_candidates["midlayer"] if g.warmth != "frio"
         ][:1]
@@ -1627,7 +1636,15 @@ def generate_outfits_from_selected_garment(
     # =========================================================
     # FILTROS DE CLIMA — ordenados correctamente
     # =========================================================
-    if temp >= 24:
+    if temp >= 24 and rain:
+        # Lluvia con calor: solo impermeables livianos, sin midlayer
+        top_candidates["midlayer"] = []
+        top_candidates["outerwear"] = [
+            g for g in top_candidates["outerwear"]
+            if g.waterproof and g.warmth in ["caluroso", "medio"]
+        ][:2]
+
+    elif temp >= 24:
         top_candidates["outerwear"] = []
         if occasion == "matrimonio" and mood in ["urbano", "sexy"]:
             if temp > 25:
@@ -1666,6 +1683,7 @@ def generate_outfits_from_selected_garment(
         top_candidates["outerwear"] = _outer_pool[:4]
 
     elif rain and temp >= 16:
+        # Lluvia templada (16–23°): midlayer liviano opcional, outerwear con impermeables
         top_candidates["midlayer"] = [
             g for g in top_candidates["midlayer"] if g.warmth != "frio"
         ][:1]

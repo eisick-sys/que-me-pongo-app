@@ -148,3 +148,13 @@ def is_midlayer_formal_friendly(garment: Garment) -> bool:
         or garment_has_style(garment, "elegante")
         or any(x in name for x in ["blazer", "chaleco vestir"])
     )
+
+
+def is_shoe_ballet_flat(garment: Garment) -> bool:
+    sub = getattr(garment, "subcategory", None)
+    if sub == "ballarina":
+        return True
+    name = garment.name.lower()
+    return any(x in name for x in [
+        "ballarina", "ballerina", "balerina", "ballet", "zapato ballet"
+    ])

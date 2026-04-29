@@ -297,3 +297,30 @@ def save_user_profile_cloud(profile: UserProfile) -> bool:
     except Exception as e:
         print(f"Error guardando perfil: {e}")
         return False
+
+
+# =========================================================
+# IGNORED BADGES
+# =========================================================
+
+def load_ignored_badges_cloud(user_id: str) -> set:
+    try:
+        sb = get_supabase()
+        response = sb.table("ignored_badges").select("garment_id").eq("user_id", user_id).execute()
+        return {item["garment_id"] for item in (response.data or [])}
+    except Exception as e:
+        print(f"Error cargando ignored badges: {e}")
+        return set()
+
+
+def add_ignored_badge_cloud(user_id: str, garment_id: int) -> bool:
+    try:
+        sb = get_supabase()
+        sb.table("ignored_badges").upsert({
+            "user_id": user_id,
+            "garment_id": garment_id,
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"Error guardando ignored badge: {e}")
+        return False

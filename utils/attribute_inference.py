@@ -103,7 +103,7 @@ def infer_category_from_name(name: str) -> Optional[str]:
         ],
         "midlayer": [
             "blazer", "cardigan", "chaleco", "sweater", "sueter",
-            "tejido", "hoodie", "polar",
+            "tejido", "hoodie", "polar", "camisón", "camison",
         ],
         "outerwear": [
             "chaqueta", "abrigo", "parka", "impermeable", "trench",
@@ -111,13 +111,14 @@ def infer_category_from_name(name: str) -> Optional[str]:
         ],
         "bottom": [
             "jeans", "pantalon", "falda", "short", "shorts",
-            "calza", "leggings", "legging", "buzo", "palazzo", "mini", "minifalda"
+            "calza", "leggings", "legging", "buzo", "palazzo", "mini", "minifalda",
+            "jardinera", "overol",
         ],
         "shoes": [
             "zapatillas", "zapatilla", "zapatos", "zapato", "botines",
             "botin", "botas", "bota", "sandalias", "sandalia",
             "mocasines", "mocasin", "tacos", "taco", "mocasin",
-            "stiletto", "stilettos"
+            "stiletto", "stilettos", "ballarina", "ballerina", "balerina", "ballet",
         ],
         "accessory": [
             "reloj", "collar", "pulsera", "anillo", "aros", "cinturon",
@@ -141,6 +142,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
 
     subcategory_keywords = {
         "top": {
+            "polera_deporte": ["polera deporte", "polera deportiva", "camiseta deporte", "camiseta deportiva", "running top", "dry fit", "dri fit"],
             "polera": ["polera", "camiseta", "remera", "t-shirt"],
             "blusa": ["blusa"],
             "camisa": ["camisa"],
@@ -156,12 +158,14 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "blazer": ["blazer"],
             "hoodie": ["hoodie"],
             "polar": ["polar"],
+            "camisón": ["camisón", "camison", "camiseta larga"],
         },
         "outerwear": {
             "chaqueta": ["chaqueta"],
             "abrigo": ["abrigo"],
             "parka": ["parka"],
             "trench": ["trench"],
+            "impermeable_deporte": ["impermeable deporte", "impermeable deportivo", "cortaviento deporte", "cortaviento deportivo", "rain jacket", "running jacket"],
             "impermeable": ["impermeable", "cortaviento"],
             "poncho": ["poncho"],
             "bolero": ["bolero"],
@@ -178,6 +182,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "legging": ["legging", "leggings", "calza", "calzas"],
             "buzo": ["buzo", "jogging", "pantalon de buzo"],
             "jogger": ["jogger", "joggers"],
+            "jardinera": ["jardinera", "overol peto", "peto jardinero"],
         },
         "one_piece": {
             "vestido_elegante": ["vestido elegante", "vestido formal", "vestido de noche"],
@@ -195,6 +200,7 @@ def infer_subcategory_from_name(name: str, category: Optional[str] = None) -> Op
             "sandalia": ["sandalia", "sandalias"],
             "taco_bajo": ["taco bajo", "kitten heel", "kitten", "tacón bajo"],
             "taco_alto": ["taco", "tacos", "tacon", "tacones", "heel", "heels", "stiletto", "stilettos"],
+            "ballarina": ["ballarina", "ballerina", "balerina", "zapato ballet", "ballet flat"],
             "mocasin": ["mocasin", "mocasines", "loafer", "loafers"],
         },
         "accessory": {
@@ -314,7 +320,9 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "chaqueta": "medio",
         "trench": "medio",
         "impermeable": "medio",
+        "impermeable_deporte": "medio",
         "polera": "caluroso",
+        "polera_deporte": "caluroso",
         "top": "caluroso",
         "blusa": "caluroso",
         "camisa": "caluroso",
@@ -326,6 +334,9 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "falda_corta": "caluroso",
         "short_casual": "caluroso",
         "short_elegante": "caluroso",
+        "jardinera": "caluroso",
+        "camisón": "medio",
+        "ballarina": "caluroso",
     }
 
     dress_level_map = {
@@ -340,6 +351,7 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "botin": "flexible",
         "zapato": "flexible",
         "mocasin": "flexible",
+        "impermeable_deporte": "relajado",
         "buzo": "relajado",
         "jogger": "relajado",
         "hoodie": "relajado",
@@ -349,6 +361,9 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "short_casual": "relajado",
         "legging": "relajado",
         "gorro": "relajado",
+        "jardinera": "relajado",
+        "camisón": "relajado",
+        "ballarina": "flexible",
     }
 
     sexiness_map = {
@@ -364,11 +379,15 @@ def infer_attributes_from_subcategory(subcategory: str, current_attrs: dict) -> 
         "vestido_coctel": "elegante",
         "blazer": "formal",
         "trench": "formal",
+        "polera_deporte": "sport",
+        "impermeable_deporte": "sport",
         "buzo": "sport",
         "jogger": "sport",
         "polar": "sport",
         "zapatilla_deporte": "sport",
         "hoodie": "casual",
+        "jardinera": "casual",
+        "camisón": "casual",
     }
 
     if subcategory:

@@ -16,7 +16,10 @@ from storage_cloud import (
     load_used_outfits_cloud, add_used_outfit_cloud, get_next_used_outfit_id,
     upload_garment_image, get_garment_image_url,
     load_user_profile_cloud, save_user_profile_cloud,
+    load_ignored_badges_cloud, add_ignored_badge_cloud,
 )
+
+APP_VERSION = "1.0.0"
 
 st.set_page_config(
     page_title="Lookia",
@@ -60,6 +63,8 @@ with st.sidebar:
 
     if st.sidebar.button("❓ ¿Qué es Lookia?", key="open_about", type="tertiary"):
         st.session_state["show_about"] = not st.session_state.get("show_about", False)
+
+    st.caption(f"v{APP_VERSION}")
 
 from models import Garment, OutfitFeedback, UsedOutfit, UserProfile
 from weather import format_weather_label, get_current_weather, get_week_forecast
@@ -396,6 +401,9 @@ if "feedback" not in st.session_state:
 
 if "used_outfits" not in st.session_state:
     st.session_state.used_outfits = load_used_outfits_cloud(user_id)
+
+if "ignored_badges" not in st.session_state:
+    st.session_state.ignored_badges = load_ignored_badges_cloud(user_id)
 
 if "outfit_history" not in st.session_state:
     st.session_state.outfit_history = [
@@ -967,17 +975,19 @@ with tab1:
                 for g in combo
             )
 
-            if has_skirt and (rain or temp <= 12):
+            if has_skirt and temp <= 20:
                 st.info("❄️ Tip: si usas falda con este clima, no olvides tus pantys.")
-            elif has_short and (rain or temp <= 12):
+            elif has_short and temp <= 20:
                 st.info("❄️ Tip: si usas short con este clima, considera unas pantys o medias.")
 
             if rain:
-                has_non_waterproof_outer = any(
-                    g.category == "outerwear" and not g.waterproof
-                    for g in combo
-                )
-                if has_non_waterproof_outer:
+                has_waterproof = any(g.category == "outerwear" and g.waterproof for g in combo)
+                has_non_waterproof_outer = any(g.category == "outerwear" and not g.waterproof for g in combo)
+                has_any_outer = any(g.category == "outerwear" for g in combo)
+
+                if temp >= 24 and not has_any_outer:
+                    st.info("☂️ Con este calor no necesitas abrigo, pero no olvides llevar paraguas.")
+                elif has_non_waterproof_outer:
                     st.info("☂️ Si eliges este outfit, no olvides llevar tu paraguas.")
 
             ctx = {
@@ -1056,6 +1066,8 @@ with tab2:
         with col_f3:
             st.markdown("<div style='margin-top: 1.9rem;'></div>", unsafe_allow_html=True)
             filter_new_only = st.checkbox("🆕 Nuevas", key="filter_new_only_tab2")
+            filter_waterproof = st.checkbox("🌧️ Impermeables", key="filter_waterproof_tab2")
+            filter_issues = st.checkbox("⚠️ Con alertas", key="filter_issues_tab2")
 
         with col_f2:
             color_icons = {
@@ -1107,6 +1119,15 @@ with tab2:
         if filter_new_only:
             filtered_wardrobe = [g for g in filtered_wardrobe if getattr(g, "is_new", False)]
 
+        if filter_waterproof:
+            filtered_wardrobe = [g for g in filtered_wardrobe if getattr(g, "waterproof", False)]
+
+        if filter_issues:
+            filtered_wardrobe = [
+                g for g in filtered_wardrobe
+                if detect_garment_issues(g) and g.id not in st.session_state.ignored_badges
+            ]
+
         if not filtered_wardrobe:
             st.info("No hay prendas que coincidan con ese filtro.")
         else:
@@ -1120,12 +1141,13 @@ with tab2:
                         if getattr(g, "is_new", False):
                             st.caption("🆕 Nueva")
                         issue = detect_garment_issues(g)
-                        if issue and not st.session_state.get(f"issue_ignored_{g.id}", False):
+                        if issue and g.id not in st.session_state.ignored_badges:
                             st.caption(f"⚠️ {issue}")
                             col_ignore, col_edit = st.columns(2)
                             with col_ignore:
                                 if st.button("Ignorar", key=f"ignore_issue_{g.id}", use_container_width=True):
-                                    st.session_state[f"issue_ignored_{g.id}"] = True
+                                    add_ignored_badge_cloud(user_id, g.id)
+                                    st.session_state.ignored_badges.add(g.id)
                                     st.rerun()
                             with col_edit:
                                 if st.button("✏️ Revisar", key=f"review_issue_{g.id}", use_container_width=True):
@@ -1212,10 +1234,11 @@ with tab2:
 
                     garment_color = normalize_color_name(getattr(garment, "color", "blanco"))
 
+                    if f"edit_style_{garment.id}" not in st.session_state:
+                        st.session_state[f"edit_style_{garment.id}"] = garment.style if garment.style in STYLE_OPTIONS else STYLE_OPTIONS[0]
                     style = st.selectbox(
                         "Estilo principal",
                         STYLE_OPTIONS,
-                        index=STYLE_OPTIONS.index(st.session_state.get(f"edit_style_{garment.id}", garment.style)) if st.session_state.get(f"edit_style_{garment.id}", garment.style) in STYLE_OPTIONS else 0,
                         key=f"edit_style_{garment.id}",
                         format_func=lambda s: STYLE_LABELS_ES.get(s, s),
                     )
@@ -1255,10 +1278,11 @@ with tab2:
 
                     pattern_options_edit = [current_pattern] + [p for p in pattern_options_base if p != current_pattern]
 
+                    if f"edit_pattern_{garment.id}" not in st.session_state:
+                        st.session_state[f"edit_pattern_{garment.id}"] = current_pattern
                     pattern = st.selectbox(
                         "Patrón / diseño",
                         pattern_options_edit,
-                        index=0,
                         key=f"edit_pattern_{garment.id}"
                     )
                     
@@ -1377,16 +1401,14 @@ with tab2:
 """, unsafe_allow_html=True)
                     name = st.text_input("Nombre", value=garment.name, key=f"edit_name_{garment.id}", label_visibility="collapsed", on_change=_reinfer_from_edit_name)
 
-                    _init_cat = st.session_state.get(f"edit_category_{garment.id}", garment.category)
+                    if f"edit_category_{garment.id}" not in st.session_state:
+                        st.session_state[f"edit_category_{garment.id}"] = garment.category if garment.category in CATEGORY_OPTIONS else CATEGORY_OPTIONS[0]
                     category = st.selectbox(
                         "Categoría",
                         CATEGORY_OPTIONS,
-                        index=CATEGORY_OPTIONS.index(_init_cat) if _init_cat in CATEGORY_OPTIONS else 0,
                         key=f"edit_category_{garment.id}",
                         format_func=lambda c: CATEGORY_LABELS_ES.get(c, c)
                     )
-
-                    current_subcategory = st.session_state.get(f"edit_sub_{garment.id}_{category}", getattr(garment, "subcategory", None))
 
                     edit_cat_key = f"edit_cat_{garment.id}"
                     if st.session_state.get(edit_cat_key) != category:
@@ -1394,16 +1416,15 @@ with tab2:
 
                     subcategory_options = ["— ninguna —"] + SUBCATEGORY_OPTIONS.get(category, [])
 
-                    safe_index = (
-                        subcategory_options.index(current_subcategory)
-                        if current_subcategory in subcategory_options else 0
-                    )
+                    _sub_key = f"edit_sub_{garment.id}_{category}"
+                    if _sub_key not in st.session_state:
+                        _init_sub = getattr(garment, "subcategory", None)
+                        st.session_state[_sub_key] = _init_sub if _init_sub in subcategory_options else "— ninguna —"
 
                     subcategory = st.selectbox(
                         "Subcategoría",
                         subcategory_options,
-                        index=safe_index,
-                        key=f"edit_sub_{garment.id}_{category}",
+                        key=_sub_key,
                         format_func=lambda x: "— ninguna —" if x == "— ninguna —" else SUBCATEGORY_LABELS_ES.get(x, x)
                     )
 
@@ -1417,11 +1438,11 @@ with tab2:
                     )
 
                     if show_warmth:
-                        current_warmth = st.session_state.get(f"edit_warmth_{garment.id}", garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio")
+                        if f"edit_warmth_{garment.id}" not in st.session_state:
+                            st.session_state[f"edit_warmth_{garment.id}"] = garment.warmth if garment.warmth in WARMTH_OPTIONS else "medio"
                         warmth = st.selectbox(
                             "Tipo térmico",
                             WARMTH_OPTIONS,
-                            index=WARMTH_OPTIONS.index(current_warmth),
                             key=f"edit_warmth_{garment.id}"
                         )
 
@@ -1435,20 +1456,22 @@ with tab2:
                     else:
                         waterproof = False
 
-                    _init_dl = st.session_state.get(f"edit_dress_level_{garment.id}", garment.dress_level)
+                    if f"edit_dress_level_{garment.id}" not in st.session_state:
+                        _init_dl = garment.dress_level
+                        st.session_state[f"edit_dress_level_{garment.id}"] = _init_dl if _init_dl in DRESS_LEVEL_OPTIONS else DRESS_LEVEL_OPTIONS[0]
                     dress_level = st.selectbox(
                         "Nivel de formalidad",
                         DRESS_LEVEL_OPTIONS,
-                        index=DRESS_LEVEL_OPTIONS.index(_init_dl) if _init_dl in DRESS_LEVEL_OPTIONS else 0,
                         key=f"edit_dress_level_{garment.id}"
                     )
 
                     if show_functional_fields:
+                        if f"edit_sexiness_{garment.id}" not in st.session_state:
+                            st.session_state[f"edit_sexiness_{garment.id}"] = getattr(garment, "sexiness", 0) or 0
                         sexiness = st.slider(
                             "Nivel sexy",
                             min_value=0,
                             max_value=3,
-                            value=st.session_state.get(f"edit_sexiness_{garment.id}", getattr(garment, "sexiness", 0)),
                             key=f"edit_sexiness_{garment.id}",
                             help="0 = nada sexy, 1 = bajo, 2 = medio, 3 = alto"
                         )
