@@ -410,7 +410,7 @@ def infer_style_from_name(name: str) -> Optional[str]:
     text = normalize_text(name)
 
     style_keywords = {
-        "elegante": ["elegante", "formal", "vestir", "fino", "fina"],
+        "elegante": ["elegante", "formal", "vestir", "fino", "fina", "gala", "de gala", "coctel", "de noche", "noche elegante"],
         "formal": ["formal", "traje", "sastre"],
         "urbano": ["urbano", "urbana", "street", "streetwear"],
         "sport": ["sport", "deportivo", "deportiva", "running", "training", "gym"],

@@ -1666,6 +1666,9 @@ with tab3:
     if "form_dress_level" not in st.session_state:
         st.session_state.form_dress_level = "flexible"
 
+    if "form_sexiness_add" not in st.session_state:
+        st.session_state.form_sexiness_add = 0
+
     if "form_uploader_key" not in st.session_state:
         st.session_state.form_uploader_key = 0
     
@@ -1853,7 +1856,7 @@ with tab3:
                 st.session_state.form_waterproof = inferred["waterproof"]
 
             if isinstance(inferred.get("sexiness"), int):
-                st.session_state.form_sexiness = inferred["sexiness"]
+                st.session_state.form_sexiness_add = inferred["sexiness"]
 
             if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS:
                 st.session_state.form_dress_level = inferred["dress_level"]
@@ -1873,13 +1876,30 @@ with tab3:
 
         if inferred.get("category") in CATEGORY_OPTIONS:
             st.session_state.form_category = inferred["category"]
-
             inferred_subcategory = inferred.get("subcategory")
             valid_subcategories = SUBCATEGORY_OPTIONS.get(inferred["category"], [])
             if inferred_subcategory in valid_subcategories:
                 st.session_state.form_subcategory = inferred_subcategory
             else:
                 st.session_state.form_subcategory = None
+
+        if inferred.get("color") in COLOR_OPTIONS:
+            st.session_state.form_color = inferred["color"]
+
+        if inferred.get("pattern") in PATTERN_OPTIONS:
+            st.session_state.form_pattern = inferred["pattern"]
+
+        if inferred.get("warmth") in WARMTH_OPTIONS:
+            st.session_state.form_warmth = inferred["warmth"]
+
+        if inferred.get("dress_level") in DRESS_LEVEL_OPTIONS:
+            st.session_state.form_dress_level = inferred["dress_level"]
+
+        if isinstance(inferred.get("sexiness"), int):
+            st.session_state.form_sexiness_add = inferred["sexiness"]
+
+        if inferred.get("style") in STYLE_OPTIONS:
+            st.session_state.form_style = inferred["style"]
 
     st.markdown("""
 <div style="background-color: #fff0f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">

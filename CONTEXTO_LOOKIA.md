@@ -101,6 +101,7 @@ LOOKIA_ENV = "production"
 - **Storage:** Bucket `garment-images`. Ruta: `{user_id}/{image_name}`. Imágenes públicas, subida autenticada con `access_token`.
 - **Cliente:** `supabase_client.py` — `get_supabase()` para operaciones de DB, `get_supabase_for_user(access_token)` para uploads de Storage.
 - **Migración datos locales:** `migrate_local_data.py` — ejecutar una sola vez con `python migrate_local_data.py USER_ID`. Usa `SUPABASE_SERVICE_KEY` para bypassear RLS.
+- **Tabla `ignored_badges`:** `(id, user_id, garment_id, created_at)` con RLS. Persistencia real de badges ignorados en galería.
 
 ---
 
@@ -108,7 +109,6 @@ LOOKIA_ENV = "production"
 - La app ya usa Supabase — JSON locales son legacy, no se leen en producción
 - `wardrobe_images/` y `__pycache__/` no van al repositorio (están en `.gitignore`)
 - Claude Code tiende a incluir .env en commits — siempre verificar antes del push
-- El "Ignorar" de badges de advertencia en clóset solo persiste en session_state — al recargar vuelven a aparecer. Pendiente persistencia real en Supabase.
 - `supabase-py 2.3.5` instalado localmente (versiones más nuevas fallan en Python 3.14 por dependencia `pyiceberg`)
 - En Streamlit Cloud se instala la versión de `requirements.txt` — verificar compatibilidad si se cambia la versión
 
@@ -660,6 +660,59 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 
 ---
 
+### Sesión 28 — abril 2026
+
+**Versión**
+- ✅ `APP_VERSION = "1.0.0"` agregado en `app.py`; `st.caption(f"v{APP_VERSION}")` al final del sidebar
+
+**Fix lluvia + calor (`engine/outfit_generation.py`)**
+- ✅ Bug: cuando `rain=True` y `temp >= 24`, el bloque `elif temp >= 24` vaciaba outerwear sin considerar lluvia, dejando al usuario sin abrigo impermeable
+- ✅ Fix: nuevo branch `if temp >= 24 and rain:` antes del `if temp >= 24:` — mantiene solo impermeables livianos (waterproof + warmth caluroso/medio), vacía midlayer; aplicado en `generate_outfits` y `generate_outfits_from_selected_garment`
+- ✅ Tip en `app.py`: "Con este calor no necesitas abrigo, pero no olvides llevar paraguas" cuando `temp >= 24 and not has_any_outer`
+- ✅ Umbral tip de falda/short cambiado de `temp <= 16` a `temp <= 20`
+
+**Fixes accesorios (`engine/category_rules.py`)**
+- ✅ `should_include_accessory`: bufanda bloqueada a `temp >= 18`; gorro de invierno bloqueado a `temp >= 18`; jockey bloqueado a `temp >= 22` (antes `>= 20 and not rain`)
+- ✅ `accessory_relevance_penalty`: jockey bloqueado a `temp >= 22` (incondicionalmente); gorro invierno bloqueado a `temp >= 18` (incondicionalmente, antes incluía `and not rain`)
+- ✅ `outerwear_context_penalty`: bloque `is_formal_coat` agregado — penaliza abrigo elegante/formal en deporte, casual relajado y ocasiones sin formalidad
+
+**Nuevas subcategorías**
+- ✅ `jardinera` (bottom): constants, labels, inferencia, attribute_inference, occasion_rules
+- ✅ `camisón` (midlayer): constants, labels, inferencia, attribute_inference
+- ✅ `ballarina` (shoes): constants, labels, inferencia, `is_shoe_ballet_flat()` en garment_utils, occasion_rules
+- ✅ `polera_deporte` (top): constants, labels, inferencia, category_rules (bonus +12 en deporte, penalty +20 fuera de deporte/casual), occasion_rules (bloqueada fuera de deporte/casual)
+- ✅ `impermeable_deporte` (outerwear): constants, labels, inferencia, category_rules (bonus en deporte/lluvia, penalty en elegante/formal), occasion_rules (bloqueado en matrimonio/gala/cita elegante/nocturna elegante)
+
+**`engine/compatibility.py`**
+- ✅ Vestido elegante/cóctel penaliza calzado que no sea elegante/formal: zapato/botín sin estilo elegante → -22; bota sin estilo elegante → -28
+
+**`engine/category_rules.py` — `one_piece_context_bonus`**
+- ✅ Boost vestido_elegante/coctel cambiado de incondicional (+25) a condicional: `occasion_match AND mood_match → +25`; `occasion_match AND mood not in ["comodo","relajado"] → +12`
+
+**`engine/occasion_rules.py`**
+- ✅ Trabajo + enterito: bloqueado salvo `mood == "sexy"`
+- ✅ Trabajo + short/falda corta: umbral temperatura según mood — `24°` si relajado/cómodo, `27°` si otros
+- ✅ Salida nocturna + polar: bloqueado cuando `mood == "elegante"`
+- ✅ `impermeable_deporte`: bloqueado en matrimonio/gala; bloqueado en cita/nocturna/trabajo con mood elegante/formal/sexy
+- ✅ `polera_deporte`: bloqueada fuera de deporte/casual
+- ✅ `jardinera`: bloqueada con lluvia y temp ≤ 13°; bloqueada en matrimonio/gala si dress_level relajado/flexible
+- ✅ `ballarina`: bloqueada en deporte y actividad entrenar; bloqueada con temp ≤ 8° (advertencia suave)
+- ✅ `zapatilla_deporte` + `mood == "elegante"`: bloqueada fuera de deporte
+
+**`utils/garment_utils.py`**
+- ✅ `is_shoe_ballet_flat(garment)` nueva función — detecta ballarina por subcategoría y keywords en nombre
+
+**`app.py` — Galería de prendas**
+- ✅ Filtro "☔ Solo impermeables" (`filter_waterproof`) en galería
+- ✅ Filtro "⚠️ Con alertas" (`filter_issues`) en galería — muestra solo prendas con inconsistencias no ignoradas
+- ✅ Ignored badges migrados de `st.session_state[f"issue_ignored_{g.id}"]` (efímero) a `st.session_state.ignored_badges` (set cargado desde Supabase)
+- ✅ 7 widgets del formulario de edición corregidos (style, pattern, category, subcategory, warmth, dress_level, sexiness): removidos parámetros `index=`/`value=` conflictivos con session_state; inicialización con `if key not in st.session_state`
+
+**`storage_cloud.py`**
+- ✅ `load_ignored_badges_cloud(user_id)` y `add_ignored_badge_cloud(user_id, garment_id)` agregadas — persisten badges ignorados en tabla Supabase `ignored_badges`
+
+---
+
 ## Pendiente para próximas sesiones
 
 ### Motor — matrimonio ✅ completado
@@ -686,29 +739,32 @@ Cuando `selected_garment` es un outerwear (abrigo, chaqueta, bolero), la lógica
 
 ### Clóset
 - ⬜ Verificar top leopardo (63) — agregar tag urbano en secondary_styles si corresponde
-- ⬜ Agregar sandalias, ballerinas y chalas al clóset
-- ⬜ Ballerinas como subcategoría de shoes — calzado cómodo por excelencia para matrimonio+cómodo
+- ⬜ Agregar sandalias, ballerinas y chalas al clóset (subcategoría ballarina ya implementada)
 - ⬜ Más bottoms livianos para calor
 
 ### UI
 - ⬜ Formulario editar prenda — scroll automático o inline en galería
 - ⬜ Tip de pantys: mostrar máximo una vez por tanda
-- ⬜ Persistencia del "Ignorar" en badge de inconsistencias (pendiente Supabase)
+- ✅ Persistencia del "Ignorar" en badge de inconsistencias — implementado con tabla Supabase `ignored_badges`
 - ⬜ Ocasiones frecuentes del perfil ordenadas primero en selectbox del recomendador
 - ⬜ Botón eliminar directo en tarjeta de galería — pendiente migración a React
 - ⬜ Destacar boton de "mi perfil" y "qué es Lookia"
+- ⬜ Pruebas completas en Claude in Chrome — instalar extensión primero
 
 ### Técnico
 - ⬜ Moderación de fotos — bloquear nudes/menores/contenido inapropiado en subida (urgente)
-- ⬜ Refactor `generate_outfits_from_selected_garment` — lógica duplicada con `generate_outfits` (límites, filtros temp, filtros matrimonio, `register_combo`/`add_combo`, penalización recent_outfits)
+- ⬜ Refactor `generate_outfits_from_selected_garment` — ~430 líneas duplicadas con `generate_outfits`
 - ⚠️ Import `outfit_score` dentro de loop en `_generate_matrimonio_elegante` (L162) — ya importado en top del archivo
 - ⚠️ Riesgo de recursión infinita en `_generate_matrimonio_elegante` cuando no hay vestidos — revisar si `engine.recommender.generate_outfits` tiene el dispatch matrimonio+elegante
+- ⬜ Push a version-sana después de pruebas completas
 - ⬜ UI definitiva — migrar de Streamlit a React o similar
 - ⬜ Dividir app.py en módulos por tab
 - ⬜ Renombrar dress_level "flexible" a "intermedio" en refactor futuro
-- ⬜ Revisar funcion "default wardrobe"
 
 ### Funcionalidades nuevas
+- 🎯 **PRÓXIMO: `chaleco_vestir`** — nueva subcategoría para midlayer (chaleco de tela/elegante, no deporte). Diseño aprobado, implementación pendiente.
+- ⬜ Rotación de categorías — `bottom_usage` y mecanismo de diversidad forzada genérica para bottom/midlayer/outerwear
 - ⬜ Estadísticas en tab "Mi clóset" — ya implementado básico, expandir
 - ⬜ Integración IA Anthropic (PRIORITARIO): moderación de fotos + inferencia de atributos desde imagen en una sola llamada a Claude Haiku
 - ⬜ Ocasiones frecuentes del perfil usadas para ordenar opciones en recomendador
+- ⬜ Compatibilidad de colores — penalizar outfits con 4+ colores sin eje cromático claro
